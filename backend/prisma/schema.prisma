@@ -1,0 +1,748 @@
+// Prisma Schema - 입시 정보 격차 해소 플랫폼
+// M0~M9 Complete
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// M0/M1: 사용자 및 가족 시스템
+// ============================================
+
+enum Role {
+  STUDENT
+  PARENT
+  CONSULTANT
+  ADMIN
+}
+
+enum ConsultantStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  password         String
+  name             String?
+  role             Role              @default(STUDENT)
+  consultantStatus ConsultantStatus?
+  schoolName       String?
+  grade            Int?
+  familyId         String?
+  refreshToken     String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  // M8: 컨설턴트 프로필 필드
+  bio            String?   @db.Text  // 소개글
+  specialty      String?             // 전문 분야
+  experience     String?   @db.Text  // 경력/자격
+  profileImage   String?             // 프로필 이미지 URL
+  
+  // M9 임시 필드 (결제 연동 전)
+  hasPremium     Boolean   @default(false)
+
+  // 기존 관계
+  family            Family?            @relation(fields: [familyId], references: [id])
+  createdInvites    InviteCode[]       @relation("CreatedInvites")
+  usedInvite        InviteCode?        @relation("UsedInvite")
+  grades            Grade[]
+  activities        Activity[]
+  readingLogs       ReadingLog[]
+  attendances       Attendance[]
+  volunteers        Volunteer[]
+  favoriteSchools   FavoriteSchool[]
+  targetSchools     TargetSchool[]
+  diagnosisResults  DiagnosisResult[]
+  recommendedSchools RecommendedSchool[]
+  aiOutputs         AIOutput[]
+  aiFeedbacks       AIFeedback[]
+  actionPlans       ActionPlan[]
+  eventLogs         EventLog[]
+
+  // M8: 컨설턴트 관련 관계
+  consultantAvailabilities ConsultantAvailability[]
+  studentConsultations     Consultation[] @relation("StudentConsultations")
+  parentConsultations      Consultation[] @relation("ParentConsultations")
+  consultantConsultations  Consultation[] @relation("ConsultantConsultations")
+  notifications            Notification[]
+
+  // M9: 구독 관계
+  subscriptions Subscription[]
+
+  @@map("users")
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members     User[]
+  inviteCodes InviteCode[]
+
+  @@map("families")
+}
+
+model InviteCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  createdById String
+  familyId    String
+  usedById    String?   @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  createdBy User   @relation("CreatedInvites", fields: [createdById], references: [id])
+  family    Family @relation(fields: [familyId], references: [id])
+  usedBy    User?  @relation("UsedInvite", fields: [usedById], references: [id])
+
+  @@map("invite_codes")
+}
+
+// ============================================
+// M2: 학생 데이터 입력
+// ============================================
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ActivityType {
+  CLUB
+  VOLUNTEER
+  CAREER
+  AUTONOMOUS
+  SUBJECT
+}
+
+model Grade {
+  id          String         @id @default(cuid())
+  studentId   String
+  subject     String
+  year        Int
+  semester    Int
+  written     Int
+  performance Int
+  rank        Int?
+  status      ApprovalStatus @default(PENDING)
+  comment     String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  student User @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, subject, year, semester])
+  @@map("grades")
+}
+
+model Activity {
+  id        String         @id @default(cuid())
+  studentId String
+  type      ActivityType
+  title     String
+  content   String
+  startDate DateTime
+  endDate   DateTime?
+  status    ApprovalStatus @default(PENDING)
+  comment   String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  student   User       @relation(fields: [studentId], references: [id])
+  aiOutputs AIOutput[]
+
+  @@map("activities")
+}
+
+model ReadingLog {
+  id        String         @id @default(cuid())
+  studentId String
+  bookTitle String
+  author    String
+  readDate  DateTime
+  review    String?
+  status    ApprovalStatus @default(PENDING)
+  comment   String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  student User @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, bookTitle, readDate])
+  @@map("reading_logs")
+}
+
+model Attendance {
+  id               String         @id @default(cuid())
+  studentId        String
+  year             Int
+  semester         Int
+  absenceDisease   Int            @default(0)
+  absenceUnexcused Int            @default(0)
+  absenceOther     Int            @default(0)
+  latenessCount    Int            @default(0)
+  earlyLeaveCount  Int            @default(0)
+  status           ApprovalStatus @default(PENDING)
+  comment          String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  student User @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, year, semester])
+  @@map("attendances")
+}
+
+model Volunteer {
+  id           String         @id @default(cuid())
+  studentId    String
+  title        String
+  organization String
+  startDate    DateTime
+  endDate      DateTime?
+  hours        Float
+  description  String?
+  status       ApprovalStatus @default(PENDING)
+  comment      String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  student User @relation(fields: [studentId], references: [id])
+
+  @@map("volunteers")
+}
+
+// ============================================
+// M3: 학교 및 입학 정보
+// ============================================
+
+enum SchoolType {
+  GENERAL
+  SPECIAL
+  AUTONOMOUS
+  SPECIALIZED
+}
+
+enum AdmissionType {
+  GENERAL
+  SPECIAL
+  TALENT
+  SOCIAL
+}
+
+enum PublishStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ScheduleType {
+  INFO_SESSION
+  APPLICATION
+  DOCUMENT
+  INTERVIEW
+  ANNOUNCEMENT
+  REGISTRATION
+}
+
+model School {
+  id            String        @id @default(cuid())
+  name          String
+  type          SchoolType
+  region        String
+  address       String?
+  website       String?
+  phone         String?
+  description   String?
+  features      String?
+  publishStatus PublishStatus @default(DRAFT)
+  publishedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  admissions         Admission[]
+  schedules          AdmissionSchedule[]
+  favoriteSchools    FavoriteSchool[]
+  targetSchools      TargetSchool[]
+  diagnosisResults   DiagnosisResult[]
+  recommendedSchools RecommendedSchool[]
+
+  @@unique([name, region])
+  @@map("schools")
+}
+
+model Admission {
+  id              String        @id @default(cuid())
+  schoolId        String
+  year            Int
+  type            AdmissionType
+  name            String
+  quota           Int?
+  requirements    String?
+  gradeWeight     Float?
+  interviewWeight Float?
+  essayWeight     Float?
+  cutoffGrade     Float?
+  competitionRate Float?
+  publishStatus   PublishStatus @default(DRAFT)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, year, type, name])
+  @@map("admissions")
+}
+
+model AdmissionSchedule {
+  id            String        @id @default(cuid())
+  schoolId      String
+  year          Int
+  type          ScheduleType
+  title         String
+  startDate     DateTime
+  endDate       DateTime?
+  location      String?
+  note          String?
+  publishStatus PublishStatus @default(DRAFT)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@map("admission_schedules")
+}
+
+model FavoriteSchool {
+  id        String   @id @default(cuid())
+  studentId String
+  schoolId  String
+  createdAt DateTime @default(now())
+
+  student User   @relation(fields: [studentId], references: [id])
+  school  School @relation(fields: [schoolId], references: [id])
+
+  @@unique([studentId, schoolId])
+  @@map("favorite_schools")
+}
+
+// ============================================
+// M4: 진단 엔진
+// ============================================
+
+enum DiagnosisLevel {
+  FIT
+  CHALLENGE
+  UNLIKELY
+}
+
+model TargetSchool {
+  id        String   @id @default(cuid())
+  studentId String
+  schoolId  String
+  priority  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  student User   @relation(fields: [studentId], references: [id])
+  school  School @relation(fields: [schoolId], references: [id])
+
+  @@unique([studentId, schoolId])
+  @@map("target_schools")
+}
+
+model DiagnosisResult {
+  id              String         @id @default(cuid())
+  studentId       String
+  schoolId        String?
+  level           DiagnosisLevel
+  score           Float
+  gradeScore      Float?
+  activityScore   Float?
+  attendanceScore Float?
+  volunteerScore  Float?
+  strengths       String?
+  weaknesses      String?
+  recommendations String?
+  createdAt       DateTime       @default(now())
+
+  student User    @relation(fields: [studentId], references: [id])
+  school  School? @relation(fields: [schoolId], references: [id])
+
+  @@map("diagnosis_results")
+}
+
+model RecommendedSchool {
+  id         String         @id @default(cuid())
+  studentId  String
+  schoolId   String
+  rank       Int
+  level      DiagnosisLevel
+  score      Float
+  reason     String?
+  diagnosedAt DateTime      @default(now())
+
+  student User   @relation(fields: [studentId], references: [id])
+  school  School @relation(fields: [schoolId], references: [id])
+
+  @@unique([studentId, schoolId, diagnosedAt])
+  @@map("recommended_schools")
+}
+
+// ============================================
+// M5: AI 에이전트 Layer
+// ============================================
+
+enum AIOutputType {
+  RECORD_SENTENCE       // 생기부 문장
+  CLUB_RECOMMENDATION   // 동아리 추천
+  SUBJECT_ADVICE        // 교과 조언
+  READING_GUIDE         // 독서 추천/가이드
+  ACTION_PLAN           // 액션 플랜
+  CONSULTATION_REPORT   // M8: AI 상담 리포트 초안
+}
+
+enum FeedbackType {
+  LIKE
+  DISLIKE
+  EDITED
+}
+
+enum ActionPlanStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  SKIPPED
+}
+
+model AIOutput {
+  id          String       @id @default(cuid())
+  studentId   String
+  type        AIOutputType
+  prompt      String       @db.Text
+  response    String       @db.Text
+  activityId  String?      // 생기부 문장 생성 시 연결된 활동
+  metadata    String?      @db.Text // JSON 형태 추가 데이터
+  createdAt   DateTime     @default(now())
+
+  student   User         @relation(fields: [studentId], references: [id])
+  activity  Activity?    @relation(fields: [activityId], references: [id])
+  feedbacks AIFeedback[]
+
+  @@map("ai_outputs")
+}
+
+model AIFeedback {
+  id           String       @id @default(cuid())
+  outputId     String
+  userId       String
+  type         FeedbackType
+  comment      String?      @db.Text
+  editedContent String?     @db.Text // 수정된 경우 수정 내용
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  output AIOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)
+  user   User     @relation(fields: [userId], references: [id])
+
+  @@unique([outputId, userId])
+  @@map("ai_feedbacks")
+}
+
+model ActionPlan {
+  id          String           @id @default(cuid())
+  studentId   String
+  title       String
+  description String?          @db.Text
+  startDate   DateTime
+  endDate     DateTime
+  goals       String?          @db.Text // JSON 배열
+  status      ActionPlanStatus @default(ACTIVE)
+  aiOutputId  String?          // 생성에 사용된 AI 출력 참조
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  student User          @relation(fields: [studentId], references: [id])
+  tasks   WeeklyTask[]
+
+  @@map("action_plans")
+}
+
+model WeeklyTask {
+  id          String     @id @default(cuid())
+  planId      String
+  weekNumber  Int        // 1~12주차
+  theme       String?    // 해당 주 테마
+  title       String
+  description String?    @db.Text
+  status      TaskStatus @default(TODO)
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  plan ActionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("weekly_tasks")
+}
+
+// ============================================
+// M6: 실행(Execution) Layer
+// ============================================
+
+enum EventType {
+  GRADE_ADDED
+  GRADE_APPROVED
+  ACTIVITY_ADDED
+  ACTIVITY_APPROVED
+  READING_ADDED
+  ATTENDANCE_UPDATED
+  VOLUNTEER_ADDED
+  DIAGNOSIS_RUN
+  PLAN_CREATED
+  TASK_STARTED
+  TASK_COMPLETED
+  TASK_SKIPPED
+  FEEDBACK_GIVEN
+  TARGET_SCHOOL_ADDED
+  RECOMMENDATION_RECEIVED
+  // M8: 상담 관련 이벤트
+  CONSULTATION_REQUESTED
+  CONSULTATION_CONFIRMED
+  CONSULTATION_COMPLETED
+  REPORT_SHARED
+}
+
+model EventLog {
+  id          String    @id @default(cuid())
+  studentId   String
+  type        EventType
+  title       String
+  description String?   @db.Text
+  referenceId String?   // 관련 엔티티 ID (gradeId, activityId, taskId 등)
+  metadata    String?   @db.Text  // JSON 형태 추가 데이터
+  createdAt   DateTime  @default(now())
+
+  student User @relation(fields: [studentId], references: [id])
+
+  @@index([studentId, createdAt])
+  @@map("event_logs")
+}
+
+// ============================================
+// M8: 컨설턴트 & 상담 시스템
+// ============================================
+
+enum ConsultationStatus {
+  PENDING     // 예약 대기
+  CONFIRMED   // 확정
+  COMPLETED   // 완료
+  CANCELLED   // 취소
+}
+
+enum ConsultationMethod {
+  ONLINE
+  OFFLINE
+}
+
+enum ReportStatus {
+  DRAFT
+  FINALIZED
+}
+
+model ConsultantAvailability {
+  id           String   @id @default(cuid())
+  consultantId String
+  dayOfWeek    Int      // 0=일요일, 1=월요일, ..., 6=토요일
+  startTime    String   // "09:00"
+  endTime      String   // "18:00"
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  consultant User @relation(fields: [consultantId], references: [id], onDelete: Cascade)
+
+  @@unique([consultantId, dayOfWeek])
+  @@map("consultant_availabilities")
+}
+
+model Consultation {
+  id           String              @id @default(cuid())
+  studentId    String
+  parentId     String
+  consultantId String
+  status       ConsultationStatus  @default(PENDING)
+  method       ConsultationMethod  @default(ONLINE)
+  scheduledAt  DateTime
+  duration     Int                 @default(60)  // 분 단위
+  topic        String?             @db.Text
+  cancelReason String?
+  completedAt  DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  student    User                 @relation("StudentConsultations", fields: [studentId], references: [id])
+  parent     User                 @relation("ParentConsultations", fields: [parentId], references: [id])
+  consultant User                 @relation("ConsultantConsultations", fields: [consultantId], references: [id])
+  notes      ConsultationNote[]
+  report     ConsultationReport?
+
+  @@index([consultantId, scheduledAt])
+  @@index([studentId])
+  @@map("consultations")
+}
+
+model ConsultationNote {
+  id             String   @id @default(cuid())
+  consultationId String
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  consultation Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+
+  @@map("consultation_notes")
+}
+
+model ConsultationReport {
+  id             String       @id @default(cuid())
+  consultationId String       @unique
+  title          String
+  summary        String?      @db.Text
+  content        String       @db.Text
+  aiDraftContent String?      @db.Text  // AI 생성 원본 보존
+  status         ReportStatus @default(DRAFT)
+  sharedAt       DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  consultation Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+
+  @@map("consultation_reports")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // CONSULTATION_REQUESTED, CONSULTATION_CONFIRMED, REPORT_SHARED 등
+  title     String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  metadata  String?  @db.Text  // JSON 형태 추가 데이터
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ============================================
+// M9: 결제/구독 시스템
+// ============================================
+
+enum PlanType {
+  FREE
+  BASIC
+  PREMIUM
+  VIP
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIAL
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+model Plan {
+  id           String   @id @default(cuid())
+  type         PlanType @unique
+  name         String               // "프리미엄"
+  description  String?  @db.Text
+  monthlyPrice Int                  // 49900 (원)
+  features     String   @db.Text    // JSON: 기능 목록
+  consultLimit Int?                 // null = 무제한, 숫자 = 월간 제한
+  aiLimit      Int?                 // AI 사용 제한
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  userId             String
+  planId             String
+  status             SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+  cancelAtPeriodEnd  Boolean            @default(false)
+  discountRate       Float              @default(0)  // 가족 할인율 (0.1 = 10%)
+  trialEndsAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  payments Payment[]
+
+  @@index([userId, status])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  subscriptionId  String
+  amount          Int                    // 실제 결제 금액
+  originalAmount  Int                    // 할인 전 금액
+  discountAmount  Int           @default(0)  // 할인 금액
+  status          PaymentStatus @default(PENDING)
+  pgProvider      String?                // "toss", "portone" 등
+  pgTransactionId String?                // PG 거래 ID
+  pgPaymentKey    String?                // PG 결제 키
+  failReason      String?
+  paidAt          DateTime?
+  refundedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([pgTransactionId])
+  @@map("payments")
+}
