@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import DashboardLayout from "@/components/layout/DashboardLayout";
+import { DashboardLayout } from "@/components/layout";
 
 interface Club {
   id: string;
@@ -115,7 +115,7 @@ export default function ClubsPage() {
   const myClubsList = clubs.filter((c) => myClubs.includes(c.id));
 
   return (
-    <DashboardLayout role="student">
+    <DashboardLayout requiredRole="STUDENT">
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">동아리 탐색</h1>

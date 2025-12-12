@@ -16,12 +16,12 @@ export function Badge({
   className = "",
 }: BadgeProps) {
   const variants = {
-    default: "bg-slate-100 text-slate-700",
-    success: "bg-emerald-100 text-emerald-700",
-    warning: "bg-amber-100 text-amber-700",
-    danger: "bg-red-100 text-red-700",
-    info: "bg-sky-100 text-sky-700",
-    outline: "border border-slate-200 text-slate-600",
+    default: "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
+    success: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400",
+    warning: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400",
+    danger: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400",
+    info: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-400",
+    outline: "border border-slate-200 text-slate-600 dark:border-slate-600 dark:text-slate-400",
   };
 
   const sizes = {

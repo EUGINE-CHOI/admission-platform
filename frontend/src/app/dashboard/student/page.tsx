@@ -16,11 +16,13 @@ import {
   AlertCircle,
   ExternalLink,
   School,
+  BarChart3,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
+import { CompetitionRateChart, ActivityProgressChart, SkillRadarChart } from "@/components/charts";
 
 interface DashboardData {
   activityCount: number;
@@ -60,6 +62,30 @@ interface PlanProgress {
   currentWeek: number;
   progress: number;
 }
+
+// 샘플 차트 데이터
+const sampleCompetitionData = [
+  { name: "서울과학고", rate: 10.5, year: 2025 },
+  { name: "한성과학고", rate: 7.8, year: 2025 },
+  { name: "대원외고", rate: 2.2, year: 2025 },
+  { name: "하나고", rate: 4.0, year: 2025 },
+];
+
+const sampleActivityData = [
+  { month: "9월", activities: 3, tasks: 5 },
+  { month: "10월", activities: 5, tasks: 8 },
+  { month: "11월", activities: 7, tasks: 12 },
+  { month: "12월", activities: 4, tasks: 10 },
+];
+
+const sampleSkillData = [
+  { skill: "학업성적", value: 85, fullMark: 100 },
+  { skill: "비교과활동", value: 70, fullMark: 100 },
+  { skill: "독서활동", value: 60, fullMark: 100 },
+  { skill: "봉사활동", value: 45, fullMark: 100 },
+  { skill: "자기소개서", value: 55, fullMark: 100 },
+  { skill: "면접준비", value: 40, fullMark: 100 },
+];
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -127,16 +153,16 @@ export default function StudentDashboard() {
     <DashboardLayout requiredRole="STUDENT">
       <div className="space-y-6">
         {/* Welcome Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 p-8 text-white">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 p-6 sm:p-8 text-white">
           <div className="relative z-10">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
               안녕하세요, {user?.name || "학생"}님! 👋
             </h1>
-            <p className="text-sky-100 text-lg">
+            <p className="text-sky-100 text-base sm:text-lg">
               오늘도 목표를 향해 한 걸음 더 나아가세요!
             </p>
             {(user?.middleSchool || user?.schoolName || user?.grade) && (
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1.5 bg-white/20 rounded-full text-sm flex items-center gap-2">
                   <School className="w-4 h-4" />
                   <span>
@@ -185,30 +211,30 @@ export default function StudentDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatCard
-            icon={<BookOpen className="w-6 h-6" />}
+            icon={<BookOpen className="w-5 sm:w-6 h-5 sm:h-6" />}
             title="입력한 활동"
             value={dashboard?.activityCount || 0}
             suffix="개"
             color="sky"
           />
           <StatCard
-            icon={<Target className="w-6 h-6" />}
+            icon={<Target className="w-5 sm:w-6 h-5 sm:h-6" />}
             title="목표 학교"
             value={dashboard?.targetSchoolCount || 0}
             suffix="개"
             color="indigo"
           />
           <StatCard
-            icon={<Trophy className="w-6 h-6" />}
+            icon={<Trophy className="w-5 sm:w-6 h-5 sm:h-6" />}
             title="완료 태스크"
             value={dashboard?.completedTasks || 0}
             suffix="개"
             color="amber"
           />
           <StatCard
-            icon={<TrendingUp className="w-6 h-6" />}
+            icon={<TrendingUp className="w-5 sm:w-6 h-5 sm:h-6" />}
             title="진단 점수"
             value={dashboard?.latestScore || "-"}
             suffix={dashboard?.latestScore ? "점" : ""}
@@ -217,7 +243,7 @@ export default function StudentDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {quickActions.map((action) => (
             <Card
               key={action.title}
@@ -227,21 +253,72 @@ export default function StudentDashboard() {
             >
               <div className="flex flex-col items-start">
                 <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110
-                    ${action.color === "sky" ? "bg-sky-100 text-sky-600" : ""}
-                    ${action.color === "indigo" ? "bg-indigo-100 text-indigo-600" : ""}
-                    ${action.color === "purple" ? "bg-purple-100 text-purple-600" : ""}
-                    ${action.color === "emerald" ? "bg-emerald-100 text-emerald-600" : ""}
+                  className={`w-10 sm:w-12 h-10 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 transition-transform group-hover:scale-110
+                    ${action.color === "sky" ? "bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400" : ""}
+                    ${action.color === "indigo" ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400" : ""}
+                    ${action.color === "purple" ? "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400" : ""}
+                    ${action.color === "emerald" ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400" : ""}
                   `}
                 >
-                  <action.icon className="w-6 h-6" />
+                  <action.icon className="w-5 sm:w-6 h-5 sm:h-6" />
                 </div>
-                <h3 className="font-semibold text-slate-900 mb-1">{action.title}</h3>
-                <p className="text-sm text-slate-500">{action.description}</p>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm sm:text-base mb-1">{action.title}</h3>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{action.description}</p>
               </div>
             </Card>
           ))}
         </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Competition Rate Chart */}
+          <Card>
+            <CardHeader icon={<BarChart3 className="w-5 h-5" />}>
+              목표 학교 경쟁률 비교
+            </CardHeader>
+            <CardContent>
+              <CompetitionRateChart data={sampleCompetitionData} />
+              <p className="text-xs text-center text-slate-500 dark:text-slate-400 mt-2">
+                2025학년도 예상 경쟁률
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Skill Radar Chart */}
+          <Card>
+            <CardHeader icon={<Target className="w-5 h-5" />}>
+              역량 분석
+            </CardHeader>
+            <CardContent>
+              <SkillRadarChart data={sampleSkillData} />
+              <p className="text-xs text-center text-slate-500 dark:text-slate-400 mt-2">
+                현재 나의 준비 수준
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Activity Progress Chart */}
+        <Card>
+          <CardHeader
+            icon={<TrendingUp className="w-5 h-5" />}
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/dashboard/student/data")}
+              >
+                자세히 보기
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            }
+          >
+            월별 활동 현황
+          </CardHeader>
+          <CardContent>
+            <ActivityProgressChart data={sampleActivityData} />
+          </CardContent>
+        </Card>
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -369,7 +446,7 @@ export default function StudentDashboard() {
             </div>
             <Button
               variant="secondary"
-              className="bg-white text-indigo-600 hover:bg-indigo-50"
+              className="bg-white text-indigo-600 hover:bg-indigo-50 w-full sm:w-auto"
               onClick={() => router.push("/dashboard/student/ai")}
             >
               AI 조언 받기
@@ -384,22 +461,22 @@ export default function StudentDashboard() {
 
 function TaskItem({ task }: { task: Task }) {
   const statusIcons = {
-    PENDING: <Circle className="w-5 h-5 text-slate-300" />,
+    PENDING: <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600" />,
     IN_PROGRESS: <AlertCircle className="w-5 h-5 text-amber-500" />,
     COMPLETED: <CheckCircle className="w-5 h-5 text-emerald-500" />,
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
       {statusIcons[task.status]}
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium truncate ${
-          task.status === "COMPLETED" ? "text-slate-400 line-through" : "text-slate-700"
+          task.status === "COMPLETED" ? "text-slate-400 dark:text-slate-500 line-through" : "text-slate-700 dark:text-slate-200"
         }`}>
           {task.title}
         </p>
         {task.dueDate && (
-          <p className="text-xs text-slate-400">{task.dueDate}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{task.dueDate}</p>
         )}
       </div>
       <Badge
@@ -419,13 +496,13 @@ function TaskItem({ task }: { task: Task }) {
 
 function ScheduleItem({ schedule }: { schedule: Schedule }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
       <div className="w-2 h-2 rounded-full bg-indigo-500" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-700 truncate">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
           {schedule.title}
         </p>
-        <p className="text-xs text-slate-400">{schedule.date}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500">{schedule.date}</p>
       </div>
       <Badge variant="info">{schedule.type || "일정"}</Badge>
     </div>
@@ -441,21 +518,21 @@ function ActivityItem({ activity }: { activity: Activity }) {
   };
 
   const typeColors: Record<string, string> = {
-    GRADE: "bg-sky-100 text-sky-600",
-    ACTIVITY: "bg-emerald-100 text-emerald-600",
-    READING: "bg-amber-100 text-amber-600",
-    VOLUNTEER: "bg-rose-100 text-rose-600",
+    GRADE: "bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400",
+    ACTIVITY: "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400",
+    READING: "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400",
+    VOLUNTEER: "bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400",
   };
 
   return (
-    <div className="p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
       <div className="flex items-center gap-2 mb-2">
-        <Badge className={typeColors[activity.type] || "bg-slate-100 text-slate-600"}>
+        <Badge className={typeColors[activity.type] || "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}>
           {typeLabels[activity.type] || activity.type}
         </Badge>
-        <span className="text-xs text-slate-400">{activity.createdAt}</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">{activity.createdAt}</span>
       </div>
-      <p className="text-sm font-medium text-slate-700 truncate">{activity.title}</p>
+      <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{activity.title}</p>
     </div>
   );
 }
@@ -470,7 +547,7 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+    <div className="flex flex-col items-center justify-center py-8 text-slate-400 dark:text-slate-500">
       {icon}
       <p className="mt-2 text-sm">{message}</p>
       {action && <div className="mt-4">{action}</div>}

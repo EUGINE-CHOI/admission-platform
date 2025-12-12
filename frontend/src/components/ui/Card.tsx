@@ -7,6 +7,7 @@ interface CardProps {
   className?: string;
   hover?: boolean;
   padding?: "none" | "sm" | "md" | "lg";
+  onClick?: () => void;
 }
 
 export function Card({
@@ -14,6 +15,7 @@ export function Card({
   className = "",
   hover = false,
   padding = "md",
+  onClick,
 }: CardProps) {
   const paddings = {
     none: "",
@@ -24,8 +26,9 @@ export function Card({
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-slate-200 shadow-sm ${
-        hover ? "hover:shadow-md hover:border-slate-300 transition-all" : ""
+      onClick={onClick}
+      className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm ${
+        hover ? "hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer" : ""
       } ${paddings[padding]} ${className}`}
     >
       {children}
@@ -50,11 +53,11 @@ export function CardHeader({
     <div className={`flex items-center justify-between mb-4 ${className}`}>
       <div className="flex items-center gap-3">
         {icon && (
-          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300">
             {icon}
           </div>
         )}
-        <h3 className="text-lg font-semibold text-slate-900">{children}</h3>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{children}</h3>
       </div>
       {action}
     </div>
@@ -88,35 +91,35 @@ export function StatCard({
   color = "sky",
 }: StatCardProps) {
   const colors = {
-    sky: "bg-sky-100 text-sky-600",
-    indigo: "bg-indigo-100 text-indigo-600",
-    emerald: "bg-emerald-100 text-emerald-600",
-    amber: "bg-amber-100 text-amber-600",
-    rose: "bg-rose-100 text-rose-600",
-    purple: "bg-purple-100 text-purple-600",
+    sky: "bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400",
+    indigo: "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400",
+    emerald: "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400",
+    amber: "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400",
+    rose: "bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400",
+    purple: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400",
   };
 
   return (
     <Card>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <div
-          className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors[color]}`}
+          className={`w-10 sm:w-12 h-10 sm:h-12 rounded-xl flex items-center justify-center ${colors[color]}`}
         >
           {icon}
         </div>
-        <div className="flex-1">
-          <p className="text-sm text-slate-500">{title}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">{title}</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-slate-900">{value}</span>
+            <span className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">{value}</span>
             {suffix && (
-              <span className="text-sm text-slate-400">{suffix}</span>
+              <span className="text-xs sm:text-sm text-slate-400 dark:text-slate-500">{suffix}</span>
             )}
           </div>
         </div>
         {trend && (
           <div
-            className={`text-sm font-medium ${
-              trend.isPositive ? "text-emerald-600" : "text-red-600"
+            className={`text-xs sm:text-sm font-medium ${
+              trend.isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
             }`}
           >
             {trend.isPositive ? "+" : "-"}

@@ -364,12 +364,12 @@ export default function CrawlerPage() {
   ];
 
   return (
-    <DashboardLayout role="ADMIN" userName="관리자">
+    <DashboardLayout requiredRole="ADMIN">
       <div className="space-y-6">
         {/* 헤더 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">🕷️ 크롤러 관리</h1>
-          <p className="text-gray-600 mt-1">학교 입시 정보를 자동으로 수집하고 관리합니다</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">🕷️ 크롤러 관리</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">학교 입시 정보를 자동으로 수집하고 관리합니다</p>
         </div>
 
         {/* 탭 */}

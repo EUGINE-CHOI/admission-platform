@@ -124,8 +124,8 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">관리자 대시보드</h1>
-            <p className="text-slate-500 mt-1">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">관리자 대시보드</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
               시스템 현황과 핵심 지표를 확인하세요
             </p>
           </div>
@@ -262,20 +262,20 @@ export default function AdminDashboard() {
                         {aiQuality?.averageScore?.toFixed(1) || "0"}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-500">평균 품질 점수</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">평균 품질 점수</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-center">
-                    <div className="p-3 bg-slate-50 rounded-xl">
-                      <p className="text-2xl font-bold text-emerald-600">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                      <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                         {aiQuality?.positiveRate || 0}%
                       </p>
-                      <p className="text-xs text-slate-500">긍정 피드백</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">긍정 피드백</p>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-xl">
-                      <p className="text-2xl font-bold text-slate-900">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                      <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                         {aiQuality?.totalOutputs || 0}
                       </p>
-                      <p className="text-xs text-slate-500">총 생성 수</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">총 생성 수</p>
                     </div>
                   </div>
                 </CardContent>
@@ -367,7 +367,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   {recentEvents.length === 0 ? (
-                    <p className="text-sm text-slate-500 text-center py-8">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">
                       최근 활동이 없습니다
                     </p>
                   ) : (
@@ -375,14 +375,14 @@ export default function AdminDashboard() {
                       {recentEvents.slice(0, 6).map((event) => (
                         <div
                           key={event.id}
-                          className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl"
+                          className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
                         >
                           <div className="w-2 h-2 rounded-full bg-sky-500 mt-2" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-slate-900 truncate">
+                            <p className="text-sm text-slate-900 dark:text-slate-100 truncate">
                               {event.description}
                             </p>
-                            <p className="text-xs text-slate-400">{event.createdAt}</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">{event.createdAt}</p>
                           </div>
                           <Badge variant="outline" size="sm">
                             {event.type}
@@ -465,10 +465,10 @@ function UserTypeBar({
   return (
     <div>
       <div className="flex justify-between text-sm mb-1">
-        <span className="text-slate-600">{label}</span>
-        <span className="font-medium text-slate-900">{count}명</span>
+        <span className="text-slate-600 dark:text-slate-400">{label}</span>
+        <span className="font-medium text-slate-900 dark:text-slate-100">{count}명</span>
       </div>
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
         <div
           className={`h-full ${colors[color]} rounded-full transition-all`}
           style={{ width: `${percentage}%` }}
@@ -492,13 +492,13 @@ function QuickActionButton({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-left"
+      className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-left"
     >
-      <div className="text-slate-600">{icon}</div>
+      <div className="text-slate-600 dark:text-slate-400">{icon}</div>
       <div className="flex-1">
-        <p className="text-sm font-medium text-slate-900">{label}</p>
+        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{label}</p>
         {count !== undefined && count > 0 && (
-          <p className="text-xs text-amber-600">{count}건 대기</p>
+          <p className="text-xs text-amber-600 dark:text-amber-400">{count}건 대기</p>
         )}
       </div>
       <ChevronRight className="w-4 h-4 text-slate-400" />

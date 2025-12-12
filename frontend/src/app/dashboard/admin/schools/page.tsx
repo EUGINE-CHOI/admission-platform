@@ -123,7 +123,7 @@ export default function SchoolsPage() {
     return matchesType && matchesSearch;
   });
 
-  const schoolTypes = [...new Set(schools.map((s) => s.type))];
+  const schoolTypes = Array.from(new Set(schools.map((s) => s.type)));
 
   return (
     <DashboardLayout requiredRole="ADMIN">
