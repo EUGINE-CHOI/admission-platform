@@ -235,7 +235,7 @@ export class AiService {
     // 학생 데이터 수집
     const student = await this.prisma.user.findUnique({
       where: { id: studentId },
-      select: { name: true, grade: true, schoolName: true },
+      include: { middleSchool: true },
     });
 
     const grades = await this.prisma.grade.findMany({
@@ -251,30 +251,66 @@ export class AiService {
       include: { school: true },
     });
 
+    // DB에서 동아리 데이터 조회
+    const existingClubs = await this.prisma.club.findMany({
+      where: { isGeneral: true },
+      take: 50,
+    });
+
+    const clubCategories = [...new Set(existingClubs.map(c => c.category))];
+
     const gradeInfo = grades.length > 0
-      ? `성적: ${[...new Set(grades.map((g) => g.subject))].join(', ')} 과목 등록`
+      ? grades.map(g => `${g.subject}: ${g.rank}등급`).join(', ')
       : '성적 정보 없음';
 
     const activityInfo = activities.length > 0
-      ? `기존 활동: ${activities.map((a) => `${a.type}-${a.title}`).join(', ')}`
+      ? activities.map(a => `${a.title}(${a.type})`).join(', ')
       : '활동 기록 없음';
 
     const targetInfo = targetSchools.length > 0
-      ? `목표 학교: ${targetSchools.map((t) => `${t.school.name}(${t.school.type})`).join(', ')}`
+      ? targetSchools.map(t => `${t.school.name}(${t.school.type})`).join(', ')
       : '목표 학교 미설정';
 
-    const systemPrompt = `당신은 고입 컨설턴트입니다. 학생에게 적합한 동아리를 추천해주세요.
-JSON 형식으로 3개의 동아리를 추천해주세요.
-형식: {"recommendations": [{"name": "동아리명", "type": "유형", "reason": "추천 이유", "activities": ["활동 예시1", "활동 예시2"]}]}`;
+    const systemPrompt = `당신은 15년 경력의 고입 전문 컨설턴트입니다. 
+학생의 관심사, 목표학교, 성적을 분석하여 가장 적합한 동아리를 추천해주세요.
 
-    const prompt = `학생 정보:
-- ${student?.grade || ''}학년
-- ${gradeInfo}
-- ${activityInfo}
-- ${targetInfo}
-${dto.interests ? `- 관심 분야: ${dto.interests.join(', ')}` : ''}
+## 핵심 원칙:
+1. 목표 학교 유형에 맞는 동아리 우선 추천 (과학고→과학 동아리, 외고→영어/토론 동아리)
+2. 학생의 관심사와 기존 활동을 고려한 시너지 효과 분석
+3. 구체적인 활동 내용과 생기부 기재 예시 제공
+4. 입시에서 어필 가능한 포인트 설명
 
-이 학생에게 적합한 동아리 3개를 추천해주세요.`;
+## 동아리 카테고리 참고: ${clubCategories.join(', ')}
+
+## 응답 형식 (반드시 JSON으로만):
+{
+  "recommendations": [
+    {
+      "name": "동아리명",
+      "category": "카테고리 (학술/예술/체육/봉사/진로/문화)",
+      "type": "동아리 유형 (학교 정규/자율/온라인 등)",
+      "matchScore": 85,
+      "reason": "이 학생에게 추천하는 구체적 이유 (목표학교, 관심사 연결)",
+      "activities": ["구체적 활동 예시 1", "구체적 활동 예시 2", "구체적 활동 예시 3"],
+      "benefits": ["입시에서 어필할 수 있는 포인트 1", "포인트 2"],
+      "recordExample": "생기부 기재 예시 문장"
+    }
+  ],
+  "additionalAdvice": "동아리 활동에 대한 전반적인 조언"
+}`;
+
+    const prompt = `## 학생 프로필
+- 학년: ${student?.grade || '미입력'}학년
+- 재학 중학교: ${student?.middleSchool?.name || student?.schoolName || '미입력'}
+- 관심 분야: ${dto.interests?.join(', ') || '미입력'}
+
+## 현재 상태
+- 성적: ${gradeInfo}
+- 기존 활동: ${activityInfo}
+- 목표 학교: ${targetInfo}
+
+위 정보를 바탕으로 이 학생에게 가장 적합한 동아리 5개를 추천해주세요.
+JSON 형식으로만 응답하세요. 코드 블록(\`\`\`)을 사용하지 마세요.`;
 
     const response = await this.callOpenAI(prompt, systemPrompt);
 
@@ -291,14 +327,27 @@ ${dto.interests ? `- 관심 분야: ${dto.interests.join(', ')}` : ''}
     try {
       recommendations = JSON.parse(response);
     } catch {
-      recommendations = { raw: response };
+      recommendations = { 
+        recommendations: [{
+          name: "AI 추천 동아리",
+          category: "학술",
+          type: "정규",
+          matchScore: 80,
+          reason: response,
+          activities: ["활동 예시"],
+          benefits: ["입시 어필 포인트"],
+          recordExample: "생기부 기재 예시"
+        }],
+        additionalAdvice: "더 정확한 추천을 위해 관심사를 입력해주세요."
+      };
     }
 
     return {
       output: {
         id: output.id,
         type: output.type,
-        recommendations: recommendations.recommendations || recommendations,
+        recommendations: recommendations.recommendations || [],
+        additionalAdvice: recommendations.additionalAdvice || '',
         createdAt: output.createdAt,
       },
     };
@@ -383,6 +432,11 @@ ${dto.focusSubject ? `집중 과목: ${dto.focusSubject}` : ''}
   }
 
   async generateReadingRecommendation(studentId: string, dto: GenerateReadingRecommendationDto) {
+    const student = await this.prisma.user.findUnique({
+      where: { id: studentId },
+      include: { middleSchool: true },
+    });
+
     const existingBooks = await this.prisma.readingLog.findMany({
       where: { studentId },
       select: { bookTitle: true, author: true },
@@ -393,17 +447,63 @@ ${dto.focusSubject ? `집중 과목: ${dto.focusSubject}` : ''}
       include: { school: true },
     });
 
-    const systemPrompt = `당신은 독서 교육 전문가입니다.
-학생에게 적합한 도서를 추천해주세요.
-JSON 형식: {"books": [{"title": "책 제목", "author": "저자", "genre": "장르", "reason": "추천 이유", "keyPoints": ["핵심 포인트"]}]}`;
+    const activities = await this.prisma.activity.findMany({
+      where: { studentId, status: ApprovalStatus.APPROVED },
+      take: 5,
+    });
 
-    const prompt = `학생 정보:
-${targetSchools.length > 0 ? `- 목표 학교: ${targetSchools.map((t) => `${t.school.name}(${t.school.type})`).join(', ')}` : '- 목표 학교 미설정'}
-${existingBooks.length > 0 ? `- 기존 독서: ${existingBooks.map((b) => b.bookTitle).join(', ')}` : '- 독서 기록 없음'}
-${dto.genre ? `- 선호 장르: ${dto.genre}` : ''}
-${dto.purpose ? `- 독서 목적: ${dto.purpose}` : ''}
+    const targetInfo = targetSchools.length > 0
+      ? targetSchools.map(t => `${t.school.name}(${t.school.type})`).join(', ')
+      : '미설정';
 
-기존에 읽은 책을 제외하고 3권의 도서를 추천해주세요.`;
+    const activityInfo = activities.length > 0
+      ? activities.map(a => a.title).join(', ')
+      : '없음';
+
+    const systemPrompt = `당신은 15년 경력의 독서 교육 전문가이자 고입 컨설턴트입니다.
+학생의 목표 학교, 관심사, 활동을 분석하여 입시에 도움이 되는 맞춤형 도서를 추천해주세요.
+
+## 핵심 원칙:
+1. 목표 학교 유형에 맞는 도서 우선 (과학고→과학/수학 서적, 외고→인문/언어 서적)
+2. 단순 교양서가 아닌 깊이 있는 탐구가 가능한 도서
+3. 독후 활동으로 확장할 수 있는 도서
+4. 자기소개서/면접에서 어필 가능한 도서
+
+## 응답 형식 (반드시 JSON으로만):
+{
+  "books": [
+    {
+      "title": "책 제목",
+      "author": "저자",
+      "publisher": "출판사",
+      "genre": "장르",
+      "difficulty": "난이도 (입문/중급/심화)",
+      "pageCount": "약 300p",
+      "reason": "이 학생에게 추천하는 구체적 이유",
+      "keyPoints": ["핵심 내용 1", "핵심 내용 2"],
+      "relatedSubjects": ["관련 교과목"],
+      "discussionTopics": ["독후 토론 주제 1", "주제 2"],
+      "activityIdeas": ["독후 활동 아이디어 1", "아이디어 2"],
+      "interviewTip": "면접에서 이 책을 어떻게 어필할 수 있는지"
+    }
+  ],
+  "readingStrategy": "효과적인 독서 전략 조언",
+  "monthlyGoal": "월간 독서 목표 제안"
+}`;
+
+    const prompt = `## 학생 프로필
+- 학년: ${student?.grade || '미입력'}학년
+- 목표 학교: ${targetInfo}
+- 관심 분야/장르: ${dto.genre || '미입력'}
+- 독서 목적: ${dto.purpose || '입시 준비'}
+- 기존 활동: ${activityInfo}
+
+## 기존 독서 기록
+${existingBooks.length > 0 ? existingBooks.map(b => `- ${b.bookTitle} (${b.author})`).join('\n') : '- 독서 기록 없음'}
+
+위 정보를 바탕으로 이 학생에게 가장 적합한 도서 5권을 추천해주세요.
+기존에 읽은 책은 제외하고, 새로운 책만 추천해주세요.
+JSON 형식으로만 응답하세요. 코드 블록(\`\`\`)을 사용하지 마세요.`;
 
     const response = await this.callOpenAI(prompt, systemPrompt);
 
@@ -416,18 +516,35 @@ ${dto.purpose ? `- 독서 목적: ${dto.purpose}` : ''}
       { genre: dto.genre, purpose: dto.purpose },
     );
 
-    let books;
+    let result;
     try {
-      books = JSON.parse(response);
+      result = JSON.parse(response);
     } catch {
-      books = { raw: response };
+      result = { 
+        books: [{
+          title: "추천 도서",
+          author: "저자",
+          genre: dto.genre || "일반",
+          difficulty: "중급",
+          reason: response,
+          keyPoints: ["핵심 내용"],
+          relatedSubjects: ["관련 과목"],
+          discussionTopics: ["토론 주제"],
+          activityIdeas: ["독후 활동"],
+          interviewTip: "면접 활용 팁"
+        }],
+        readingStrategy: "꾸준히 읽고 기록하세요.",
+        monthlyGoal: "월 2권 이상"
+      };
     }
 
     return {
       output: {
         id: output.id,
         type: output.type,
-        books: books.books || books,
+        books: result.books || [],
+        readingStrategy: result.readingStrategy || '',
+        monthlyGoal: result.monthlyGoal || '',
         createdAt: output.createdAt,
       },
     };

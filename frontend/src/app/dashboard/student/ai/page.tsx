@@ -640,6 +640,217 @@ export default function AIAdvisePage() {
     );
   };
 
+  const renderClubRecommendations = (data: any) => {
+    const recommendations = data.recommendations || [];
+    const additionalAdvice = data.additionalAdvice || '';
+
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4">
+          {recommendations.map((club: any, idx: number) => (
+            <div
+              key={idx}
+              className="p-5 rounded-2xl border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center text-white">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-lg">{club.name}</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="info">{club.category}</Badge>
+                      <Badge variant="outline">{club.type}</Badge>
+                    </div>
+                  </div>
+                </div>
+                {club.matchScore && (
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-amber-600">{club.matchScore}%</div>
+                    <span className="text-xs text-slate-500">적합도</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">추천 이유</h5>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">{club.reason}</p>
+                </div>
+
+                <div>
+                  <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">주요 활동</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {club.activities?.map((activity: string, i: number) => (
+                      <span key={i} className="px-3 py-1 bg-white dark:bg-slate-700 rounded-full text-xs text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                        {activity}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {club.benefits && (
+                  <div>
+                    <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">입시 어필 포인트</h5>
+                    <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                      {club.benefits.map((benefit: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <Star className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                          {benefit}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {club.recordExample && (
+                  <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <h5 className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-1">📝 생기부 기재 예시</h5>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 italic">{club.recordExample}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {additionalAdvice && (
+          <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl">
+            <h4 className="font-medium text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-2">
+              <Lightbulb className="w-5 h-5" />
+              동아리 활동 조언
+            </h4>
+            <p className="text-amber-700 dark:text-amber-300 text-sm">{additionalAdvice}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderReadingRecommendations = (data: any) => {
+    const books = data.books || [];
+    const readingStrategy = data.readingStrategy || '';
+    const monthlyGoal = data.monthlyGoal || '';
+
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4">
+          {books.map((book: any, idx: number) => (
+            <div
+              key={idx}
+              className="p-5 rounded-2xl border-2 border-rose-200 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-rose-500 flex items-center justify-center text-white">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-lg">{book.title}</h4>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{book.author} {book.publisher && `| ${book.publisher}`}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="info">{book.genre}</Badge>
+                      {book.difficulty && <Badge variant="outline">{book.difficulty}</Badge>}
+                      {book.pageCount && <span className="text-xs text-slate-400">{book.pageCount}</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">추천 이유</h5>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">{book.reason}</p>
+                </div>
+
+                {book.keyPoints && (
+                  <div>
+                    <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">핵심 내용</h5>
+                    <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                      {book.keyPoints.map((point: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <Check className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {book.relatedSubjects && (
+                  <div>
+                    <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">관련 교과목</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {book.relatedSubjects.map((subject: string, i: number) => (
+                        <Badge key={i} variant="success">{subject}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {book.discussionTopics && (
+                  <div>
+                    <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">독후 토론 주제</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {book.discussionTopics.map((topic: string, i: number) => (
+                        <span key={i} className="px-3 py-1 bg-white dark:bg-slate-700 rounded-full text-xs text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                          💬 {topic}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {book.activityIdeas && (
+                  <div>
+                    <h5 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">독후 활동 아이디어</h5>
+                    <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                      {book.activityIdeas.map((idea: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <Zap className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                          {idea}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {book.interviewTip && (
+                  <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-rose-200 dark:border-rose-800">
+                    <h5 className="text-xs font-medium text-rose-700 dark:text-rose-400 mb-1">🎤 면접 활용 팁</h5>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">{book.interviewTip}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {readingStrategy && (
+            <div className="p-4 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 rounded-xl">
+              <h4 className="font-medium text-rose-800 dark:text-rose-400 mb-2 flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                독서 전략
+              </h4>
+              <p className="text-rose-700 dark:text-rose-300 text-sm">{readingStrategy}</p>
+            </div>
+          )}
+          {monthlyGoal && (
+            <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl">
+              <h4 className="font-medium text-purple-800 dark:text-purple-400 mb-2 flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                월간 목표
+              </h4>
+              <p className="text-purple-700 dark:text-purple-300 text-sm">{monthlyGoal}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderOutput = () => {
     if (!output) return null;
     
@@ -658,6 +869,10 @@ export default function AIAdvisePage() {
         return renderComprehensiveAnalysis(output);
       case "school-recommendation":
         return renderSchoolRecommendations(output);
+      case "recommend-club":
+        return renderClubRecommendations(output);
+      case "recommend-reading":
+        return renderReadingRecommendations(output);
       default:
         return (
           <div className="p-4 bg-slate-50 rounded-xl">
@@ -742,11 +957,94 @@ export default function AIAdvisePage() {
         );
       case "action-plan":
         return (
-          <div className="p-4 bg-cyan-50 rounded-xl">
-            <p className="text-cyan-700 text-sm">
+          <div className="p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-xl">
+            <p className="text-cyan-700 dark:text-cyan-300 text-sm">
               <Calendar className="w-4 h-4 inline mr-2" />
               진단 결과와 목표 학교를 기반으로 12주 맞춤형 액션 플랜을 생성합니다.
             </p>
+          </div>
+        );
+      case "recommend-club":
+        return (
+          <div className="space-y-4">
+            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+              <p className="text-amber-700 dark:text-amber-300 text-sm">
+                <Users className="w-4 h-4 inline mr-2" />
+                관심사를 입력하면 목표 학교와 성적을 고려한 맞춤형 동아리를 추천해드립니다.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                관심 분야 선택 (복수 선택 가능)
+              </label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {['과학/수학', '프로그래밍/IT', '언어/토론', '예술/음악', '체육/스포츠', '봉사/사회', '경제/경영', '역사/문화'].map((interest) => (
+                  <button
+                    key={interest}
+                    onClick={() => {
+                      const interests = inputText.split(',').map(s => s.trim()).filter(s => s);
+                      if (interests.includes(interest)) {
+                        setInputText(interests.filter(i => i !== interest).join(', '));
+                      } else {
+                        setInputText([...interests, interest].join(', '));
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                      inputText.includes(interest)
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                    }`}
+                  >
+                    {interest}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Textarea
+              label="추가 관심사 (직접 입력)"
+              placeholder="위에서 선택하거나 직접 입력하세요. 예: 로봇공학, 인공지능, 환경문제"
+              rows={2}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+            />
+          </div>
+        );
+      case "recommend-reading":
+        return (
+          <div className="space-y-4">
+            <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-xl">
+              <p className="text-rose-700 dark:text-rose-300 text-sm">
+                <BookOpen className="w-4 h-4 inline mr-2" />
+                관심 분야와 목적을 입력하면 입시에 도움이 되는 맞춤형 도서를 추천해드립니다.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                관심 장르 선택
+              </label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {['과학', '수학', '철학', '역사', '문학', '사회과학', '경제/경영', '예술', '자기계발', '에세이'].map((genre) => (
+                  <button
+                    key={genre}
+                    onClick={() => setInputText(genre)}
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                      inputText === genre
+                        ? 'bg-rose-500 text-white'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                    }`}
+                  >
+                    {genre}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Textarea
+              label="관심 분야 / 독서 목적"
+              placeholder="예: 과학고 입시를 위한 과학 교양서, 면접 대비를 위한 시사 도서"
+              rows={2}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+            />
           </div>
         );
       case "record-sentence":
