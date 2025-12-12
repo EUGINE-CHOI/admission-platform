@@ -782,6 +782,396 @@ ${notes.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     return { summary, content };
   }
 
+  // ========== WP 추가: AI 종합 진단 분석 ==========
+  async generateComprehensiveAnalysis(studentId: string) {
+    // 학생 전체 데이터 수집
+    const student = await this.prisma.user.findUnique({
+      where: { id: studentId },
+      include: {
+        middleSchool: true,
+      },
+    });
+
+    const grades = await this.prisma.grade.findMany({
+      where: { studentId, status: ApprovalStatus.APPROVED },
+      orderBy: [{ year: 'desc' }, { semester: 'desc' }],
+    });
+
+    const activities = await this.prisma.activity.findMany({
+      where: { studentId, status: ApprovalStatus.APPROVED },
+    });
+
+    const readingLogs = await this.prisma.readingLog.findMany({
+      where: { studentId },
+    });
+
+    const volunteers = await this.prisma.volunteer.findMany({
+      where: { studentId, status: ApprovalStatus.APPROVED },
+    });
+
+    const targetSchools = await this.prisma.targetSchool.findMany({
+      where: { studentId },
+      include: {
+        school: {
+          include: {
+            admissions: { where: { publishStatus: 'PUBLISHED' }, take: 1 },
+            admissionHistories: { orderBy: { year: 'desc' }, take: 3 },
+          },
+        },
+      },
+    });
+
+    const latestDiagnosis = await this.prisma.diagnosisResult.findFirst({
+      where: { studentId },
+      orderBy: { createdAt: 'desc' },
+      include: { school: true },
+    });
+
+    // 성적 분석
+    const gradesBySubject: Record<string, any[]> = {};
+    grades.forEach(g => {
+      if (!gradesBySubject[g.subject]) gradesBySubject[g.subject] = [];
+      gradesBySubject[g.subject].push({
+        year: g.year,
+        semester: g.semester,
+        rank: g.rank,
+        written: g.written,
+        performance: g.performance,
+      });
+    });
+
+    const averageRank = grades.length > 0
+      ? grades.filter(g => g.rank).reduce((sum, g) => sum + (g.rank || 0), 0) / grades.filter(g => g.rank).length
+      : null;
+
+    // 활동 분석
+    const activityTypes = activities.reduce((acc: Record<string, number>, a) => {
+      acc[a.type] = (acc[a.type] || 0) + 1;
+      return acc;
+    }, {});
+
+    const totalVolunteerHours = volunteers.reduce((sum, v) => sum + v.hours, 0);
+
+    const systemPrompt = `당신은 고입 전문 컨설턴트입니다. 학생의 전체 데이터를 분석하여 종합적인 평가와 맞춤형 조언을 제공해주세요.
+
+응답은 반드시 다음 JSON 형식으로:
+{
+  "overallAssessment": {
+    "score": 0-100,
+    "grade": "A/B/C/D/F",
+    "summary": "종합 평가 요약 (2-3문장)"
+  },
+  "academicAnalysis": {
+    "strengths": ["강점 과목들"],
+    "weaknesses": ["보완 필요 과목들"],
+    "trend": "상승/유지/하락",
+    "advice": "학업 관련 조언"
+  },
+  "activityAnalysis": {
+    "diversity": "다양성 평가",
+    "depth": "심화도 평가",
+    "recommendations": ["추천 활동들"]
+  },
+  "schoolFitAnalysis": [
+    {
+      "schoolName": "학교명",
+      "fitLevel": "적합/도전/어려움",
+      "probability": "0-100%",
+      "keyFactors": ["주요 요인들"],
+      "improvementAreas": ["개선 필요 영역"]
+    }
+  ],
+  "actionItems": [
+    {
+      "priority": "high/medium/low",
+      "category": "학업/활동/기타",
+      "task": "구체적 과제",
+      "timeline": "기한"
+    }
+  ],
+  "motivationalMessage": "학생을 위한 격려 메시지"
+}`;
+
+    const prompt = `학생 정보:
+- 이름: ${student?.name || '학생'}
+- 학년: ${student?.grade || '미정'}학년
+- 학교: ${student?.middleSchool?.name || student?.schoolName || '미정'}
+
+📚 성적 현황:
+- 평균 등급: ${averageRank ? averageRank.toFixed(1) : '데이터 없음'}등급
+- 등록 과목: ${Object.keys(gradesBySubject).join(', ') || '없음'}
+${Object.entries(gradesBySubject).map(([subject, data]) => 
+  `- ${subject}: 최근 ${(data as any[])[0]?.rank || '-'}등급`
+).join('\n')}
+
+🏆 비교과 활동:
+- 총 활동 수: ${activities.length}개
+- 유형별: ${Object.entries(activityTypes).map(([type, count]) => `${type}(${count})`).join(', ') || '없음'}
+- 주요 활동: ${activities.slice(0, 3).map(a => a.title).join(', ') || '없음'}
+
+📖 독서 활동:
+- 총 독서: ${readingLogs.length}권
+- 최근 독서: ${readingLogs.slice(0, 3).map(r => r.bookTitle).join(', ') || '없음'}
+
+🤝 봉사 활동:
+- 총 봉사 시간: ${totalVolunteerHours}시간
+
+🎯 목표 학교:
+${targetSchools.map(t => {
+  const competitionRate = t.school.admissionHistories?.[0]?.competitionRate;
+  return `- ${t.school.name} (${t.school.type}) - 경쟁률: ${competitionRate ? competitionRate + ':1' : '정보없음'}`;
+}).join('\n') || '- 미설정'}
+
+📊 최근 진단 결과:
+${latestDiagnosis ? `- 점수: ${latestDiagnosis.score}점, 판정: ${latestDiagnosis.level}` : '- 진단 미실시'}
+
+이 학생에 대한 종합 분석과 맞춤형 조언을 제공해주세요.`;
+
+    const response = await this.callOpenAI(prompt, systemPrompt);
+
+    const output = await this.saveAIOutput(
+      studentId,
+      AIOutputType.SUBJECT_ADVICE, // 종합 분석용
+      prompt,
+      response,
+      undefined,
+      { type: 'comprehensive_analysis' },
+    );
+
+    let analysis;
+    try {
+      analysis = JSON.parse(response);
+    } catch {
+      analysis = { raw: response };
+    }
+
+    return {
+      output: {
+        id: output.id,
+        type: 'COMPREHENSIVE_ANALYSIS',
+        analysis,
+        createdAt: output.createdAt,
+      },
+    };
+  }
+
+  // ========== WP 추가: AI 학교 추천 ==========
+  async generateSchoolRecommendations(studentId: string, preferences?: {
+    region?: string;
+    schoolTypes?: string[];
+    priorities?: string[];
+  }) {
+    const student = await this.prisma.user.findUnique({
+      where: { id: studentId },
+      include: { middleSchool: true },
+    });
+
+    const grades = await this.prisma.grade.findMany({
+      where: { studentId, status: ApprovalStatus.APPROVED },
+    });
+
+    const activities = await this.prisma.activity.findMany({
+      where: { studentId, status: ApprovalStatus.APPROVED },
+    });
+
+    const averageRank = grades.length > 0
+      ? grades.filter(g => g.rank).reduce((sum, g) => sum + (g.rank || 0), 0) / grades.filter(g => g.rank).length
+      : null;
+
+    // 학교 목록 조회 (경쟁률 포함)
+    const whereClause: any = { publishStatus: 'PUBLISHED' };
+    if (preferences?.region) whereClause.region = preferences.region;
+    if (preferences?.schoolTypes?.length) whereClause.type = { in: preferences.schoolTypes };
+
+    const schools = await this.prisma.school.findMany({
+      where: whereClause,
+      include: {
+        admissions: { where: { publishStatus: 'PUBLISHED' }, take: 1 },
+        admissionHistories: { orderBy: { year: 'desc' }, take: 3 },
+      },
+      take: 50,
+    });
+
+    const schoolInfo = schools.map(s => ({
+      name: s.name,
+      type: s.type,
+      region: s.region,
+      competitionRate: s.admissionHistories?.[0]?.competitionRate || null,
+      cutoffGrade: s.admissions?.[0]?.cutoffGrade || null,
+    }));
+
+    const activityTypes = activities.reduce((acc: Record<string, number>, a) => {
+      acc[a.type] = (acc[a.type] || 0) + 1;
+      return acc;
+    }, {});
+
+    const systemPrompt = `당신은 고입 전문 컨설턴트입니다. 학생 데이터와 학교 정보를 분석하여 최적의 학교를 추천해주세요.
+
+응답은 반드시 다음 JSON 형식으로:
+{
+  "recommendations": [
+    {
+      "rank": 1,
+      "schoolName": "학교명",
+      "schoolType": "학교유형",
+      "region": "지역",
+      "fitScore": 0-100,
+      "fitLevel": "최적합/적합/도전/고려",
+      "reasons": ["추천 이유 1", "추천 이유 2"],
+      "requirements": ["합격을 위해 필요한 것들"],
+      "competitionRate": "경쟁률",
+      "admissionTips": "입시 팁"
+    }
+  ],
+  "alternativeOptions": [
+    {
+      "schoolName": "학교명",
+      "reason": "대안으로 고려할 이유"
+    }
+  ],
+  "generalAdvice": "전반적인 입시 전략 조언"
+}`;
+
+    const prompt = `학생 정보:
+- 학년: ${student?.grade || '미정'}학년
+- 평균 등급: ${averageRank ? averageRank.toFixed(1) : '데이터 없음'}등급
+- 활동 현황: ${Object.entries(activityTypes).map(([type, count]) => `${type}(${count}개)`).join(', ') || '없음'}
+- 총 활동 수: ${activities.length}개
+
+${preferences?.region ? `선호 지역: ${preferences.region}` : ''}
+${preferences?.schoolTypes?.length ? `선호 학교 유형: ${preferences.schoolTypes.join(', ')}` : ''}
+${preferences?.priorities?.length ? `우선순위: ${preferences.priorities.join(', ')}` : ''}
+
+분석 가능한 학교 목록:
+${schoolInfo.map(s => 
+  `- ${s.name} (${s.type}, ${s.region}) - 경쟁률: ${s.competitionRate ? s.competitionRate + ':1' : '미정'}, 커트라인: ${s.cutoffGrade ? s.cutoffGrade + '등급' : '미정'}`
+).join('\n')}
+
+이 학생에게 가장 적합한 학교 5개를 추천해주세요.`;
+
+    const response = await this.callOpenAI(prompt, systemPrompt);
+
+    const output = await this.saveAIOutput(
+      studentId,
+      AIOutputType.CLUB_RECOMMENDATION, // 추천용
+      prompt,
+      response,
+      undefined,
+      { type: 'school_recommendations', preferences },
+    );
+
+    let recommendations;
+    try {
+      recommendations = JSON.parse(response);
+    } catch {
+      recommendations = { raw: response };
+    }
+
+    return {
+      output: {
+        id: output.id,
+        type: 'SCHOOL_RECOMMENDATIONS',
+        recommendations: recommendations.recommendations || [],
+        alternativeOptions: recommendations.alternativeOptions || [],
+        generalAdvice: recommendations.generalAdvice || '',
+        createdAt: output.createdAt,
+      },
+    };
+  }
+
+  // ========== WP 추가: AI 맞춤 조언 (Quick Advice) ==========
+  async generateQuickAdvice(studentId: string, topic?: string) {
+    const student = await this.prisma.user.findUnique({
+      where: { id: studentId },
+      include: { middleSchool: true },
+    });
+
+    const grades = await this.prisma.grade.findMany({
+      where: { studentId, status: ApprovalStatus.APPROVED },
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const activities = await this.prisma.activity.findMany({
+      where: { studentId, status: ApprovalStatus.APPROVED },
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const targetSchools = await this.prisma.targetSchool.findMany({
+      where: { studentId },
+      include: { school: true },
+      take: 3,
+    });
+
+    const latestDiagnosis = await this.prisma.diagnosisResult.findFirst({
+      where: { studentId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const averageRank = grades.length > 0
+      ? grades.filter(g => g.rank).reduce((sum, g) => sum + (g.rank || 0), 0) / grades.filter(g => g.rank).length
+      : null;
+
+    const systemPrompt = `당신은 친근하고 전문적인 고입 컨설턴트입니다. 학생에게 실질적이고 구체적인 조언을 제공해주세요.
+
+응답 형식:
+{
+  "greeting": "학생에게 보내는 인사",
+  "currentStatus": "현재 상태 요약 (1-2문장)",
+  "mainAdvice": [
+    {
+      "title": "조언 제목",
+      "content": "구체적인 조언 내용",
+      "actionable": "바로 실행할 수 있는 행동"
+    }
+  ],
+  "weeklyGoals": ["이번 주 목표 1", "이번 주 목표 2", "이번 주 목표 3"],
+  "encouragement": "격려 메시지",
+  "nextStep": "다음에 해야 할 가장 중요한 한 가지"
+}`;
+
+    const topicPrompt = topic ? `\n\n학생이 특별히 궁금해하는 주제: ${topic}` : '';
+
+    const prompt = `학생 정보:
+- 이름: ${student?.name || '학생'}
+- 학년: ${student?.grade || '미정'}학년
+- 평균 등급: ${averageRank ? averageRank.toFixed(1) : '데이터 없음'}등급
+- 최근 활동: ${activities.map(a => a.title).join(', ') || '없음'}
+- 목표 학교: ${targetSchools.map(t => t.school.name).join(', ') || '미설정'}
+- 최근 진단: ${latestDiagnosis ? `${latestDiagnosis.score}점 (${latestDiagnosis.level})` : '미실시'}
+${topicPrompt}
+
+이 학생에게 맞춤형 조언을 제공해주세요.`;
+
+    const response = await this.callOpenAI(prompt, systemPrompt);
+
+    const output = await this.saveAIOutput(
+      studentId,
+      AIOutputType.SUBJECT_ADVICE,
+      prompt,
+      response,
+      undefined,
+      { type: 'quick_advice', topic },
+    );
+
+    let advice;
+    try {
+      advice = JSON.parse(response);
+    } catch {
+      advice = { raw: response };
+    }
+
+    return {
+      output: {
+        id: output.id,
+        type: 'QUICK_ADVICE',
+        advice,
+        createdAt: output.createdAt,
+      },
+    };
+  }
+
   // ========== 유틸리티 ==========
   private async validateFamilyRelation(parentId: string, childId: string) {
     const parent = await this.prisma.user.findUnique({

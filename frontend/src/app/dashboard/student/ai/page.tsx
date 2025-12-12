@@ -8,25 +8,39 @@ import {
   GraduationCap,
   FileText,
   Calendar,
-  Send,
   RefreshCw,
   ThumbsUp,
   ThumbsDown,
   Copy,
   Check,
   Clock,
-  ChevronRight,
   Zap,
   Target,
   Lightbulb,
+  School,
+  Brain,
+  TrendingUp,
+  Award,
+  ChevronDown,
+  ChevronUp,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
-import { Textarea, Select } from "@/components/ui";
+import { Textarea, Select, Input } from "@/components/ui";
 import { Badge } from "@/components/ui";
 
-type AIFeature = "record-sentence" | "recommend-club" | "advice-subject" | "recommend-reading" | "action-plan";
+type AIFeature = 
+  | "quick-advice" 
+  | "comprehensive-analysis" 
+  | "school-recommendation" 
+  | "record-sentence" 
+  | "recommend-club" 
+  | "advice-subject" 
+  | "recommend-reading" 
+  | "action-plan";
 
 interface AIOutput {
   id: string;
@@ -36,74 +50,87 @@ interface AIOutput {
   feedback?: "positive" | "negative";
 }
 
-interface ActionPlan {
-  id: string;
-  title: string;
-  weekCount: number;
-  tasks: PlanTask[];
-  createdAt: string;
-}
-
-interface PlanTask {
-  id: string;
-  title: string;
-  weekNum: number;
-  status: string;
-}
-
 const features = [
+  {
+    id: "quick-advice" as AIFeature,
+    icon: MessageSquare,
+    title: "빠른 조언",
+    description: "궁금한 것을 물어보세요",
+    color: "violet",
+    isNew: true,
+  },
+  {
+    id: "comprehensive-analysis" as AIFeature,
+    icon: Brain,
+    title: "종합 분석",
+    description: "학업/활동/진로 전체 분석",
+    color: "sky",
+    isNew: true,
+  },
+  {
+    id: "school-recommendation" as AIFeature,
+    icon: School,
+    title: "학교 추천",
+    description: "AI가 추천하는 적합한 학교",
+    color: "emerald",
+    isNew: true,
+  },
   {
     id: "record-sentence" as AIFeature,
     icon: FileText,
-    title: "생기부 문장 생성",
-    description: "활동 내용을 바탕으로 생기부 문장을 생성합니다",
-    color: "sky",
+    title: "생기부 문장",
+    description: "활동 기반 문장 생성",
+    color: "indigo",
   },
   {
     id: "recommend-club" as AIFeature,
     icon: Users,
     title: "동아리 추천",
-    description: "관심사와 진로에 맞는 동아리를 추천합니다",
-    color: "indigo",
-  },
-  {
-    id: "advice-subject" as AIFeature,
-    icon: GraduationCap,
-    title: "과목 선택 조언",
-    description: "진로에 맞는 선택 과목을 안내합니다",
-    color: "emerald",
+    description: "관심사 기반 동아리 추천",
+    color: "amber",
   },
   {
     id: "recommend-reading" as AIFeature,
     icon: BookOpen,
     title: "독서 추천",
-    description: "관심 분야에 맞는 도서를 추천합니다",
-    color: "amber",
+    description: "진로 맞춤 도서 추천",
+    color: "rose",
   },
   {
     id: "action-plan" as AIFeature,
     icon: Calendar,
-    title: "액션 플랜 생성",
-    description: "12주 맞춤형 실행 계획을 생성합니다",
-    color: "rose",
+    title: "액션 플랜",
+    description: "12주 실행 계획 생성",
+    color: "cyan",
   },
 ];
+
+const colorClasses: Record<string, { bg: string; text: string; light: string }> = {
+  violet: { bg: "bg-violet-100", text: "text-violet-600", light: "bg-violet-50" },
+  sky: { bg: "bg-sky-100", text: "text-sky-600", light: "bg-sky-50" },
+  emerald: { bg: "bg-emerald-100", text: "text-emerald-600", light: "bg-emerald-50" },
+  indigo: { bg: "bg-indigo-100", text: "text-indigo-600", light: "bg-indigo-50" },
+  amber: { bg: "bg-amber-100", text: "text-amber-600", light: "bg-amber-50" },
+  rose: { bg: "bg-rose-100", text: "text-rose-600", light: "bg-rose-50" },
+  cyan: { bg: "bg-cyan-100", text: "text-cyan-600", light: "bg-cyan-50" },
+};
 
 export default function AIAdvisePage() {
   const [selectedFeature, setSelectedFeature] = useState<AIFeature | null>(null);
   const [inputText, setInputText] = useState("");
   const [generating, setGenerating] = useState(false);
-  const [output, setOutput] = useState<string>("");
+  const [output, setOutput] = useState<any>(null);
   const [history, setHistory] = useState<AIOutput[]>([]);
-  const [actionPlans, setActionPlans] = useState<ActionPlan[]>([]);
   const [copied, setCopied] = useState(false);
   const [activities, setActivities] = useState<any[]>([]);
   const [selectedActivityId, setSelectedActivityId] = useState("");
+  const [region, setRegion] = useState("");
+  const [schoolTypes, setSchoolTypes] = useState<string[]>([]);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   useEffect(() => {
     fetchHistory();
     fetchActivities();
-    fetchActionPlans();
   }, []);
 
   const getToken = () => localStorage.getItem("accessToken");
@@ -116,7 +143,7 @@ export default function AIAdvisePage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setHistory(Array.isArray(data) ? data : []);
+        setHistory(data.outputs || []);
       }
     } catch (error) {
       console.error("Fetch history error:", error);
@@ -131,25 +158,10 @@ export default function AIAdvisePage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setActivities(Array.isArray(data) ? data : []);
+        setActivities(data.activities || []);
       }
     } catch (error) {
       console.error("Fetch activities error:", error);
-    }
-  };
-
-  const fetchActionPlans = async () => {
-    try {
-      const token = getToken();
-      const res = await fetch("http://localhost:3000/api/ai/action-plan", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setActionPlans(Array.isArray(data) ? data : []);
-      }
-    } catch (error) {
-      console.error("Fetch action plans error:", error);
     }
   };
 
@@ -157,7 +169,7 @@ export default function AIAdvisePage() {
     if (!selectedFeature) return;
     
     setGenerating(true);
-    setOutput("");
+    setOutput(null);
     
     try {
       const token = getToken();
@@ -165,6 +177,18 @@ export default function AIAdvisePage() {
       let body: any = {};
 
       switch (selectedFeature) {
+        case "quick-advice":
+          endpoint = "http://localhost:3000/api/ai/advice/quick";
+          body = { topic: inputText };
+          break;
+        case "comprehensive-analysis":
+          endpoint = "http://localhost:3000/api/ai/analysis/comprehensive";
+          body = {};
+          break;
+        case "school-recommendation":
+          endpoint = "http://localhost:3000/api/ai/recommend/school";
+          body = { region, schoolTypes };
+          break;
         case "record-sentence":
           endpoint = selectedActivityId 
             ? `http://localhost:3000/api/ai/record-sentence/${selectedActivityId}`
@@ -173,19 +197,15 @@ export default function AIAdvisePage() {
           break;
         case "recommend-club":
           endpoint = "http://localhost:3000/api/ai/recommend/club";
-          body = { interests: inputText };
-          break;
-        case "advice-subject":
-          endpoint = "http://localhost:3000/api/ai/advice/subject";
-          body = { targetMajor: inputText };
+          body = { interests: inputText.split(",").map(s => s.trim()) };
           break;
         case "recommend-reading":
           endpoint = "http://localhost:3000/api/ai/recommend/reading";
-          body = { topic: inputText };
+          body = { genre: inputText };
           break;
         case "action-plan":
           endpoint = "http://localhost:3000/api/ai/action-plan";
-          body = { goal: inputText };
+          body = {};
           break;
       }
 
@@ -200,59 +220,582 @@ export default function AIAdvisePage() {
 
       if (res.ok) {
         const data = await res.json();
-        if (selectedFeature === "action-plan") {
-          setOutput(`액션 플랜이 생성되었습니다!\n\n제목: ${data.title}\n기간: ${data.weekCount}주\n\n태스크가 생성되었습니다. 실행 계획 탭에서 확인하세요.`);
-          fetchActionPlans();
-        } else {
-          setOutput(data.content || data.result || JSON.stringify(data, null, 2));
-        }
+        setOutput(data.output || data);
         fetchHistory();
+      } else {
+        const error = await res.json();
+        setOutput({ error: error.message || "AI 생성 중 오류가 발생했습니다." });
       }
     } catch (error) {
       console.error("AI generation error:", error);
-      setOutput("AI 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
+      setOutput({ error: "AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요." });
     } finally {
       setGenerating(false);
     }
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(output);
+    navigator.clipboard.writeText(JSON.stringify(output, null, 2));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const submitFeedback = async (outputId: string, isPositive: boolean) => {
-    try {
-      const token = getToken();
-      await fetch(`http://localhost:3000/api/ai/output/${outputId}/feedback`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ isPositive }),
-      });
-      fetchHistory();
-    } catch (error) {
-      console.error("Feedback error:", error);
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
+
+  const renderQuickAdviceResult = (data: any) => {
+    const advice = data.advice || data;
+    if (advice.raw) return <p className="whitespace-pre-wrap">{advice.raw}</p>;
+    
+    return (
+      <div className="space-y-6">
+        {advice.greeting && (
+          <div className="p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl">
+            <p className="text-lg font-medium text-violet-800">{advice.greeting}</p>
+          </div>
+        )}
+        
+        {advice.currentStatus && (
+          <p className="text-slate-600">{advice.currentStatus}</p>
+        )}
+
+        {advice.mainAdvice && (
+          <div className="space-y-3">
+            <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-amber-500" />
+              주요 조언
+            </h4>
+            {advice.mainAdvice.map((item: any, idx: number) => (
+              <div key={idx} className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                <h5 className="font-medium text-slate-900 mb-2">{item.title}</h5>
+                <p className="text-slate-600 text-sm mb-2">{item.content}</p>
+                {item.actionable && (
+                  <div className="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg w-fit">
+                    <Zap className="w-4 h-4" />
+                    {item.actionable}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {advice.weeklyGoals && (
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Target className="w-5 h-5 text-sky-500" />
+              이번 주 목표
+            </h4>
+            <div className="space-y-2">
+              {advice.weeklyGoals.map((goal: string, idx: number) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-sky-50 rounded-lg">
+                  <div className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-medium">
+                    {idx + 1}
+                  </div>
+                  <span className="text-slate-700">{goal}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {advice.encouragement && (
+          <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+            <p className="text-amber-800 flex items-center gap-2">
+              <Star className="w-5 h-5 text-amber-500" />
+              {advice.encouragement}
+            </p>
+          </div>
+        )}
+
+        {advice.nextStep && (
+          <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl">
+            <h4 className="font-medium text-emerald-800 mb-1">다음 단계</h4>
+            <p className="text-emerald-700">{advice.nextStep}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderComprehensiveAnalysis = (data: any) => {
+    const analysis = data.analysis || data;
+    if (analysis.raw) return <p className="whitespace-pre-wrap">{analysis.raw}</p>;
+
+    return (
+      <div className="space-y-6">
+        {/* Overall Assessment */}
+        {analysis.overallAssessment && (
+          <div className="p-6 bg-gradient-to-r from-sky-50 to-indigo-50 rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-lg text-slate-900">종합 평가</h4>
+              <div className="flex items-center gap-2">
+                <span className="text-3xl font-bold text-sky-600">
+                  {analysis.overallAssessment.score}
+                </span>
+                <span className="text-slate-500">/100</span>
+                <Badge variant={
+                  analysis.overallAssessment.grade === 'A' ? 'success' :
+                  analysis.overallAssessment.grade === 'B' ? 'info' :
+                  analysis.overallAssessment.grade === 'C' ? 'warning' : 'danger'
+                } size="lg">
+                  {analysis.overallAssessment.grade}등급
+                </Badge>
+              </div>
+            </div>
+            <p className="text-slate-600">{analysis.overallAssessment.summary}</p>
+          </div>
+        )}
+
+        {/* Academic Analysis */}
+        {analysis.academicAnalysis && (
+          <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => toggleSection('academic')}
+              className="w-full p-4 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-indigo-600" />
+                </div>
+                <span className="font-semibold text-slate-900">학업 분석</span>
+              </div>
+              {expandedSections.includes('academic') ? (
+                <ChevronUp className="w-5 h-5 text-slate-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-400" />
+              )}
+            </button>
+            {expandedSections.includes('academic') && (
+              <div className="p-4 bg-slate-50 border-t border-slate-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="p-3 bg-emerald-50 rounded-lg">
+                    <h5 className="text-sm font-medium text-emerald-800 mb-2">강점 과목</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.academicAnalysis.strengths?.map((s: string, i: number) => (
+                        <Badge key={i} variant="success">{s}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-red-50 rounded-lg">
+                    <h5 className="text-sm font-medium text-red-800 mb-2">보완 필요</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.academicAnalysis.weaknesses?.map((w: string, i: number) => (
+                        <Badge key={i} variant="danger">{w}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm text-slate-600">
+                    성적 추세: <strong>{analysis.academicAnalysis.trend}</strong>
+                  </span>
+                </div>
+                <p className="text-slate-600 text-sm">{analysis.academicAnalysis.advice}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Activity Analysis */}
+        {analysis.activityAnalysis && (
+          <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => toggleSection('activity')}
+              className="w-full p-4 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <Award className="w-5 h-5 text-amber-600" />
+                </div>
+                <span className="font-semibold text-slate-900">비교과 활동 분석</span>
+              </div>
+              {expandedSections.includes('activity') ? (
+                <ChevronUp className="w-5 h-5 text-slate-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-400" />
+              )}
+            </button>
+            {expandedSections.includes('activity') && (
+              <div className="p-4 bg-slate-50 border-t border-slate-200">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="p-3 bg-white rounded-lg border border-slate-200">
+                    <span className="text-xs text-slate-500">다양성</span>
+                    <p className="font-medium text-slate-900">{analysis.activityAnalysis.diversity}</p>
+                  </div>
+                  <div className="p-3 bg-white rounded-lg border border-slate-200">
+                    <span className="text-xs text-slate-500">심화도</span>
+                    <p className="font-medium text-slate-900">{analysis.activityAnalysis.depth}</p>
+                  </div>
+                </div>
+                <h5 className="text-sm font-medium text-slate-700 mb-2">추천 활동</h5>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.activityAnalysis.recommendations?.map((r: string, i: number) => (
+                    <Badge key={i} variant="info">{r}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* School Fit Analysis */}
+        {analysis.schoolFitAnalysis && analysis.schoolFitAnalysis.length > 0 && (
+          <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => toggleSection('schoolFit')}
+              className="w-full p-4 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                  <School className="w-5 h-5 text-emerald-600" />
+                </div>
+                <span className="font-semibold text-slate-900">목표 학교 적합도</span>
+              </div>
+              {expandedSections.includes('schoolFit') ? (
+                <ChevronUp className="w-5 h-5 text-slate-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-slate-400" />
+              )}
+            </button>
+            {expandedSections.includes('schoolFit') && (
+              <div className="p-4 bg-slate-50 border-t border-slate-200 space-y-4">
+                {analysis.schoolFitAnalysis.map((school: any, idx: number) => (
+                  <div key={idx} className="p-4 bg-white rounded-xl border border-slate-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-medium text-slate-900">{school.schoolName}</h5>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={
+                          school.fitLevel === '최적합' ? 'success' :
+                          school.fitLevel === '적합' ? 'info' :
+                          school.fitLevel === '도전' ? 'warning' : 'danger'
+                        }>
+                          {school.fitLevel}
+                        </Badge>
+                        <span className="text-lg font-bold text-sky-600">{school.probability}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="text-slate-500">주요 요인: </span>
+                        <span className="text-slate-700">{school.keyFactors?.join(', ')}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">개선 필요: </span>
+                        <span className="text-red-600">{school.improvementAreas?.join(', ')}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Action Items */}
+        {analysis.actionItems && analysis.actionItems.length > 0 && (
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Target className="w-5 h-5 text-rose-500" />
+              실천 과제
+            </h4>
+            <div className="space-y-2">
+              {analysis.actionItems.map((item: any, idx: number) => (
+                <div key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-slate-200">
+                  <Badge variant={
+                    item.priority === 'high' ? 'danger' :
+                    item.priority === 'medium' ? 'warning' : 'info'
+                  } size="sm">
+                    {item.priority === 'high' ? '긴급' : item.priority === 'medium' ? '중요' : '권장'}
+                  </Badge>
+                  <div className="flex-1">
+                    <p className="text-slate-700">{item.task}</p>
+                    <p className="text-xs text-slate-500 mt-1">{item.category} • {item.timeline}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Motivational Message */}
+        {analysis.motivationalMessage && (
+          <div className="p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border border-violet-100">
+            <p className="text-violet-800 flex items-center gap-2">
+              <Star className="w-5 h-5 text-violet-500" />
+              {analysis.motivationalMessage}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderSchoolRecommendations = (data: any) => {
+    const recommendations = data.recommendations || [];
+    const alternatives = data.alternativeOptions || [];
+    const generalAdvice = data.generalAdvice || '';
+
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4">
+          {recommendations.map((school: any, idx: number) => (
+            <div
+              key={idx}
+              className={`p-5 rounded-2xl border-2 ${
+                idx === 0 ? 'border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50' :
+                idx === 1 ? 'border-slate-300 bg-gradient-to-r from-slate-50 to-gray-50' :
+                idx === 2 ? 'border-orange-300 bg-gradient-to-r from-orange-50 to-amber-50' :
+                'border-slate-200 bg-white'
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                    idx === 0 ? 'bg-amber-500' :
+                    idx === 1 ? 'bg-slate-400' :
+                    idx === 2 ? 'bg-orange-400' : 'bg-sky-500'
+                  }`}>
+                    {school.rank}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">{school.schoolName}</h4>
+                    <p className="text-sm text-slate-500">{school.schoolType} • {school.region}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-sky-600">{school.fitScore}</div>
+                  <Badge variant={
+                    school.fitLevel === '최적합' ? 'success' :
+                    school.fitLevel === '적합' ? 'info' :
+                    school.fitLevel === '도전' ? 'warning' : 'danger'
+                  }>
+                    {school.fitLevel}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <h5 className="text-sm font-medium text-slate-700 mb-1">추천 이유</h5>
+                  <ul className="text-sm text-slate-600 space-y-1">
+                    {school.reasons?.map((reason: string, i: number) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                        {reason}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h5 className="text-sm font-medium text-slate-700 mb-1">합격을 위해 필요한 것</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {school.requirements?.map((req: string, i: number) => (
+                      <Badge key={i} variant="outline">{req}</Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {school.admissionTips && (
+                  <div className="p-3 bg-sky-50 rounded-lg">
+                    <p className="text-sm text-sky-700">
+                      <Lightbulb className="w-4 h-4 inline mr-1" />
+                      {school.admissionTips}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {alternatives.length > 0 && (
+          <div>
+            <h4 className="font-medium text-slate-900 mb-3">대안 학교</h4>
+            <div className="flex flex-wrap gap-3">
+              {alternatives.map((alt: any, idx: number) => (
+                <div key={idx} className="p-3 bg-slate-100 rounded-lg">
+                  <span className="font-medium text-slate-800">{alt.schoolName}</span>
+                  <p className="text-xs text-slate-500 mt-1">{alt.reason}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {generalAdvice && (
+          <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
+            <h4 className="font-medium text-indigo-800 mb-2">전략 조언</h4>
+            <p className="text-indigo-700 text-sm">{generalAdvice}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderOutput = () => {
+    if (!output) return null;
+    
+    if (output.error) {
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+          <p className="text-red-600">{output.error}</p>
+        </div>
+      );
+    }
+
+    switch (selectedFeature) {
+      case "quick-advice":
+        return renderQuickAdviceResult(output);
+      case "comprehensive-analysis":
+        return renderComprehensiveAnalysis(output);
+      case "school-recommendation":
+        return renderSchoolRecommendations(output);
+      default:
+        return (
+          <div className="p-4 bg-slate-50 rounded-xl">
+            <pre className="whitespace-pre-wrap text-sm text-slate-700">
+              {typeof output === 'string' ? output : JSON.stringify(output, null, 2)}
+            </pre>
+          </div>
+        );
     }
   };
 
   const getPlaceholder = () => {
     switch (selectedFeature) {
+      case "quick-advice":
+        return "궁금한 것을 자유롭게 입력하세요. 예: 과학고 가려면 뭘 준비해야 해?, 수학 성적 올리는 방법";
       case "record-sentence":
-        return "활동 내용을 입력하세요. 예: 과학 탐구 동아리에서 환경 문제 해결을 위한 프로젝트를 진행했습니다...";
+        return "활동 내용을 입력하세요. 예: 과학 탐구 동아리에서 환경 문제 해결 프로젝트...";
       case "recommend-club":
-        return "관심사를 입력하세요. 예: 프로그래밍, 인공지능, 로봇 등";
-      case "advice-subject":
-        return "희망 전공이나 진로를 입력하세요. 예: 컴퓨터공학, 의학, 경영학 등";
+        return "관심사를 쉼표로 구분하여 입력하세요. 예: 프로그래밍, 인공지능, 로봇";
       case "recommend-reading":
         return "관심 분야를 입력하세요. 예: 철학, 과학, 역사, 문학 등";
-      case "action-plan":
-        return "목표를 입력하세요. 예: 과학고 입시 준비, 내신 성적 향상 등";
       default:
         return "입력하세요...";
+    }
+  };
+
+  const renderInputSection = () => {
+    switch (selectedFeature) {
+      case "comprehensive-analysis":
+        return (
+          <div className="p-4 bg-sky-50 rounded-xl">
+            <p className="text-sky-700 text-sm">
+              <Brain className="w-4 h-4 inline mr-2" />
+              버튼을 클릭하면 현재까지 입력된 모든 데이터(성적, 활동, 목표학교 등)를 분석하여 종합적인 평가를 제공합니다.
+            </p>
+          </div>
+        );
+      case "school-recommendation":
+        return (
+          <div className="space-y-4">
+            <Select
+              label="선호 지역 (선택)"
+              options={[
+                { value: "", label: "전체 지역" },
+                { value: "서울", label: "서울" },
+                { value: "경기", label: "경기" },
+                { value: "인천", label: "인천" },
+                { value: "부산", label: "부산" },
+                { value: "대구", label: "대구" },
+                { value: "대전", label: "대전" },
+                { value: "광주", label: "광주" },
+              ]}
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+            />
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                선호 학교 유형 (선택)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {['SCIENCE', 'FOREIGN_LANGUAGE', 'INTERNATIONAL', 'ARTS', 'AUTONOMOUS_PRIVATE'].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setSchoolTypes(prev => 
+                      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+                    )}
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                      schoolTypes.includes(type)
+                        ? 'bg-sky-500 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {type === 'SCIENCE' ? '과학고' :
+                     type === 'FOREIGN_LANGUAGE' ? '외국어고' :
+                     type === 'INTERNATIONAL' ? '국제고' :
+                     type === 'ARTS' ? '예술고' : '자사고'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      case "action-plan":
+        return (
+          <div className="p-4 bg-cyan-50 rounded-xl">
+            <p className="text-cyan-700 text-sm">
+              <Calendar className="w-4 h-4 inline mr-2" />
+              진단 결과와 목표 학교를 기반으로 12주 맞춤형 액션 플랜을 생성합니다.
+            </p>
+          </div>
+        );
+      case "record-sentence":
+        return (
+          <div className="space-y-4">
+            {activities.length > 0 && (
+              <Select
+                label="활동 선택 (선택사항)"
+                options={[
+                  { value: "", label: "직접 입력" },
+                  ...activities.map((a) => ({
+                    value: a.id,
+                    label: a.title,
+                  })),
+                ]}
+                value={selectedActivityId}
+                onChange={(e) => setSelectedActivityId(e.target.value)}
+              />
+            )}
+            <Textarea
+              label="활동 내용"
+              placeholder={getPlaceholder()}
+              rows={4}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+            />
+          </div>
+        );
+      default:
+        return (
+          <Textarea
+            label="입력"
+            placeholder={getPlaceholder()}
+            rows={4}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          />
+        );
+    }
+  };
+
+  const canGenerate = () => {
+    switch (selectedFeature) {
+      case "comprehensive-analysis":
+      case "action-plan":
+      case "school-recommendation":
+        return true;
+      default:
+        return inputText.trim().length > 0;
     }
   };
 
@@ -261,44 +804,48 @@ export default function AIAdvisePage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">AI 조언</h1>
-          <p className="text-slate-500 mt-1">
-            AI가 맞춤형 조언과 분석을 제공합니다
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">AI 조언</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
+            AI가 맞춤형 분석과 조언을 제공합니다
           </p>
         </div>
 
         {/* Feature Selection */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {features.map((feature) => (
-            <button
-              key={feature.id}
-              onClick={() => {
-                setSelectedFeature(feature.id);
-                setOutput("");
-                setInputText("");
-              }}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                selectedFeature === feature.id
-                  ? "border-sky-500 bg-sky-50"
-                  : "border-slate-200 hover:border-slate-300 bg-white"
-              }`}
-            >
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
-                  feature.color === "sky" ? "bg-sky-100 text-sky-600" : ""
-                } ${feature.color === "indigo" ? "bg-indigo-100 text-indigo-600" : ""
-                } ${feature.color === "emerald" ? "bg-emerald-100 text-emerald-600" : ""
-                } ${feature.color === "amber" ? "bg-amber-100 text-amber-600" : ""
-                } ${feature.color === "rose" ? "bg-rose-100 text-rose-600" : ""}`}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+          {features.map((feature) => {
+            const colors = colorClasses[feature.color];
+            return (
+              <button
+                key={feature.id}
+                onClick={() => {
+                  setSelectedFeature(feature.id);
+                  setOutput(null);
+                  setInputText("");
+                  setExpandedSections([]);
+                }}
+                className={`relative p-4 rounded-xl border-2 transition-all text-left ${
+                  selectedFeature === feature.id
+                    ? `border-${feature.color}-500 ${colors.light}`
+                    : "border-slate-200 dark:border-slate-700 hover:border-slate-300 bg-white dark:bg-slate-800"
+                }`}
               >
-                <feature.icon className="w-5 h-5" />
-              </div>
-              <h3 className="font-medium text-slate-900 text-sm mb-1">
-                {feature.title}
-              </h3>
-              <p className="text-xs text-slate-500">{feature.description}</p>
-            </button>
-          ))}
+                {feature.isNew && (
+                  <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-bold rounded-full">
+                    NEW
+                  </span>
+                )}
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${colors.bg} ${colors.text}`}>
+                  <feature.icon className="w-4 h-4" />
+                </div>
+                <h3 className="font-medium text-slate-900 dark:text-white text-sm">
+                  {feature.title}
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+                  {feature.description}
+                </p>
+              </button>
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -307,54 +854,30 @@ export default function AIAdvisePage() {
             {selectedFeature ? (
               <Card>
                 <CardHeader
-                  icon={
-                    <Sparkles className="w-5 h-5" />
-                  }
+                  icon={<Sparkles className="w-5 h-5" />}
                 >
                   {features.find((f) => f.id === selectedFeature)?.title}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* Activity Selection for record-sentence */}
-                    {selectedFeature === "record-sentence" && activities.length > 0 && (
-                      <Select
-                        label="활동 선택 (선택사항)"
-                        options={[
-                          { value: "", label: "직접 입력" },
-                          ...activities.map((a) => ({
-                            value: a.id,
-                            label: a.title,
-                          })),
-                        ]}
-                        value={selectedActivityId}
-                        onChange={(e) => setSelectedActivityId(e.target.value)}
-                      />
-                    )}
-
-                    <Textarea
-                      label="입력"
-                      placeholder={getPlaceholder()}
-                      rows={5}
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                    />
+                    {renderInputSection()}
 
                     <div className="flex justify-end">
                       <Button
                         onClick={generateAI}
                         isLoading={generating}
-                        disabled={!inputText.trim()}
+                        disabled={!canGenerate()}
                         leftIcon={<Zap className="w-4 h-4" />}
                       >
-                        AI 생성
+                        {generating ? "분석 중..." : "AI 생성"}
                       </Button>
                     </div>
 
                     {/* Output */}
                     {output && (
                       <div className="mt-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-slate-900">결과</h4>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-semibold text-slate-900 dark:text-white">결과</h4>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -364,9 +887,7 @@ export default function AIAdvisePage() {
                             {copied ? "복사됨" : "복사"}
                           </Button>
                         </div>
-                        <div className="p-4 bg-gradient-to-br from-sky-50 to-indigo-50 rounded-xl border border-sky-100">
-                          <p className="text-slate-700 whitespace-pre-wrap">{output}</p>
-                        </div>
+                        {renderOutput()}
                       </div>
                     )}
                   </div>
@@ -375,56 +896,44 @@ export default function AIAdvisePage() {
             ) : (
               <Card className="h-[400px] flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                    <Sparkles className="w-8 h-8 text-slate-400" />
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-8 h-8 text-violet-500" />
                   </div>
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                     AI 기능을 선택하세요
                   </h3>
-                  <p className="text-sm text-slate-500 max-w-sm">
-                    위에서 원하는 AI 기능을 선택하면 맞춤형 조언을 받을 수 있습니다
+                  <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm">
+                    위에서 원하는 AI 기능을 선택하면 맞춤형 분석과 조언을 받을 수 있습니다
                   </p>
                 </div>
               </Card>
             )}
-
-            {/* Action Plans */}
-            {actionPlans.length > 0 && (
-              <Card>
-                <CardHeader icon={<Calendar className="w-5 h-5" />}>
-                  내 액션 플랜
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {actionPlans.map((plan) => (
-                      <div
-                        key={plan.id}
-                        className="p-4 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-slate-900">{plan.title}</h4>
-                          <Badge>{plan.weekCount}주 과정</Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-500">
-                          <span className="flex items-center gap-1">
-                            <Target className="w-3 h-3" />
-                            {plan.tasks?.length || 0}개 태스크
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {plan.createdAt}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
-          {/* History Section */}
-          <div className="lg:col-span-1">
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* AI Status */}
+            <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-violet-100 dark:border-violet-800">
+              <CardContent>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-800 flex items-center justify-center">
+                    <Brain className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-slate-900 dark:text-white">AI 상태</h4>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400">활성화됨</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  GPT 기반 AI가 학생의 데이터를 분석하여 맞춤형 조언을 제공합니다.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* History */}
             <Card className="h-fit">
               <CardHeader
                 icon={<Clock className="w-5 h-5" />}
@@ -443,15 +952,15 @@ export default function AIAdvisePage() {
               </CardHeader>
               <CardContent>
                 {history.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-8">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">
                     아직 생성된 내용이 없습니다
                   </p>
                 ) : (
-                  <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
                     {history.slice(0, 10).map((item) => (
                       <div
                         key={item.id}
-                        className="p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+                        className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Badge variant="outline" size="sm">
@@ -459,31 +968,9 @@ export default function AIAdvisePage() {
                           </Badge>
                           <span className="text-xs text-slate-400">{item.createdAt}</span>
                         </div>
-                        <p className="text-sm text-slate-600 line-clamp-3">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
                           {item.content}
                         </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => submitFeedback(item.id, true)}
-                            className={`p-1.5 rounded-lg transition-colors ${
-                              item.feedback === "positive"
-                                ? "bg-emerald-100 text-emerald-600"
-                                : "text-slate-400 hover:bg-slate-200"
-                            }`}
-                          >
-                            <ThumbsUp className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => submitFeedback(item.id, false)}
-                            className={`p-1.5 rounded-lg transition-colors ${
-                              item.feedback === "negative"
-                                ? "bg-red-100 text-red-600"
-                                : "text-slate-400 hover:bg-slate-200"
-                            }`}
-                          >
-                            <ThumbsDown className="w-4 h-4" />
-                          </button>
-                        </div>
                       </div>
                     ))}
                   </div>
@@ -491,18 +978,17 @@ export default function AIAdvisePage() {
               </CardContent>
             </Card>
 
-            {/* Tips Card */}
-            <Card className="mt-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100">
+            {/* Tips */}
+            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-100 dark:border-amber-800">
               <CardContent>
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                    <Lightbulb className="w-5 h-5 text-amber-600" />
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-800 flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-slate-900 mb-1">💡 팁</h4>
-                    <p className="text-sm text-slate-600">
-                      더 구체적인 내용을 입력할수록 AI가 더 정확한 조언을 제공합니다.
-                      활동 내용, 관심사, 목표 등을 자세히 작성해보세요.
+                    <h4 className="font-medium text-slate-900 dark:text-white mb-1">💡 팁</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      성적, 활동, 목표학교 데이터를 많이 입력할수록 AI가 더 정확한 분석을 제공합니다.
                     </p>
                   </div>
                 </div>

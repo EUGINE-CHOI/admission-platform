@@ -169,6 +169,43 @@ export class AiController {
   getFeedbackStats() {
     return this.aiService.getFeedbackStats();
   }
+
+  // ========== 신규: AI 종합 분석 ==========
+  @Post('analysis/comprehensive')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  generateComprehensiveAnalysis(@Request() req) {
+    return this.aiService.generateComprehensiveAnalysis(req.user.id);
+  }
+
+  // ========== 신규: AI 학교 추천 ==========
+  @Post('recommend/school')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  generateSchoolRecommendations(
+    @Request() req,
+    @Body() dto: { region?: string; schoolTypes?: string[]; priorities?: string[] },
+  ) {
+    return this.aiService.generateSchoolRecommendations(req.user.id, dto);
+  }
+
+  // ========== 신규: AI 빠른 조언 ==========
+  @Post('advice/quick')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  generateQuickAdvice(
+    @Request() req,
+    @Body() dto: { topic?: string },
+  ) {
+    return this.aiService.generateQuickAdvice(req.user.id, dto?.topic);
+  }
+
+  @Get('advice/quick')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  getQuickAdvice(@Request() req, @Query('topic') topic?: string) {
+    return this.aiService.generateQuickAdvice(req.user.id, topic);
+  }
 }
 
 

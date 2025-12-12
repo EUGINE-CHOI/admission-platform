@@ -151,7 +151,7 @@ export default function Home() {
               },
               {
                 name: "베이직",
-                price: "₩29,900",
+                price: "₩39,900",
                 period: "/월",
                 features: ["무제한 진단", "AI 조언 무제한", "액션 플랜 생성", "진단 리포트"],
                 cta: "베이직 시작",
@@ -159,9 +159,9 @@ export default function Home() {
               },
               {
                 name: "프리미엄",
-                price: "₩49,900",
+                price: "₩99,000",
                 period: "/월",
-                features: ["베이직 모든 기능", "전문 컨설턴트 상담 2회", "맞춤형 상담 리포트", "우선 고객 지원"],
+                features: ["베이직 모든 기능", "전문 컨설턴트 상담 1회", "맞춤형 상담 리포트", "우선 고객 지원"],
                 cta: "프리미엄 시작",
                 popular: false,
               },
