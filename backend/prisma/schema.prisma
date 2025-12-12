@@ -350,9 +350,48 @@ model School {
   targetSchools      TargetSchool[]
   diagnosisResults   DiagnosisResult[]
   recommendedSchools RecommendedSchool[]
+  admissionHistories AdmissionHistory[]
 
   @@unique([name, region])
   @@map("schools")
+}
+
+// ============================================
+// M3.8: 입시 경쟁률 히스토리
+// ============================================
+
+model AdmissionHistory {
+  id              String   @id @default(cuid())
+  schoolId        String
+  year            Int      // 입학년도 (2022, 2023, 2024, 2025)
+  type            String   // 전형 유형 (일반, 사회통합, 지역우선 등)
+  
+  // 모집 정보
+  quota           Int?     // 모집 정원
+  applicants      Int?     // 지원자 수
+  accepted        Int?     // 합격자 수
+  
+  // 경쟁률
+  competitionRate Float?   // 경쟁률 (지원자/모집정원)
+  
+  // 커트라인 (선택)
+  cutoffGrade     Float?   // 내신 커트라인
+  cutoffScore     Float?   // 종합 점수 커트라인
+  
+  // 일정 정보
+  applicationStart DateTime? // 원서접수 시작
+  applicationEnd   DateTime? // 원서접수 마감
+  examDate         DateTime? // 시험/면접일
+  announcementDate DateTime? // 합격 발표일
+  
+  note            String?  // 비고
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id])
+
+  @@unique([schoolId, year, type])
+  @@map("admission_histories")
 }
 
 model Admission {
