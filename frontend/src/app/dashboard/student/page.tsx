@@ -2,47 +2,78 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  GraduationCap,
+import {
   BookOpen,
-  Trophy,
-  Calendar,
-  LogOut,
   Target,
+  Trophy,
   TrendingUp,
   Clock,
-  Users
+  Calendar,
+  ChevronRight,
+  Sparkles,
+  CheckCircle,
+  Circle,
+  AlertCircle,
+  ExternalLink,
+  School,
 } from "lucide-react";
+import { DashboardLayout } from "@/components/layout";
+import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { Badge } from "@/components/ui";
 
-interface User {
+interface DashboardData {
+  activityCount: number;
+  targetSchoolCount: number;
+  completedTasks: number;
+  latestScore: number | null;
+  todayTasks: Task[];
+  upcomingSchedules: Schedule[];
+  recentActivities: Activity[];
+  planProgress: PlanProgress | null;
+}
+
+interface Task {
   id: string;
-  name: string;
-  email: string;
-  role: string;
+  title: string;
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  dueDate?: string;
+}
+
+interface Schedule {
+  id: string;
+  title: string;
+  date: string;
+  type: string;
+}
+
+interface Activity {
+  id: string;
+  type: string;
+  title: string;
+  createdAt: string;
+}
+
+interface PlanProgress {
+  totalTasks: number;
+  completedTasks: number;
+  currentWeek: number;
+  progress: number;
 }
 
 export default function StudentDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [dashboard, setDashboard] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      router.push("/login");
-      return;
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-    
-    const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "STUDENT") {
-      router.push("/login");
-      return;
-    }
-    
-    setUser(parsedUser);
     fetchDashboard();
-  }, [router]);
+  }, []);
 
   const fetchDashboard = async () => {
     try {
@@ -61,288 +92,388 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    router.push("/login");
-  };
-
-  if (!user) return null;
+  const quickActions = [
+    {
+      icon: BookOpen,
+      title: "데이터 입력",
+      description: "성적, 활동, 독서 기록",
+      color: "sky" as const,
+      href: "/dashboard/student/data",
+    },
+    {
+      icon: Target,
+      title: "진단 실행",
+      description: "목표 학교 적합도 분석",
+      color: "indigo" as const,
+      href: "/dashboard/student/diagnosis",
+    },
+    {
+      icon: Sparkles,
+      title: "AI 조언",
+      description: "맞춤형 AI 분석",
+      color: "purple" as const,
+      href: "/dashboard/student/ai",
+    },
+    {
+      icon: Calendar,
+      title: "실행 계획",
+      description: "태스크 및 일정 관리",
+      color: "emerald" as const,
+      href: "/dashboard/student/tasks",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <GraduationCap className="w-8 h-8 text-sky-600" />
-              <span className="text-xl font-bold text-gray-900">입시로드맵</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user.name} 학생</span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                로그아웃
-              </button>
-            </div>
+    <DashboardLayout requiredRole="STUDENT">
+      <div className="space-y-6">
+        {/* Welcome Banner */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 p-8 text-white">
+          <div className="relative z-10">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+              안녕하세요, {user?.name || "학생"}님! 👋
+            </h1>
+            <p className="text-sky-100 text-lg">
+              오늘도 목표를 향해 한 걸음 더 나아가세요!
+            </p>
+            {(user?.middleSchool || user?.schoolName || user?.grade) && (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="px-3 py-1.5 bg-white/20 rounded-full text-sm flex items-center gap-2">
+                  <School className="w-4 h-4" />
+                  <span>
+                    {user?.middleSchool?.name || user?.schoolName || "학교 미설정"}
+                    {user?.middleSchool?.district && ` (${user.middleSchool.region} ${user.middleSchool.district})`}
+                    {user?.grade && ` ${user.grade}학년`}
+                  </span>
+                  {user?.middleSchool?.website && (
+                    <a
+                      href={user.middleSchool.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white hover:text-sky-200 transition-colors ml-1"
+                      title="학교 홈페이지 방문"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  )}
+                </span>
+              </div>
+            )}
+            
+            {dashboard?.planProgress && (
+              <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-4 max-w-md">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">액션 플랜 진행률</span>
+                  <span className="text-sm">{dashboard.planProgress.progress}%</span>
+                </div>
+                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-white rounded-full transition-all duration-500"
+                    style={{ width: `${dashboard.planProgress.progress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-sky-200 mt-2">
+                  {dashboard.planProgress.currentWeek}주차 진행 중 · {dashboard.planProgress.completedTasks}/{dashboard.planProgress.totalTasks} 완료
+                </p>
+              </div>
+            )}
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-sky-500 to-indigo-500 rounded-2xl p-8 text-white mb-8">
-          <h1 className="text-3xl font-bold mb-2">
-            안녕하세요, {user.name}님! 🎓
-          </h1>
-          <p className="text-sky-100">
-            오늘도 목표를 향해 한 걸음 더 나아가세요!
-          </p>
+          
+          {/* Decorative elements */}
+          <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute right-20 bottom-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            icon={BookOpen}
+            icon={<BookOpen className="w-6 h-6" />}
             title="입력한 활동"
             value={dashboard?.activityCount || 0}
             suffix="개"
             color="sky"
           />
           <StatCard
-            icon={Target}
+            icon={<Target className="w-6 h-6" />}
             title="목표 학교"
             value={dashboard?.targetSchoolCount || 0}
             suffix="개"
             color="indigo"
           />
           <StatCard
-            icon={Trophy}
-            title="완료한 태스크"
+            icon={<Trophy className="w-6 h-6" />}
+            title="완료 태스크"
             value={dashboard?.completedTasks || 0}
             suffix="개"
             color="amber"
           />
           <StatCard
-            icon={TrendingUp}
+            icon={<TrendingUp className="w-6 h-6" />}
             title="진단 점수"
             value={dashboard?.latestScore || "-"}
-            suffix="점"
+            suffix={dashboard?.latestScore ? "점" : ""}
             color="emerald"
           />
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <QuickActionCard
-            icon={BookOpen}
-            title="데이터 입력"
-            description="성적, 활동, 독서 등 입력"
-            color="sky"
-            onClick={() => router.push("/dashboard/student/data")}
-          />
-          <QuickActionCard
-            icon={Target}
-            title="진단 실행"
-            description="입시 진단 받기"
-            color="indigo"
-            onClick={() => router.push("/dashboard/student/diagnosis")}
-          />
-          <QuickActionCard
-            icon={TrendingUp}
-            title="AI 조언"
-            description="AI 맞춤 조언"
-            color="purple"
-            onClick={() => router.push("/dashboard/student/ai")}
-          />
-          <QuickActionCard
-            icon={Calendar}
-            title="실행 계획"
-            description="태스크 관리"
-            color="emerald"
-            onClick={() => router.push("/dashboard/student/tasks")}
-          />
-        </div>
-
-        {/* Secondary Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <button
-            onClick={() => router.push("/dashboard/student/consultation")}
-            className="p-6 rounded-xl border-2 border-gray-200 bg-white shadow-sm hover:shadow-md hover:border-rose-300 transition-all text-left"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center">
-                <Users className="w-6 h-6 text-rose-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">상담 예약</h3>
-                <p className="text-sm text-gray-500">전문 컨설턴트와 1:1 상담</p>
-              </div>
-            </div>
-          </button>
-          <button
-            onClick={() => window.open("http://localhost:3000/api-docs", "_blank")}
-            className="p-6 rounded-xl border-2 border-gray-200 bg-white shadow-sm hover:shadow-md hover:border-amber-300 transition-all text-left"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">API 문서</h3>
-                <p className="text-sm text-gray-500">Swagger UI (개발자용)</p>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        {/* Action Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* 오늘의 할 일 */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-sky-100 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-sky-600" />
-              </div>
-              <h2 className="text-lg font-semibold text-gray-900">오늘의 할 일</h2>
-            </div>
-            <div className="space-y-3">
-              {dashboard?.todayTasks?.length > 0 ? (
-                dashboard.todayTasks.map((task: any, i: number) => (
-                  <TaskItem key={i} task={task} />
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm py-4 text-center">
-                  오늘 예정된 태스크가 없습니다
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* 다가오는 일정 */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-indigo-600" />
-              </div>
-              <h2 className="text-lg font-semibold text-gray-900">다가오는 일정</h2>
-            </div>
-            <div className="space-y-3">
-              {dashboard?.upcomingSchedules?.length > 0 ? (
-                dashboard.upcomingSchedules.map((schedule: any, i: number) => (
-                  <ScheduleItem key={i} schedule={schedule} />
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm py-4 text-center">
-                  예정된 일정이 없습니다
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Swagger Link */}
-        <div className="mt-8 p-4 bg-sky-50 rounded-xl border border-sky-200">
-          <p className="text-sm text-sky-700">
-            💡 <strong>개발자 모드:</strong> API 테스트는{" "}
-            <a
-              href="http://localhost:3000/api-docs"
-              target="_blank"
-              className="underline font-semibold"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action) => (
+            <Card
+              key={action.title}
+              hover
+              className="cursor-pointer group"
+              onClick={() => router.push(action.href)}
             >
-              Swagger UI
-            </a>
-            에서 할 수 있습니다.
-          </p>
+              <div className="flex flex-col items-start">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110
+                    ${action.color === "sky" ? "bg-sky-100 text-sky-600" : ""}
+                    ${action.color === "indigo" ? "bg-indigo-100 text-indigo-600" : ""}
+                    ${action.color === "purple" ? "bg-purple-100 text-purple-600" : ""}
+                    ${action.color === "emerald" ? "bg-emerald-100 text-emerald-600" : ""}
+                  `}
+                >
+                  <action.icon className="w-6 h-6" />
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-1">{action.title}</h3>
+                <p className="text-sm text-slate-500">{action.description}</p>
+              </div>
+            </Card>
+          ))}
         </div>
-      </main>
-    </div>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Today's Tasks */}
+          <Card>
+            <CardHeader
+              icon={<Clock className="w-5 h-5" />}
+              action={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push("/dashboard/student/tasks")}
+                >
+                  전체 보기
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              }
+            >
+              오늘의 할 일
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {dashboard?.todayTasks && dashboard.todayTasks.length > 0 ? (
+                  dashboard.todayTasks.slice(0, 5).map((task) => (
+                    <TaskItem key={task.id} task={task} />
+                  ))
+                ) : (
+                  <EmptyState
+                    icon={<CheckCircle className="w-8 h-8" />}
+                    message="오늘 예정된 태스크가 없습니다"
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Schedules */}
+          <Card>
+            <CardHeader
+              icon={<Calendar className="w-5 h-5" />}
+              action={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push("/dashboard/student/diagnosis")}
+                >
+                  전체 보기
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              }
+            >
+              다가오는 일정
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {dashboard?.upcomingSchedules && dashboard.upcomingSchedules.length > 0 ? (
+                  dashboard.upcomingSchedules.slice(0, 5).map((schedule) => (
+                    <ScheduleItem key={schedule.id} schedule={schedule} />
+                  ))
+                ) : (
+                  <EmptyState
+                    icon={<Calendar className="w-8 h-8" />}
+                    message="예정된 일정이 없습니다"
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activities */}
+        <Card>
+          <CardHeader
+            icon={<BookOpen className="w-5 h-5" />}
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/dashboard/student/data")}
+              >
+                더보기
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            }
+          >
+            최근 입력한 활동
+          </CardHeader>
+          <CardContent>
+            {dashboard?.recentActivities && dashboard.recentActivities.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {dashboard.recentActivities.slice(0, 6).map((activity) => (
+                  <ActivityItem key={activity.id} activity={activity} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={<BookOpen className="w-8 h-8" />}
+                message="아직 입력한 활동이 없습니다"
+                action={
+                  <Button
+                    size="sm"
+                    onClick={() => router.push("/dashboard/student/data")}
+                  >
+                    활동 입력하기
+                  </Button>
+                }
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* CTA Banner */}
+        <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 border-0 text-white">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">AI 맞춤 분석 받기</h3>
+                <p className="text-indigo-100 text-sm">
+                  데이터를 기반으로 AI가 맞춤형 조언을 제공합니다
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="secondary"
+              className="bg-white text-indigo-600 hover:bg-indigo-50"
+              onClick={() => router.push("/dashboard/student/ai")}
+            >
+              AI 조언 받기
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }
 
-function StatCard({ icon: Icon, title, value, suffix, color }: {
-  icon: any;
-  title: string;
-  value: number | string;
-  suffix: string;
-  color: "sky" | "indigo" | "amber" | "emerald";
-}) {
-  const colors = {
-    sky: "bg-sky-100 text-sky-600",
-    indigo: "bg-indigo-100 text-indigo-600",
-    amber: "bg-amber-100 text-amber-600",
-    emerald: "bg-emerald-100 text-emerald-600",
+function TaskItem({ task }: { task: Task }) {
+  const statusIcons = {
+    PENDING: <Circle className="w-5 h-5 text-slate-300" />,
+    IN_PROGRESS: <AlertCircle className="w-5 h-5 text-amber-500" />,
+    COMPLETED: <CheckCircle className="w-5 h-5 text-emerald-500" />,
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center gap-4">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors[color]}`}>
-          <Icon className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {value}<span className="text-lg font-normal text-gray-400 ml-1">{suffix}</span>
-          </p>
-        </div>
+    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+      {statusIcons[task.status]}
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm font-medium truncate ${
+          task.status === "COMPLETED" ? "text-slate-400 line-through" : "text-slate-700"
+        }`}>
+          {task.title}
+        </p>
+        {task.dueDate && (
+          <p className="text-xs text-slate-400">{task.dueDate}</p>
+        )}
       </div>
+      <Badge
+        variant={
+          task.status === "COMPLETED"
+            ? "success"
+            : task.status === "IN_PROGRESS"
+            ? "warning"
+            : "default"
+        }
+      >
+        {task.status === "COMPLETED" ? "완료" : task.status === "IN_PROGRESS" ? "진행중" : "대기"}
+      </Badge>
     </div>
   );
 }
 
-function TaskItem({ task }: { task: any }) {
+function ScheduleItem({ schedule }: { schedule: Schedule }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-      <input type="checkbox" className="w-5 h-5 rounded border-gray-300" />
-      <span className="text-sm text-gray-700">{task.title || task}</span>
-    </div>
-  );
-}
-
-function ScheduleItem({ schedule }: { schedule: any }) {
-  return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
       <div className="w-2 h-2 rounded-full bg-indigo-500" />
-      <div>
-        <p className="text-sm font-medium text-gray-700">{schedule.title || schedule}</p>
-        <p className="text-xs text-gray-500">{schedule.date || ""}</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-slate-700 truncate">
+          {schedule.title}
+        </p>
+        <p className="text-xs text-slate-400">{schedule.date}</p>
       </div>
+      <Badge variant="info">{schedule.type || "일정"}</Badge>
     </div>
   );
 }
 
-function QuickActionCard({ icon: Icon, title, description, color, onClick }: {
-  icon: any;
-  title: string;
-  description: string;
-  color: "sky" | "indigo" | "purple" | "emerald";
-  onClick: () => void;
-}) {
-  const colors = {
-    sky: "bg-sky-100 text-sky-600 hover:bg-sky-200",
-    indigo: "bg-indigo-100 text-indigo-600 hover:bg-indigo-200",
-    purple: "bg-purple-100 text-purple-600 hover:bg-purple-200",
-    emerald: "bg-emerald-100 text-emerald-600 hover:bg-emerald-200",
+function ActivityItem({ activity }: { activity: Activity }) {
+  const typeLabels: Record<string, string> = {
+    GRADE: "성적",
+    ACTIVITY: "활동",
+    READING: "독서",
+    VOLUNTEER: "봉사",
+  };
+
+  const typeColors: Record<string, string> = {
+    GRADE: "bg-sky-100 text-sky-600",
+    ACTIVITY: "bg-emerald-100 text-emerald-600",
+    READING: "bg-amber-100 text-amber-600",
+    VOLUNTEER: "bg-rose-100 text-rose-600",
   };
 
   return (
-    <button
-      onClick={onClick}
-      className={`p-6 rounded-xl border-2 border-transparent hover:border-gray-300 transition-all text-left bg-white shadow-sm hover:shadow-md`}
-    >
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colors[color]}`}>
-        <Icon className="w-6 h-6" />
+    <div className="p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+      <div className="flex items-center gap-2 mb-2">
+        <Badge className={typeColors[activity.type] || "bg-slate-100 text-slate-600"}>
+          {typeLabels[activity.type] || activity.type}
+        </Badge>
+        <span className="text-xs text-slate-400">{activity.createdAt}</span>
       </div>
-      <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-      <p className="text-sm text-gray-500">{description}</p>
-    </button>
+      <p className="text-sm font-medium text-slate-700 truncate">{activity.title}</p>
+    </div>
   );
 }
 
+function EmptyState({
+  icon,
+  message,
+  action,
+}: {
+  icon: React.ReactNode;
+  message: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+      {icon}
+      <p className="mt-2 text-sm">{message}</p>
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}

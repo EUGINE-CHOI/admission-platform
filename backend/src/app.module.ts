@@ -16,6 +16,9 @@ import { ConsultationModule } from './consultation/consultation.module';
 import { PlanModule } from './plan/plan.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { AdminModule } from './admin/admin.module';
+import { CrawlerModule } from './crawler/crawler.module';
+import { MiddleSchoolModule } from './middle-school/middle-school.module';
+import { ClubModule } from './club/club.module';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { AdminModule } from './admin/admin.module';
     PlanModule,
     SubscriptionModule,
     AdminModule,
+    CrawlerModule,
+    MiddleSchoolModule,
+    ClubModule,
   ],
   controllers: [AppController],
   providers: [AppService],

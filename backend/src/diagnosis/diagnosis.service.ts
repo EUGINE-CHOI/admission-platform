@@ -117,6 +117,7 @@ export class DiagnosisService {
             name: true,
             type: true,
             region: true,
+            website: true,
             admissions: {
               where: { publishStatus: PublishStatus.PUBLISHED },
               select: { cutoffGrade: true, competitionRate: true },

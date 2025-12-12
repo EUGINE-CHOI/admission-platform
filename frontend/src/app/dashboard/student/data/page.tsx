@@ -1,252 +1,131 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { 
-  GraduationCap,
+import {
   BookOpen,
   Trophy,
-  Calendar,
   Heart,
-  LogOut,
+  Clock,
   Plus,
-  Edit2,
   Trash2,
+  Edit,
   Save,
-  X
+  X,
+  GraduationCap,
+  AlertCircle,
 } from "lucide-react";
+import { DashboardLayout } from "@/components/layout";
+import { Card, CardHeader, CardContent } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { Input, Textarea, Select } from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { Modal, ConfirmModal } from "@/components/ui";
 
-interface User {
+type TabType = "grades" | "activities" | "readings" | "volunteers";
+
+interface Grade {
   id: string;
-  name: string;
-  email: string;
-  role: string;
+  subject: string;
+  grade: number;
+  semester: string;
+  year: number;
 }
 
-type DataType = "grades" | "activities" | "readings" | "attendances" | "volunteers";
+interface Activity {
+  id: string;
+  activityType: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
+  hours?: number;
+}
+
+interface Reading {
+  id: string;
+  title: string;
+  author: string;
+  summary?: string;
+  readDate: string;
+}
+
+interface Volunteer {
+  id: string;
+  organization: string;
+  hours: number;
+  date: string;
+  description?: string;
+}
+
+const tabs = [
+  { id: "grades" as TabType, label: "성적", icon: Trophy },
+  { id: "activities" as TabType, label: "활동", icon: GraduationCap },
+  { id: "readings" as TabType, label: "독서", icon: BookOpen },
+  { id: "volunteers" as TabType, label: "봉사활동", icon: Heart },
+];
 
 export default function StudentDataPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<DataType>("grades");
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>("grades");
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [readings, setReadings] = useState<Reading[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string | null }>({
+    isOpen: false,
+    id: null,
+  });
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      router.push("/login");
-      return;
-    }
-    
-    const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "STUDENT") {
-      router.push("/login");
-      return;
-    }
-    
-    setUser(parsedUser);
-    fetchData("grades");
-  }, [router]);
+    fetchData();
+  }, [activeTab]);
 
-  const fetchData = async (type: DataType) => {
+  const getToken = () => localStorage.getItem("accessToken");
+
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`http://localhost:3000/api/student/${type}`, {
+      const token = getToken();
+      const endpoint = `http://localhost:3000/api/student/${activeTab}`;
+      const res = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        const result = await res.json();
-        setData(Array.isArray(result) ? result : []);
-      } else {
-        setData([]);
+        const data = await res.json();
+        const dataArray = Array.isArray(data) ? data : [];
+        switch (activeTab) {
+          case "grades":
+            setGrades(dataArray);
+            break;
+          case "activities":
+            setActivities(dataArray);
+            break;
+          case "readings":
+            setReadings(dataArray);
+            break;
+          case "volunteers":
+            setVolunteers(dataArray);
+            break;
+        }
       }
     } catch (error) {
-      console.error("Data fetch error:", error);
-      setData([]);
+      console.error("Fetch error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleTabChange = (type: DataType) => {
-    setActiveTab(type);
-    setShowForm(false);
-    setEditingId(null);
-    fetchData(type);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    router.push("/login");
-  };
-
-  if (!user) return null;
-
-  const tabs = [
-    { id: "grades" as DataType, label: "성적", icon: GraduationCap },
-    { id: "activities" as DataType, label: "활동", icon: Trophy },
-    { id: "readings" as DataType, label: "독서", icon: BookOpen },
-    { id: "attendances" as DataType, label: "출결", icon: Calendar },
-    { id: "volunteers" as DataType, label: "봉사", icon: Heart },
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-6">
-              <div 
-                className="flex items-center gap-3 cursor-pointer"
-                onClick={() => router.push("/dashboard/student")}
-              >
-                <GraduationCap className="w-8 h-8 text-sky-600" />
-                <span className="text-xl font-bold text-gray-900">입시로드맵</span>
-              </div>
-              <nav className="hidden md:flex items-center gap-4">
-                <button
-                  onClick={() => router.push("/dashboard/student")}
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  대시보드
-                </button>
-                <button className="text-sm text-sky-600 font-semibold">
-                  데이터 입력
-                </button>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user.name} 학생</span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                로그아웃
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">데이터 입력</h1>
-          <p className="text-gray-600">입시 준비에 필요한 데이터를 입력하세요</p>
-        </div>
-
-        {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="flex overflow-x-auto">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
-                    isActive
-                      ? "border-sky-500 text-sky-600 bg-sky-50"
-                      : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          {/* Header with Add Button */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
-              {tabs.find((t) => t.id === activeTab)?.label} 목록
-            </h2>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors"
-            >
-              {showForm ? (
-                <>
-                  <X className="w-5 h-5" />
-                  취소
-                </>
-              ) : (
-                <>
-                  <Plus className="w-5 h-5" />
-                  추가
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Form */}
-          {showForm && (
-            <DataForm
-              type={activeTab}
-              onSuccess={() => {
-                setShowForm(false);
-                fetchData(activeTab);
-              }}
-              onCancel={() => setShowForm(false)}
-            />
-          )}
-
-          {/* Data List */}
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
-              <p className="text-gray-500 mt-4">로딩 중...</p>
-            </div>
-          ) : data.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">아직 등록된 데이터가 없습니다</p>
-              <p className="text-sm text-gray-400 mt-2">상단의 추가 버튼을 클릭해서 데이터를 입력하세요</p>
-            </div>
-          ) : (
-            <DataList
-              type={activeTab}
-              data={data}
-              onRefresh={() => fetchData(activeTab)}
-            />
-          )}
-        </div>
-      </main>
-    </div>
-  );
-}
-
-// 데이터 입력 폼 컴포넌트
-function DataForm({ type, onSuccess, onCancel }: {
-  type: DataType;
-  onSuccess: () => void;
-  onCancel: () => void;
-}) {
-  const [formData, setFormData] = useState<any>({});
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setError("");
-
+  const handleSubmit = async (formData: any) => {
     try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`http://localhost:3000/api/student/${type}`, {
-        method: "POST",
+      const token = getToken();
+      const endpoint = editingItem
+        ? `http://localhost:3000/api/student/${activeTab}/${editingItem.id}`
+        : `http://localhost:3000/api/student/${activeTab}`;
+      
+      const res = await fetch(endpoint, {
+        method: editingItem ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -254,247 +133,565 @@ function DataForm({ type, onSuccess, onCancel }: {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "저장에 실패했습니다");
+      if (res.ok) {
+        setIsModalOpen(false);
+        setEditingItem(null);
+        fetchData();
       }
-
-      onSuccess();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
+    } catch (error) {
+      console.error("Submit error:", error);
     }
   };
 
-  const renderFields = () => {
-    switch (type) {
-      case "grades":
-        return (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="number"
-                placeholder="학년"
-                value={formData.schoolYear || ""}
-                onChange={(e) => setFormData({ ...formData, schoolYear: parseInt(e.target.value) })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                required
-              />
-              <select
-                value={formData.semester || ""}
-                onChange={(e) => setFormData({ ...formData, semester: parseInt(e.target.value) })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                required
-              >
-                <option value="">학기 선택</option>
-                <option value="1">1학기</option>
-                <option value="2">2학기</option>
-              </select>
-              <input
-                type="text"
-                placeholder="과목"
-                value={formData.subject || ""}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="number"
-                step="0.01"
-                placeholder="성적"
-                value={formData.score || ""}
-                onChange={(e) => setFormData({ ...formData, score: parseFloat(e.target.value) })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </>
-        );
-      case "activities":
-        return (
-          <>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="활동명"
-                value={formData.activityName || ""}
-                onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="text"
-                placeholder="역할"
-                value={formData.role || ""}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="date"
-                  placeholder="시작일"
-                  value={formData.startDate || ""}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                  required
-                />
-                <input
-                  type="date"
-                  placeholder="종료일"
-                  value={formData.endDate || ""}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                />
-              </div>
-              <textarea
-                placeholder="활동 내용"
-                value={formData.description || ""}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                rows={4}
-              />
-            </div>
-          </>
-        );
-      case "readings":
-        return (
-          <>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="도서명"
-                value={formData.bookTitle || ""}
-                onChange={(e) => setFormData({ ...formData, bookTitle: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="text"
-                placeholder="저자"
-                value={formData.author || ""}
-                onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              />
-              <input
-                type="date"
-                placeholder="독서일"
-                value={formData.readDate || ""}
-                onChange={(e) => setFormData({ ...formData, readDate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              />
-              <textarea
-                placeholder="독후감"
-                value={formData.summary || ""}
-                onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                rows={4}
-              />
-            </div>
-          </>
-        );
-      default:
-        return <p className="text-gray-500">준비 중입니다...</p>;
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="mb-6 p-6 bg-sky-50 rounded-lg border border-sky-200">
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-          {error}
-        </div>
-      )}
-      {renderFields()}
-      <div className="flex items-center gap-3 mt-4">
-        <button
-          type="submit"
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:bg-sky-400 transition-colors"
-        >
-          <Save className="w-4 h-4" />
-          {saving ? "저장 중..." : "저장"}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-gray-600 hover:text-gray-900"
-        >
-          취소
-        </button>
-      </div>
-    </form>
-  );
-}
-
-// 데이터 목록 컴포넌트
-function DataList({ type, data, onRefresh }: {
-  type: DataType;
-  data: any[];
-  onRefresh: () => void;
-}) {
-  const handleDelete = async (id: string) => {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
-
+  const handleDelete = async () => {
+    if (!deleteConfirm.id) return;
+    
     try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`http://localhost:3000/api/student/${type}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const token = getToken();
+      const res = await fetch(
+        `http://localhost:3000/api/student/${activeTab}/${deleteConfirm.id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (res.ok) {
-        onRefresh();
+        fetchData();
       }
     } catch (error) {
       console.error("Delete error:", error);
+    } finally {
+      setDeleteConfirm({ isOpen: false, id: null });
+    }
+  };
+
+  const openAddModal = () => {
+    setEditingItem(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (item: any) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
+  };
+
+  const getCurrentData = () => {
+    switch (activeTab) {
+      case "grades":
+        return grades;
+      case "activities":
+        return activities;
+      case "readings":
+        return readings;
+      case "volunteers":
+        return volunteers;
+      default:
+        return [];
     }
   };
 
   return (
-    <div className="space-y-4">
-      {data.map((item) => (
-        <div
-          key={item.id}
-          className="p-4 border border-gray-200 rounded-lg hover:border-sky-300 transition-colors"
-        >
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              {type === "grades" && (
-                <>
-                  <h3 className="font-semibold text-gray-900">{item.subject}</h3>
-                  <p className="text-sm text-gray-600">
-                    {item.schoolYear}학년 {item.semester}학기 - 성적: {item.score}
-                  </p>
-                </>
-              )}
-              {type === "activities" && (
-                <>
-                  <h3 className="font-semibold text-gray-900">{item.activityName}</h3>
-                  <p className="text-sm text-gray-600">{item.role}</p>
-                  <p className="text-sm text-gray-500 mt-1">{item.description}</p>
-                </>
-              )}
-              {type === "readings" && (
-                <>
-                  <h3 className="font-semibold text-gray-900">{item.bookTitle}</h3>
-                  <p className="text-sm text-gray-600">{item.author}</p>
-                  <p className="text-sm text-gray-500 mt-1">{item.summary}</p>
-                </>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleDelete(item.id)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+    <DashboardLayout requiredRole="STUDENT">
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">데이터 입력</h1>
+            <p className="text-slate-500 mt-1">
+              성적, 활동, 독서, 봉사활동 기록을 입력하세요
+            </p>
           </div>
+          <Button onClick={openAddModal} leftIcon={<Plus className="w-4 h-4" />}>
+            새로 추가
+          </Button>
         </div>
-      ))}
+
+        {/* Tabs */}
+        <div className="flex gap-2 p-1 bg-slate-100 rounded-xl w-fit">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all
+                ${
+                  activeTab === tab.id
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }
+              `}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <Card>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-sky-600 border-t-transparent" />
+              </div>
+            ) : getCurrentData().length === 0 ? (
+              <EmptyState tab={activeTab} onAdd={openAddModal} />
+            ) : (
+              <DataTable
+                tab={activeTab}
+                data={getCurrentData()}
+                onEdit={openEditModal}
+                onDelete={(id) => setDeleteConfirm({ isOpen: true, id })}
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Add/Edit Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingItem(null);
+          }}
+          title={`${editingItem ? "수정" : "추가"} - ${tabs.find((t) => t.id === activeTab)?.label}`}
+          size="lg"
+        >
+          <DataForm
+            tab={activeTab}
+            initialData={editingItem}
+            onSubmit={handleSubmit}
+            onCancel={() => {
+              setIsModalOpen(false);
+              setEditingItem(null);
+            }}
+          />
+        </Modal>
+
+        {/* Delete Confirmation */}
+        <ConfirmModal
+          isOpen={deleteConfirm.isOpen}
+          onClose={() => setDeleteConfirm({ isOpen: false, id: null })}
+          onConfirm={handleDelete}
+          title="삭제 확인"
+          message="정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+          confirmText="삭제"
+          variant="danger"
+        />
+      </div>
+    </DashboardLayout>
+  );
+}
+
+function EmptyState({ tab, onAdd }: { tab: TabType; onAdd: () => void }) {
+  const messages: Record<TabType, { title: string; desc: string }> = {
+    grades: { title: "입력된 성적이 없습니다", desc: "교과 성적을 입력해주세요" },
+    activities: { title: "입력된 활동이 없습니다", desc: "교내외 활동을 기록해주세요" },
+    readings: { title: "입력된 독서가 없습니다", desc: "읽은 책을 기록해주세요" },
+    volunteers: { title: "입력된 봉사활동이 없습니다", desc: "봉사활동을 기록해주세요" },
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <AlertCircle className="w-8 h-8 text-slate-400" />
+      </div>
+      <h3 className="text-lg font-medium text-slate-900 mb-1">
+        {messages[tab].title}
+      </h3>
+      <p className="text-sm text-slate-500 mb-6">{messages[tab].desc}</p>
+      <Button onClick={onAdd} leftIcon={<Plus className="w-4 h-4" />}>
+        첫 번째 {tabs.find((t) => t.id === tab)?.label} 추가
+      </Button>
     </div>
   );
 }
 
+function DataTable({
+  tab,
+  data,
+  onEdit,
+  onDelete,
+}: {
+  tab: TabType;
+  data: any[];
+  onEdit: (item: any) => void;
+  onDelete: (id: string) => void;
+}) {
+  if (tab === "grades") {
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-200">
+              <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">과목</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">성적</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">학기</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">연도</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-slate-500">작업</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                <td className="py-3 px-4 text-sm font-medium text-slate-900">{item.subject}</td>
+                <td className="py-3 px-4">
+                  <Badge variant={item.grade >= 90 ? "success" : item.grade >= 70 ? "warning" : "danger"}>
+                    {item.grade}점
+                  </Badge>
+                </td>
+                <td className="py-3 px-4 text-sm text-slate-600">{item.semester}</td>
+                <td className="py-3 px-4 text-sm text-slate-600">{item.year}</td>
+                <td className="py-3 px-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => onEdit(item)}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => onDelete(item.id)}>
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (tab === "activities") {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {data.map((item) => (
+          <div
+            key={item.id}
+            className="p-4 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors"
+          >
+            <div className="flex justify-between items-start mb-2">
+              <Badge>{item.activityType}</Badge>
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" onClick={() => onEdit(item)}>
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDelete(item.id)}>
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </Button>
+              </div>
+            </div>
+            <h3 className="font-medium text-slate-900 mb-1">{item.title}</h3>
+            <p className="text-sm text-slate-500 line-clamp-2">{item.description}</p>
+            <div className="flex items-center gap-4 mt-3 text-xs text-slate-400">
+              <span>{item.startDate}</span>
+              {item.hours && <span>{item.hours}시간</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (tab === "readings") {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {data.map((item) => (
+          <div
+            key={item.id}
+            className="p-4 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors"
+          >
+            <div className="flex justify-between items-start mb-2">
+              <BookOpen className="w-5 h-5 text-amber-500" />
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" onClick={() => onEdit(item)}>
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDelete(item.id)}>
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </Button>
+              </div>
+            </div>
+            <h3 className="font-medium text-slate-900 mb-1">{item.title}</h3>
+            <p className="text-sm text-slate-500">{item.author}</p>
+            {item.summary && (
+              <p className="text-sm text-slate-400 mt-2 line-clamp-2">{item.summary}</p>
+            )}
+            <p className="text-xs text-slate-400 mt-3">{item.readDate}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (tab === "volunteers") {
+    return (
+      <div className="space-y-3">
+        {data.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center justify-between p-4 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center">
+                <Heart className="w-5 h-5 text-rose-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-slate-900">{item.organization}</h3>
+                <div className="flex items-center gap-3 mt-1 text-sm text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {item.hours}시간
+                  </span>
+                  <span>{item.date}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="sm" onClick={() => onEdit(item)}>
+                <Edit className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => onDelete(item.id)}>
+                <Trash2 className="w-4 h-4 text-red-500" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function DataForm({
+  tab,
+  initialData,
+  onSubmit,
+  onCancel,
+}: {
+  tab: TabType;
+  initialData?: any;
+  onSubmit: (data: any) => void;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = useState<any>(initialData || {});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    await onSubmit(formData);
+    setIsSubmitting(false);
+  };
+
+  const updateField = (field: string, value: any) => {
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  if (tab === "grades") {
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="과목"
+          placeholder="예: 국어, 수학, 영어"
+          value={formData.subject || ""}
+          onChange={(e) => updateField("subject", e.target.value)}
+          required
+        />
+        <Input
+          label="성적"
+          type="number"
+          min={0}
+          max={100}
+          placeholder="0~100"
+          value={formData.grade || ""}
+          onChange={(e) => updateField("grade", parseInt(e.target.value))}
+          required
+        />
+        <Select
+          label="학기"
+          options={[
+            { value: "", label: "학기 선택" },
+            { value: "1학기", label: "1학기" },
+            { value: "2학기", label: "2학기" },
+          ]}
+          value={formData.semester || ""}
+          onChange={(e) => updateField("semester", e.target.value)}
+          required
+        />
+        <Input
+          label="연도"
+          type="number"
+          min={2020}
+          max={2030}
+          placeholder="2024"
+          value={formData.year || new Date().getFullYear()}
+          onChange={(e) => updateField("year", parseInt(e.target.value))}
+          required
+        />
+        <div className="flex gap-3 pt-4">
+          <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
+            취소
+          </Button>
+          <Button type="submit" className="flex-1" isLoading={isSubmitting}>
+            {initialData ? "수정" : "추가"}
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  if (tab === "activities") {
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Select
+          label="활동 유형"
+          options={[
+            { value: "", label: "유형 선택" },
+            { value: "CLUB", label: "동아리" },
+            { value: "COMPETITION", label: "대회" },
+            { value: "PROJECT", label: "프로젝트" },
+            { value: "OTHER", label: "기타" },
+          ]}
+          value={formData.activityType || ""}
+          onChange={(e) => updateField("activityType", e.target.value)}
+          required
+        />
+        <Input
+          label="활동명"
+          placeholder="활동 이름을 입력하세요"
+          value={formData.title || ""}
+          onChange={(e) => updateField("title", e.target.value)}
+          required
+        />
+        <Textarea
+          label="설명"
+          placeholder="활동에 대해 자세히 설명해주세요"
+          rows={4}
+          value={formData.description || ""}
+          onChange={(e) => updateField("description", e.target.value)}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="시작일"
+            type="date"
+            value={formData.startDate || ""}
+            onChange={(e) => updateField("startDate", e.target.value)}
+            required
+          />
+          <Input
+            label="종료일"
+            type="date"
+            value={formData.endDate || ""}
+            onChange={(e) => updateField("endDate", e.target.value)}
+          />
+        </div>
+        <Input
+          label="활동 시간 (선택)"
+          type="number"
+          min={0}
+          placeholder="시간"
+          value={formData.hours || ""}
+          onChange={(e) => updateField("hours", parseInt(e.target.value))}
+        />
+        <div className="flex gap-3 pt-4">
+          <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
+            취소
+          </Button>
+          <Button type="submit" className="flex-1" isLoading={isSubmitting}>
+            {initialData ? "수정" : "추가"}
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  if (tab === "readings") {
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="책 제목"
+          placeholder="책 제목을 입력하세요"
+          value={formData.title || ""}
+          onChange={(e) => updateField("title", e.target.value)}
+          required
+        />
+        <Input
+          label="저자"
+          placeholder="저자명을 입력하세요"
+          value={formData.author || ""}
+          onChange={(e) => updateField("author", e.target.value)}
+          required
+        />
+        <Textarea
+          label="독서 감상 (선택)"
+          placeholder="책을 읽고 느낀 점을 적어주세요"
+          rows={4}
+          value={formData.summary || ""}
+          onChange={(e) => updateField("summary", e.target.value)}
+        />
+        <Input
+          label="읽은 날짜"
+          type="date"
+          value={formData.readDate || ""}
+          onChange={(e) => updateField("readDate", e.target.value)}
+          required
+        />
+        <div className="flex gap-3 pt-4">
+          <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
+            취소
+          </Button>
+          <Button type="submit" className="flex-1" isLoading={isSubmitting}>
+            {initialData ? "수정" : "추가"}
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  if (tab === "volunteers") {
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="봉사 기관"
+          placeholder="봉사활동을 수행한 기관명"
+          value={formData.organization || ""}
+          onChange={(e) => updateField("organization", e.target.value)}
+          required
+        />
+        <Input
+          label="봉사 시간"
+          type="number"
+          min={0}
+          placeholder="시간"
+          value={formData.hours || ""}
+          onChange={(e) => updateField("hours", parseInt(e.target.value))}
+          required
+        />
+        <Input
+          label="봉사 날짜"
+          type="date"
+          value={formData.date || ""}
+          onChange={(e) => updateField("date", e.target.value)}
+          required
+        />
+        <Textarea
+          label="활동 내용 (선택)"
+          placeholder="어떤 봉사활동을 했는지 설명해주세요"
+          rows={3}
+          value={formData.description || ""}
+          onChange={(e) => updateField("description", e.target.value)}
+        />
+        <div className="flex gap-3 pt-4">
+          <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
+            취소
+          </Button>
+          <Button type="submit" className="flex-1" isLoading={isSubmitting}>
+            {initialData ? "수정" : "추가"}
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  return null;
+}

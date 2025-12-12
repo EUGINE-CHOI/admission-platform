@@ -39,6 +39,9 @@ export class AuthService {
         name: dto.name,
         role: dto.role || Role.STUDENT,
         consultantStatus,
+        schoolName: dto.schoolName,
+        middleSchoolId: dto.middleSchoolId,
+        grade: dto.grade,
       },
       select: {
         id: true,
@@ -46,7 +49,19 @@ export class AuthService {
         name: true,
         role: true,
         consultantStatus: true,
+        schoolName: true,
+        middleSchoolId: true,
+        grade: true,
         createdAt: true,
+        middleSchool: {
+          select: {
+            id: true,
+            name: true,
+            region: true,
+            district: true,
+            website: true,
+          },
+        },
       },
     });
 
@@ -89,14 +104,32 @@ export class AuthService {
       data: { refreshToken: tokens.refreshToken },
     });
 
+    // 중학교 정보 함께 조회
+    const userWithSchool = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        schoolName: true,
+        middleSchoolId: true,
+        grade: true,
+        middleSchool: {
+          select: {
+            id: true,
+            name: true,
+            region: true,
+            district: true,
+            website: true,
+          },
+        },
+      },
+    });
+
     return {
       message: '로그인 성공',
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      user: userWithSchool,
       ...tokens,
     };
   }
@@ -125,8 +158,18 @@ export class AuthService {
         role: true,
         familyId: true,
         schoolName: true,
+        middleSchoolId: true,
         grade: true,
         createdAt: true,
+        middleSchool: {
+          select: {
+            id: true,
+            name: true,
+            region: true,
+            district: true,
+            website: true,
+          },
+        },
       },
     });
 

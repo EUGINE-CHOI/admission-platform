@@ -1,336 +1,507 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { 
-  GraduationCap,
+import {
+  Users,
   Calendar,
-  User,
   Clock,
-  FileText,
-  LogOut,
-  Plus,
+  MessageSquare,
+  Star,
+  ChevronRight,
+  Video,
+  Phone,
+  MapPin,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  FileText,
 } from "lucide-react";
+import { DashboardLayout } from "@/components/layout";
+import { Card, CardHeader, CardContent } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { Modal } from "@/components/ui";
+import { Select, Textarea } from "@/components/ui";
 
-interface User {
+interface Consultant {
   id: string;
   name: string;
-  email: string;
-  role: string;
+  specialization: string;
+  rating: number;
+  reviewCount: number;
+  bio: string;
+  profileImage?: string;
+}
+
+interface TimeSlot {
+  id: string;
+  startTime: string;
+  endTime: string;
+  available: boolean;
+}
+
+interface Consultation {
+  id: string;
+  consultant: Consultant;
+  scheduledAt: string;
+  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "REJECTED";
+  topic?: string;
+  notes?: string;
 }
 
 export default function ConsultationPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [consultations, setConsultations] = useState<any[]>([]);
-  const [consultants, setConsultants] = useState<any[]>([]);
-  const [reports, setReports] = useState<any[]>([]);
+  const [consultants, setConsultants] = useState<Consultant[]>([]);
+  const [myConsultations, setMyConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showBooking, setShowBooking] = useState(false);
+  const [selectedConsultant, setSelectedConsultant] = useState<Consultant | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [topic, setTopic] = useState("");
+  const [isBooking, setIsBooking] = useState(false);
+  const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      router.push("/login");
-      return;
-    }
-    
-    const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "STUDENT") {
-      router.push("/login");
-      return;
-    }
-    
-    setUser(parsedUser);
     fetchData();
-  }, [router]);
+  }, []);
+
+  const getToken = () => localStorage.getItem("accessToken");
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("accessToken");
-      
-      // 내 상담 목록
-      const consultRes = await fetch("http://localhost:3000/api/consultations", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (consultRes.ok) {
-        const data = await consultRes.json();
-        setConsultations(Array.isArray(data) ? data : []);
-      }
+      const token = getToken();
 
-      // 컨설턴트 목록
-      const consultantsRes = await fetch("http://localhost:3000/api/consultants", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [consultantsRes, consultationsRes] = await Promise.all([
+        fetch("http://localhost:3000/api/consultants", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("http://localhost:3000/api/consultations", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
       if (consultantsRes.ok) {
         const data = await consultantsRes.json();
         setConsultants(Array.isArray(data) ? data : []);
       }
-
-      // 받은 리포트
-      const reportsRes = await fetch("http://localhost:3000/api/reports/received", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (reportsRes.ok) {
-        const data = await reportsRes.json();
-        setReports(Array.isArray(data) ? data : []);
+      if (consultationsRes.ok) {
+        const data = await consultationsRes.json();
+        setMyConsultations(Array.isArray(data) ? data : []);
       }
     } catch (error) {
-      console.error("Data fetch error:", error);
+      console.error("Fetch error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    router.push("/login");
+  const fetchAvailableSlots = async (consultantId: string) => {
+    try {
+      const token = getToken();
+      const res = await fetch(
+        `http://localhost:3000/api/consultants/${consultantId}/slots`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableSlots(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Fetch slots error:", error);
+    }
   };
 
-  if (!user) return null;
+  const bookConsultation = async () => {
+    if (!selectedConsultant || !selectedSlot) return;
+
+    setIsBooking(true);
+    try {
+      const token = getToken();
+      const res = await fetch("http://localhost:3000/api/consultations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          consultantId: selectedConsultant.id,
+          scheduledAt: selectedSlot.startTime,
+          topic,
+        }),
+      });
+
+      if (res.ok) {
+        setSelectedConsultant(null);
+        setSelectedSlot(null);
+        setTopic("");
+        fetchData();
+      }
+    } catch (error) {
+      console.error("Book error:", error);
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  const cancelConsultation = async (id: string) => {
+    try {
+      const token = getToken();
+      await fetch(`http://localhost:3000/api/consultations/${id}/cancel`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchData();
+    } catch (error) {
+      console.error("Cancel error:", error);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "CONFIRMED":
+        return <Badge variant="success">확정</Badge>;
+      case "PENDING":
+        return <Badge variant="warning">대기중</Badge>;
+      case "COMPLETED":
+        return <Badge variant="info">완료</Badge>;
+      case "CANCELLED":
+        return <Badge variant="default">취소됨</Badge>;
+      case "REJECTED":
+        return <Badge variant="danger">거절됨</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
+
+  const upcomingConsultations = myConsultations.filter(
+    (c) => c.status === "CONFIRMED" || c.status === "PENDING"
+  );
+  const pastConsultations = myConsultations.filter(
+    (c) => c.status === "COMPLETED" || c.status === "CANCELLED" || c.status === "REJECTED"
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-6">
-              <div 
-                className="flex items-center gap-3 cursor-pointer"
-                onClick={() => router.push("/dashboard/student")}
-              >
-                <GraduationCap className="w-8 h-8 text-sky-600" />
-                <span className="text-xl font-bold text-gray-900">입시로드맵</span>
-              </div>
-              <nav className="hidden md:flex items-center gap-4">
-                <button
-                  onClick={() => router.push("/dashboard/student")}
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  대시보드
-                </button>
-                <button className="text-sm text-sky-600 font-semibold">
-                  상담
-                </button>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user.name} 학생</span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                로그아웃
-              </button>
-            </div>
-          </div>
+    <DashboardLayout requiredRole="STUDENT">
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">상담</h1>
+          <p className="text-slate-500 mt-1">
+            전문 컨설턴트와 1:1 상담을 예약하세요
+          </p>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">상담</h1>
-          <p className="text-gray-600">전문 컨설턴트와 1:1 상담을 받으세요</p>
-        </div>
-
-        {/* Booking Button */}
-        <div className="bg-gradient-to-r from-sky-500 to-indigo-500 rounded-2xl p-8 text-white mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">상담 예약</h2>
-              <p className="text-sky-100">전문 컨설턴트와 입시 전략을 상담하세요</p>
-            </div>
-            <button
-              onClick={() => setShowBooking(!showBooking)}
-              className="flex items-center gap-2 px-6 py-3 bg-white text-sky-600 rounded-lg font-semibold hover:bg-sky-50 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              {showBooking ? "취소" : "예약하기"}
-            </button>
-          </div>
-        </div>
-
-        {/* Booking Form */}
-        {showBooking && consultants.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">컨설턴트 선택</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {consultants.map((consultant) => (
-                <ConsultantCard key={consultant.id} consultant={consultant} />
-              ))}
-            </div>
-          </div>
-        )}
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
-            <p className="text-gray-500 mt-4">로딩 중...</p>
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-sky-600 border-t-transparent" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* My Consultations */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">내 상담</h3>
-              {consultations.length === 0 ? (
-                <div className="text-center py-8">
-                  <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">예약된 상담이 없습니다</p>
-                  <p className="text-sm text-gray-400 mt-2">상단의 예약하기 버튼을 클릭하세요</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {consultations.map((consultation) => (
-                    <ConsultationCard key={consultation.id} consultation={consultation} />
-                  ))}
-                </div>
-              )}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - My Consultations */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Upcoming */}
+              <Card>
+                <CardHeader icon={<Calendar className="w-5 h-5" />}>
+                  예정된 상담
+                </CardHeader>
+                <CardContent>
+                  {upcomingConsultations.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-6">
+                      예정된 상담이 없습니다
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {upcomingConsultations.map((consultation) => (
+                        <div
+                          key={consultation.id}
+                          className="p-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
+                          onClick={() => setSelectedConsultation(consultation)}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-sm font-medium">
+                                {consultation.consultant.name.charAt(0)}
+                              </div>
+                              <span className="font-medium text-slate-900">
+                                {consultation.consultant.name}
+                              </span>
+                            </div>
+                            {getStatusBadge(consultation.status)}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <Clock className="w-3 h-3" />
+                            {consultation.scheduledAt}
+                          </div>
+                          {consultation.topic && (
+                            <p className="text-sm text-slate-600 mt-2 line-clamp-1">
+                              {consultation.topic}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Past */}
+              <Card>
+                <CardHeader icon={<FileText className="w-5 h-5" />}>
+                  지난 상담
+                </CardHeader>
+                <CardContent>
+                  {pastConsultations.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-6">
+                      지난 상담 기록이 없습니다
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {pastConsultations.slice(0, 5).map((consultation) => (
+                        <div
+                          key={consultation.id}
+                          className="p-3 bg-slate-50 rounded-xl"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-slate-900 text-sm">
+                              {consultation.consultant.name}
+                            </span>
+                            {getStatusBadge(consultation.status)}
+                          </div>
+                          <p className="text-xs text-slate-500">
+                            {consultation.scheduledAt}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Received Reports */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">받은 리포트</h3>
-              {reports.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">받은 리포트가 없습니다</p>
-                  <p className="text-sm text-gray-400 mt-2">상담 완료 후 리포트를 받을 수 있습니다</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {reports.map((report) => (
-                    <ReportCard key={report.id} report={report} />
-                  ))}
-                </div>
-              )}
+            {/* Right Column - Consultants */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader icon={<Users className="w-5 h-5" />}>
+                  전문 컨설턴트
+                </CardHeader>
+                <CardContent>
+                  {consultants.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                        <Users className="w-8 h-8 text-slate-400" />
+                      </div>
+                      <h3 className="text-lg font-medium text-slate-900 mb-2">
+                        등록된 컨설턴트가 없습니다
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        곧 전문 컨설턴트가 등록될 예정입니다
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {consultants.map((consultant) => (
+                        <div
+                          key={consultant.id}
+                          className="p-4 border border-slate-200 rounded-xl hover:border-sky-300 hover:shadow-md transition-all cursor-pointer"
+                          onClick={() => {
+                            setSelectedConsultant(consultant);
+                            fetchAvailableSlots(consultant.id);
+                          }}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white text-xl font-bold">
+                              {consultant.name.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-slate-900">
+                                {consultant.name}
+                              </h3>
+                              <p className="text-sm text-slate-500 mb-2">
+                                {consultant.specialization}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 text-amber-500">
+                                  <Star className="w-4 h-4 fill-current" />
+                                  <span className="text-sm font-medium">
+                                    {consultant.rating.toFixed(1)}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-slate-400">
+                                  ({consultant.reviewCount}개 리뷰)
+                                </span>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-slate-400" />
+                          </div>
+                          {consultant.bio && (
+                            <p className="text-sm text-slate-600 mt-3 line-clamp-2">
+                              {consultant.bio}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         )}
-      </main>
-    </div>
-  );
-}
 
-function ConsultantCard({ consultant }: { consultant: any }) {
-  return (
-    <div className="p-4 border border-gray-200 rounded-lg hover:border-sky-300 transition-colors cursor-pointer">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-indigo-400 flex items-center justify-center text-white font-bold text-lg">
-          {consultant.user?.name?.charAt(0) || "C"}
-        </div>
-        <div className="flex-1">
-          <h4 className="font-semibold text-gray-900">{consultant.user?.name || "컨설턴트"}</h4>
-          <p className="text-sm text-gray-500">{consultant.specialization || "입시 전문"}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ConsultationCard({ consultation }: { consultation: any }) {
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "CONFIRMED":
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case "REJECTED":
-        return <XCircle className="w-5 h-5 text-red-500" />;
-      case "COMPLETED":
-        return <CheckCircle className="w-5 h-5 text-blue-500" />;
-      default:
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "CONFIRMED":
-        return "확정";
-      case "REJECTED":
-        return "거절됨";
-      case "COMPLETED":
-        return "완료";
-      case "PENDING":
-        return "대기 중";
-      case "CANCELLED":
-        return "취소됨";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "CONFIRMED":
-        return "bg-green-50 border-green-200";
-      case "REJECTED":
-        return "bg-red-50 border-red-200";
-      case "COMPLETED":
-        return "bg-blue-50 border-blue-200";
-      case "PENDING":
-        return "bg-yellow-50 border-yellow-200";
-      default:
-        return "bg-gray-50 border-gray-200";
-    }
-  };
-
-  return (
-    <div className={`p-4 border rounded-lg ${getStatusColor(consultation.status)}`}>
-      <div className="flex items-start gap-3">
-        {getStatusIcon(consultation.status)}
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="font-semibold text-gray-900">{consultation.topic || "상담"}</h4>
-            <span className="text-xs font-medium">{getStatusText(consultation.status)}</span>
-          </div>
-          <div className="space-y-1 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              <span>{consultation.consultant?.user?.name || "컨설턴트"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>{consultation.scheduledAt ? new Date(consultation.scheduledAt).toLocaleDateString() : "미정"}</span>
-            </div>
-            {consultation.scheduledAt && (
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span>{new Date(consultation.scheduledAt).toLocaleTimeString()}</span>
+        {/* Booking Modal */}
+        <Modal
+          isOpen={!!selectedConsultant}
+          onClose={() => {
+            setSelectedConsultant(null);
+            setSelectedSlot(null);
+            setTopic("");
+          }}
+          title="상담 예약"
+          size="lg"
+        >
+          {selectedConsultant && (
+            <div className="space-y-6">
+              {/* Consultant Info */}
+              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
+                  {selectedConsultant.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 text-lg">
+                    {selectedConsultant.name}
+                  </h3>
+                  <p className="text-slate-500">{selectedConsultant.specialization}</p>
+                  <div className="flex items-center gap-1 mt-1 text-amber-500">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span className="text-sm font-medium">
+                      {selectedConsultant.rating.toFixed(1)}
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
+
+              {/* Time Slots */}
+              <div>
+                <h4 className="font-medium text-slate-900 mb-3">예약 가능 시간</h4>
+                {availableSlots.length === 0 ? (
+                  <p className="text-sm text-slate-500 text-center py-4">
+                    현재 예약 가능한 시간이 없습니다
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {availableSlots.map((slot) => (
+                      <button
+                        key={slot.id}
+                        onClick={() => setSelectedSlot(slot)}
+                        disabled={!slot.available}
+                        className={`p-3 text-sm rounded-lg border transition-all ${
+                          selectedSlot?.id === slot.id
+                            ? "border-sky-500 bg-sky-50 text-sky-700"
+                            : slot.available
+                            ? "border-slate-200 hover:border-slate-300"
+                            : "border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {slot.startTime}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Topic */}
+              <Textarea
+                label="상담 주제"
+                placeholder="상담받고 싶은 내용을 간단히 작성해주세요"
+                rows={3}
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedConsultant(null);
+                    setSelectedSlot(null);
+                    setTopic("");
+                  }}
+                >
+                  취소
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={bookConsultation}
+                  isLoading={isBooking}
+                  disabled={!selectedSlot}
+                >
+                  예약하기
+                </Button>
+              </div>
+            </div>
+          )}
+        </Modal>
+
+        {/* Consultation Detail Modal */}
+        <Modal
+          isOpen={!!selectedConsultation}
+          onClose={() => setSelectedConsultation(null)}
+          title="상담 상세"
+          size="md"
+        >
+          {selectedConsultation && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white text-xl font-bold">
+                  {selectedConsultation.consultant.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    {selectedConsultation.consultant.name}
+                  </h3>
+                  <p className="text-slate-500">
+                    {selectedConsultation.consultant.specialization}
+                  </p>
+                </div>
+                {getStatusBadge(selectedConsultation.status)}
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-slate-600">
+                  <Calendar className="w-5 h-5 text-slate-400" />
+                  <span>{selectedConsultation.scheduledAt}</span>
+                </div>
+                {selectedConsultation.topic && (
+                  <div>
+                    <p className="text-sm text-slate-500 mb-1">상담 주제</p>
+                    <p className="text-slate-900">{selectedConsultation.topic}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedConsultation.status === "PENDING" && (
+                <Button
+                  variant="danger"
+                  className="w-full"
+                  onClick={() => {
+                    cancelConsultation(selectedConsultation.id);
+                    setSelectedConsultation(null);
+                  }}
+                >
+                  예약 취소
+                </Button>
+              )}
+            </div>
+          )}
+        </Modal>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
-
-function ReportCard({ report }: { report: any }) {
-  return (
-    <div className="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors cursor-pointer">
-      <div className="flex items-start gap-3">
-        <FileText className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <h4 className="font-semibold text-gray-900">{report.consultation?.topic || "상담 리포트"}</h4>
-          <p className="text-sm text-gray-600 mt-1">
-            작성자: {report.consultation?.consultant?.user?.name || "컨설턴트"}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            {report.sharedAt ? new Date(report.sharedAt).toLocaleDateString() : "공유됨"}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-

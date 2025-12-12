@@ -97,3 +97,4 @@ ALTER TABLE "weekly_tasks" ADD CONSTRAINT "weekly_tasks_planId_fkey" FOREIGN KEY
 
 
 
+
