@@ -1,7 +1,7 @@
 # 🏗️ Milestones Final (M0~M10)
 **입시 정보 격차 해소형 고입 입시 플랫폼 MVP**  
-**Milestone 기반 상위 전략 (v1.0)**  
-_Last updated: 2024-12-11_
+**Milestone 기반 상위 전략 (v1.1)**  
+_Last updated: 2024-12-12_
 
 ---
 
@@ -99,18 +99,21 @@ FIT / CHALLENGE / UNLIKELY 평가 제공.
 
 ---
 
-# 🧩 M5 — AI 에이전트 Layer (AI Intelligence)
+# 🧩 M5 — AI 에이전트 Layer (AI Intelligence) ✅
 
 ### 🎯 목적  
 학생부·동아리·교과·독서·액션 플랜 등  
 AI 기반 코칭 기능을 제공.
 
 ### 📦 산출물  
-- AI Orchestrator  
-- 생기부 문장 생성  
-- 동아리/교과/독서 조언  
-- 액션 플랜 생성  
-- AI Feedback 시스템
+- ✅ AI Orchestrator (**Google Gemini API 연동**)
+- ✅ 생기부 문장 생성  
+- ✅ 동아리/교과/독서 조언  
+- ✅ 액션 플랜 생성  
+- ✅ AI Feedback 시스템
+- ✅ **빠른 조언 (Quick Advice)** - 신규 (WP5.6)
+- ✅ **종합 분석 (Comprehensive Analysis)** - 신규 (WP5.6)
+- ✅ **AI 학교 추천 (School Recommendations)** - 신규 (WP5.6)
 
 ---
 

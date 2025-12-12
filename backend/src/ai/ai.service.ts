@@ -7,7 +7,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AIOutputType,
@@ -29,7 +29,7 @@ import {
 
 @Injectable()
 export class AiService {
-  private openai: OpenAI | null = null;
+  private gemini: GenerativeModel | null = null;
   private model: string;
   private readonly MAX_RETRIES = 3;
 
@@ -37,32 +37,31 @@ export class AiService {
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
-    this.model = this.configService.get<string>('OPENAI_MODEL') || 'gpt-5';
+    const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
+    this.model = this.configService.get<string>('GEMINI_MODEL') || 'gemini-2.0-flash';
 
-    if (apiKey && apiKey !== 'your-openai-api-key-here') {
-      this.openai = new OpenAI({ apiKey });
+    if (geminiKey && geminiKey !== 'your-gemini-api-key-here') {
+      const genAI = new GoogleGenerativeAI(geminiKey);
+      this.gemini = genAI.getGenerativeModel({ model: this.model });
     }
   }
 
   // ========== WP5.1: AI Orchestrator ==========
   async checkHealth() {
-    if (!this.openai) {
+    if (!this.gemini) {
       return {
         status: 'unavailable',
-        message: 'AI 서비스가 설정되지 않았습니다. OPENAI_API_KEY를 확인해주세요.',
+        message: 'AI 서비스가 설정되지 않았습니다. GEMINI_API_KEY를 확인해주세요.',
       };
     }
 
     try {
-      const response = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: [{ role: 'user', content: 'Hello' }],
-        max_tokens: 5,
-      });
+      const result = await this.gemini.generateContent('Hello');
+      const response = await result.response;
       return {
         status: 'available',
         model: this.model,
+        provider: 'Google Gemini',
         message: 'AI 서비스가 정상 작동 중입니다.',
       };
     } catch (error) {
@@ -74,40 +73,62 @@ export class AiService {
     }
   }
 
-  private async callOpenAI(
+  private async callAI(
     prompt: string,
     systemPrompt?: string,
     retries = 0,
   ): Promise<string> {
-    if (!this.openai) {
+    if (!this.gemini) {
       throw new InternalServerErrorException(
         'AI 서비스가 설정되지 않았습니다',
       );
     }
 
     try {
-      const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+      // Gemini에서는 시스템 프롬프트를 사용자 프롬프트에 포함
+      const fullPrompt = systemPrompt 
+        ? `${systemPrompt}\n\n---\n\n${prompt}`
+        : prompt;
+
+      const result = await this.gemini.generateContent(fullPrompt);
+      const response = await result.response;
+      let text = response.text() || '';
       
-      if (systemPrompt) {
-        messages.push({ role: 'system', content: systemPrompt });
-      }
-      messages.push({ role: 'user', content: prompt });
-
-      const response = await this.openai.chat.completions.create({
-        model: this.model,
-        messages,
-        temperature: 0.7,
-        max_tokens: 2000,
-      });
-
-      return response.choices[0]?.message?.content || '';
+      // Gemini가 ```json으로 감싸서 응답하는 경우 처리
+      text = this.cleanJsonResponse(text);
+      
+      return text;
     } catch (error) {
       if (retries < this.MAX_RETRIES) {
         await new Promise((resolve) => setTimeout(resolve, 1000 * (retries + 1)));
-        return this.callOpenAI(prompt, systemPrompt, retries + 1);
+        return this.callAI(prompt, systemPrompt, retries + 1);
       }
-      throw new InternalServerErrorException('AI 서비스 일시 장애');
+      throw new InternalServerErrorException('AI 서비스 일시 장애: ' + error.message);
     }
+  }
+  
+  // JSON 응답에서 markdown 코드 블록 제거
+  private cleanJsonResponse(text: string): string {
+    // ```json ... ``` 형식 제거
+    let cleaned = text.trim();
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.slice(7);
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.slice(3);
+    }
+    if (cleaned.endsWith('```')) {
+      cleaned = cleaned.slice(0, -3);
+    }
+    return cleaned.trim();
+  }
+  
+  // 기존 callOpenAI를 callAI로 별칭 (호환성)
+  private async callOpenAI(
+    prompt: string,
+    systemPrompt?: string,
+    retries = 0,
+  ): Promise<string> {
+    return this.callAI(prompt, systemPrompt, retries);
   }
 
   private async saveAIOutput(
@@ -1100,7 +1121,13 @@ ${schoolInfo.map(s =>
 
     const targetSchools = await this.prisma.targetSchool.findMany({
       where: { studentId },
-      include: { school: true },
+      include: { 
+        school: {
+          include: {
+            admissionHistories: { orderBy: { year: 'desc' }, take: 1 },
+          },
+        },
+      },
       take: 3,
     });
 
@@ -1113,36 +1140,60 @@ ${schoolInfo.map(s =>
       ? grades.filter(g => g.rank).reduce((sum, g) => sum + (g.rank || 0), 0) / grades.filter(g => g.rank).length
       : null;
 
-    const systemPrompt = `당신은 친근하고 전문적인 고입 컨설턴트입니다. 학생에게 실질적이고 구체적인 조언을 제공해주세요.
+    // 목표 학교 상세 정보
+    const targetSchoolsInfo = targetSchools.map(t => {
+      const rate = t.school.admissionHistories?.[0]?.competitionRate;
+      return `${t.school.name}(${t.school.type}, 경쟁률 ${rate ? rate + ':1' : '미정'})`;
+    }).join(', ');
 
-응답 형식:
+    const systemPrompt = `당신은 15년 경력의 전문 고입 컨설턴트입니다. 
+실제 데이터와 구체적인 수치를 기반으로 전문적인 조언을 제공합니다.
+
+## 핵심 원칙:
+1. 구체적인 숫자와 기간을 포함하세요 (예: "3개월간", "주 5시간", "상위 10%")
+2. 실제 입시에서 통하는 전략을 알려주세요
+3. 막연한 조언 대신 당장 실행 가능한 액션을 제시하세요
+4. 학교별 특성과 입시 트렌드를 반영하세요
+
+## 응답 형식 (반드시 아래 JSON 형식으로만 응답):
 {
-  "greeting": "학생에게 보내는 인사",
-  "currentStatus": "현재 상태 요약 (1-2문장)",
+  "greeting": "간단한 인사 (20자 이내)",
+  "currentStatus": "현재 상태에 대한 정확한 분석 (데이터 기반)",
   "mainAdvice": [
     {
-      "title": "조언 제목",
-      "content": "구체적인 조언 내용",
-      "actionable": "바로 실행할 수 있는 행동"
+      "title": "핵심 조언 제목",
+      "content": "구체적이고 전문적인 조언 (100자 이상). 실제 통계나 사례 포함",
+      "actionable": "오늘/이번 주 바로 실행할 구체적 행동 (시간, 횟수 포함)"
     }
   ],
-  "weeklyGoals": ["이번 주 목표 1", "이번 주 목표 2", "이번 주 목표 3"],
-  "encouragement": "격려 메시지",
-  "nextStep": "다음에 해야 할 가장 중요한 한 가지"
+  "weeklyGoals": ["구체적 목표1 (측정 가능)", "구체적 목표2", "구체적 목표3"],
+  "encouragement": "학생 상황에 맞는 현실적 격려",
+  "nextStep": "가장 시급하고 중요한 다음 단계 (구체적)"
 }`;
 
-    const topicPrompt = topic ? `\n\n학생이 특별히 궁금해하는 주제: ${topic}` : '';
+    const topicPrompt = topic ? `
 
-    const prompt = `학생 정보:
+📌 학생의 질문: "${topic}"
+이 질문에 대해 전문가 수준의 상세하고 실용적인 답변을 제공해주세요.` : '';
+
+    const prompt = `## 학생 프로필
 - 이름: ${student?.name || '학생'}
-- 학년: ${student?.grade || '미정'}학년
-- 평균 등급: ${averageRank ? averageRank.toFixed(1) : '데이터 없음'}등급
-- 최근 활동: ${activities.map(a => a.title).join(', ') || '없음'}
-- 목표 학교: ${targetSchools.map(t => t.school.name).join(', ') || '미설정'}
-- 최근 진단: ${latestDiagnosis ? `${latestDiagnosis.score}점 (${latestDiagnosis.level})` : '미실시'}
+- 학년: ${student?.grade || '미입력'}학년
+- 재학 중학교: ${student?.middleSchool?.name || student?.schoolName || '미입력'}
+- 평균 내신 등급: ${averageRank ? averageRank.toFixed(1) + '등급' : '미입력'}
+
+## 비교과 활동
+${activities.length > 0 ? activities.map(a => `- ${a.title} (${a.type})`).join('\n') : '- 등록된 활동 없음'}
+
+## 목표 학교
+${targetSchoolsInfo || '미설정'}
+
+## 진단 결과
+${latestDiagnosis ? `점수: ${latestDiagnosis.score}점, 판정: ${latestDiagnosis.level}` : '진단 미실시'}
 ${topicPrompt}
 
-이 학생에게 맞춤형 조언을 제공해주세요.`;
+위 정보를 바탕으로 이 학생에게 전문적이고 구체적인 맞춤 조언을 제공해주세요.
+반드시 JSON 형식으로만 응답하세요. 코드 블록(\`\`\`)을 사용하지 마세요.`;
 
     const response = await this.callOpenAI(prompt, systemPrompt);
 
@@ -1159,7 +1210,19 @@ ${topicPrompt}
     try {
       advice = JSON.parse(response);
     } catch {
-      advice = { raw: response };
+      // JSON 파싱 실패시 텍스트로 표시
+      advice = { 
+        greeting: "안녕하세요!",
+        currentStatus: "AI 분석 결과입니다.",
+        mainAdvice: [{
+          title: "AI 조언",
+          content: response,
+          actionable: "위 내용을 참고하여 계획을 세워보세요."
+        }],
+        weeklyGoals: ["이번 주 목표를 설정해보세요"],
+        encouragement: "꾸준히 노력하면 좋은 결과가 있을 거예요!",
+        nextStep: "구체적인 실행 계획을 세워보세요."
+      };
     }
 
     return {
