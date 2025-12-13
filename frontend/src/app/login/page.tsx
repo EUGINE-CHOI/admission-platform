@@ -32,9 +32,18 @@ export default function LoginPage() {
       }
 
       // 토큰 저장
+      localStorage.setItem("token", data.accessToken);
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      // 리다이렉트 URL 확인 (결제 페이지 등)
+      const redirectUrl = localStorage.getItem("redirectAfterLogin");
+      if (redirectUrl) {
+        localStorage.removeItem("redirectAfterLogin");
+        router.push(redirectUrl);
+        return;
+      }
 
       // 역할에 따라 리다이렉트
       const role = data.user.role;

@@ -170,3 +170,4 @@ async function seedClubs() {
 
 seedClubs().catch(console.error);
 
+

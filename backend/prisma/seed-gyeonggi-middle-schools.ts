@@ -244,3 +244,4 @@ async function seedGyeonggiMiddleSchools() {
 
 seedGyeonggiMiddleSchools().catch(console.error);
 
+

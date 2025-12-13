@@ -777,6 +777,7 @@ enum PlanType {
 }
 
 enum SubscriptionStatus {
+  PENDING
   ACTIVE
   TRIAL
   PAST_DUE
@@ -842,6 +843,7 @@ model Payment {
   pgProvider      String?                // "toss", "portone" 등
   pgTransactionId String?                // PG 거래 ID
   pgPaymentKey    String?                // PG 결제 키
+  pgOrderId       String?       @unique  // PG 주문 ID
   failReason      String?
   paidAt          DateTime?
   refundedAt      DateTime?

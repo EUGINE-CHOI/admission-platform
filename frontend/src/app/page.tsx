@@ -1,9 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { GraduationCap, Users, BarChart3, BookOpen, ArrowRight, CheckCircle } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
+
+  const handlePlanSelect = (planType: string) => {
+    if (planType === "FREE") {
+      router.push("/signup");
+    } else {
+      // 로그인 여부 확인
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (token) {
+        router.push(`/payment?plan=${planType}`);
+      } else {
+        // 로그인 후 결제 페이지로 리다이렉트
+        localStorage.setItem("redirectAfterLogin", `/payment?plan=${planType}`);
+        router.push("/login");
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50">
       {/* Header */}
@@ -144,6 +163,7 @@ export default function Home() {
             {[
               {
                 name: "무료",
+                type: "FREE",
                 price: "₩0",
                 features: ["기본 데이터 입력", "월 1회 진단", "학교 정보 조회"],
                 cta: "무료로 시작",
@@ -151,6 +171,7 @@ export default function Home() {
               },
               {
                 name: "베이직",
+                type: "BASIC",
                 price: "₩39,900",
                 period: "/월",
                 features: ["무제한 진단", "AI 조언 무제한", "액션 플랜 생성", "진단 리포트"],
@@ -159,6 +180,7 @@ export default function Home() {
               },
               {
                 name: "프리미엄",
+                type: "PREMIUM",
                 price: "₩99,000",
                 period: "/월",
                 features: ["베이직 모든 기능", "전문 컨설턴트 상담 1회", "맞춤형 상담 리포트", "우선 고객 지원"],
@@ -215,6 +237,7 @@ export default function Home() {
                   ))}
                 </ul>
                 <button
+                  onClick={() => handlePlanSelect(plan.type)}
                   className={`mt-8 w-full py-3 rounded-xl font-semibold transition-colors ${
                     plan.popular
                       ? "bg-white text-primary-600 hover:bg-primary-50"
