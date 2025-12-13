@@ -42,6 +42,32 @@ export default function ReportsPage() {
 
   const getToken = () => localStorage.getItem("accessToken");
 
+  const downloadPDF = async (childId: string, childName: string) => {
+    try {
+      const token = getToken();
+      const response = await fetch(`http://localhost:3000/api/reports/student/${childId}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${childName}_리포트.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('PDF 다운로드에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('PDF download error:', error);
+      alert('PDF 다운로드 중 오류가 발생했습니다.');
+    }
+  };
+
   const fetchReports = async () => {
     setLoading(true);
     try {

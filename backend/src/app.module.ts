@@ -21,6 +21,7 @@ import { MiddleSchoolModule } from './middle-school/middle-school.module';
 import { ClubModule } from './club/club.module';
 import { NotificationModule } from './notification/notification.module';
 import { NewsModule } from './news/news.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { NewsModule } from './news/news.module';
     MiddleSchoolModule,
     ClubModule,
     NewsModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [AppService],
