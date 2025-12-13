@@ -315,7 +315,7 @@ export default function SchedulePage() {
               <CardContent>
                 <h4 className="font-medium text-sky-900 mb-2">💡 팁</h4>
                 <ul className="text-sm text-sky-700 space-y-1">
-                  <li>• 학부모와 학생이 예약할 수 있는 시간대를 설정하세요</li>
+                  <li>• 보호자와 학생이 예약할 수 있는 시간대를 설정하세요</li>
                   <li>• 시간대별로 가능/불가능 상태를 토글할 수 있습니다</li>
                   <li>• 변경 사항은 "저장" 버튼을 눌러야 적용됩니다</li>
                 </ul>

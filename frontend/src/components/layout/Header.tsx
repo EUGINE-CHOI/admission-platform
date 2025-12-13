@@ -26,7 +26,7 @@ interface HeaderProps {
 
 const roleLabels: Record<string, string> = {
   STUDENT: "학생",
-  PARENT: "학부모",
+  PARENT: "보호자",
   CONSULTANT: "컨설턴트",
   ADMIN: "관리자",
 };

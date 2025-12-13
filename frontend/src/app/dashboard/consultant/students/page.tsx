@@ -256,7 +256,7 @@ export default function StudentsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 rounded-xl">
-                  <p className="text-sm text-slate-500 mb-1">학부모</p>
+                  <p className="text-sm text-slate-500 mb-1">보호자</p>
                   <p className="font-medium text-slate-900">{selectedStudent.parent.name}</p>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-xl">

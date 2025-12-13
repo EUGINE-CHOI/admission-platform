@@ -4,6 +4,7 @@ import { useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { OnboardingTour, useOnboarding } from "@/components/onboarding";
 
 interface User {
   id: string;
@@ -14,7 +15,7 @@ interface User {
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  requiredRole?: "STUDENT" | "PARENT" | "CONSULTANT" | "ADMIN";
+  requiredRole?: "STUDENT" | "PARENT" | "CONSULTANT" | "ADMIN" | ("STUDENT" | "PARENT")[];
 }
 
 export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps) {
@@ -22,6 +23,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
   const [user, setUser] = useState<User | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { showTour, completeTour } = useOnboarding();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -32,9 +34,13 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
 
     const parsedUser = JSON.parse(storedUser);
     
-    if (requiredRole && parsedUser.role !== requiredRole) {
-      router.push(`/dashboard/${parsedUser.role.toLowerCase()}`);
-      return;
+    // 역할 검증
+    if (requiredRole) {
+      const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+      if (!allowedRoles.includes(parsedUser.role)) {
+        router.push(`/dashboard/${parsedUser.role.toLowerCase()}`);
+        return;
+      }
     }
 
     setUser(parsedUser);
@@ -51,6 +57,11 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 transition-colors">
+      {/* Onboarding Tour */}
+      {showTour && (user.role === "STUDENT" || user.role === "PARENT") && (
+        <OnboardingTour role={user.role} onComplete={completeTour} />
+      )}
+
       {/* Sidebar */}
       <div className="hidden lg:block">
         <Sidebar role={user.role} />

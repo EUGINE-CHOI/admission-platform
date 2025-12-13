@@ -22,6 +22,7 @@ import { ClubModule } from './club/club.module';
 import { NotificationModule } from './notification/notification.module';
 import { NewsModule } from './news/news.module';
 import { ReportModule } from './report/report.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ReportModule } from './report/report.module';
     ClubModule,
     NewsModule,
     ReportModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

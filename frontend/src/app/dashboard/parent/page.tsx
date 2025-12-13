@@ -100,7 +100,7 @@ export default function ParentDashboard() {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 p-8 text-white">
           <div className="relative z-10">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-              안녕하세요, {user?.name || "학부모"}님! 👨‍👩‍👧‍👦
+              안녕하세요, {user?.name || "보호자"}님! 👋
             </h1>
             <p className="text-indigo-100 text-lg">
               자녀의 입시 준비 현황을 한눈에 확인하세요

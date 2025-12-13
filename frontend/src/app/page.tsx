@@ -270,7 +270,7 @@ export default function Home() {
                 price: "₩99,000",
                 period: "/월",
                 description: "전문가와 함께하는 프리미엄 케어",
-                features: ["Pro 모든 기능", "1:1 전문 상담", "우선 서포트", "전략 리포트", "학부모 대시보드"],
+                features: ["Pro 모든 기능", "1:1 전문 상담", "우선 서포트", "전략 리포트", "보호자 대시보드"],
                 cta: "Premium 시작",
                 popular: false,
               },

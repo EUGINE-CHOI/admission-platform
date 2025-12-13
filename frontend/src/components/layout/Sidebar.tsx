@@ -51,7 +51,7 @@ const menuItems: Record<string, MenuItem[]> = {
   ],
   PARENT: [
     { icon: LayoutDashboard, label: "홈", href: "/dashboard/parent" },
-    { icon: GraduationCap, label: "자녀 관리", href: "/dashboard/parent/children" },
+    { icon: GraduationCap, label: "학생 현황", href: "/dashboard/parent/children" },
     { icon: Calendar, label: "캘린더", href: "/dashboard/parent/calendar" },
     { icon: FileBarChart, label: "분석 리포트", href: "/dashboard/parent/reports" },
     { icon: Crown, label: "멤버십", href: "/dashboard/subscription" },

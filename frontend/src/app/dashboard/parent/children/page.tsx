@@ -166,7 +166,7 @@ export default function ChildrenPage() {
             학생 현황
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            자녀의 학습 현황을 확인하고 관리하세요
+            학생의 학습 현황을 확인하고 관리하세요
           </p>
         </div>
 
@@ -179,16 +179,16 @@ export default function ChildrenPage() {
                   <Percent className="w-6 h-6" />
                   <div>
                     <p className="font-medium">가족 할인 {stats.discountPercent}% 적용 중!</p>
-                    <p className="text-sm opacity-90">자녀 {stats.studentCount}명 등록</p>
+                    <p className="text-sm opacity-90">학생 {stats.studentCount}명 등록</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 자녀 초대 */}
+            {/* 학생 초대 */}
             <Card>
               <CardHeader icon={<UserPlus className="w-5 h-5" />}>
-                자녀 초대하기
+                학생 초대하기
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -215,17 +215,17 @@ export default function ChildrenPage() {
                   {inviteCode && (
                     <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      7일간 유효 · 자녀가 회원가입 후 이 코드를 입력하면 연결됩니다
+                      7일간 유효 · 학생이 회원가입 후 이 코드를 입력하면 연결됩니다
                     </p>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* 자녀 목록 */}
+            {/* 학생 목록 */}
             <Card>
               <CardHeader icon={<GraduationCap className="w-5 h-5" />}>
-                연결된 자녀 ({children.length}명)
+                연결된 학생 ({children.length}명)
               </CardHeader>
               <CardContent>
                 {children.length > 0 ? (
@@ -281,10 +281,10 @@ export default function ChildrenPage() {
                   <div className="text-center py-12">
                     <GraduationCap className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
-                      아직 연결된 자녀가 없습니다
+                      아직 연결된 학생이 없습니다
                     </h3>
                     <p className="text-slate-500 dark:text-slate-400 mb-4">
-                      초대 코드를 생성하여 자녀에게 공유해주세요
+                      초대 코드를 생성하여 학생에게 공유해주세요
                     </p>
                     {!inviteCode && (
                       <Button onClick={generateInviteCode} variant="primary">
@@ -310,7 +310,7 @@ export default function ChildrenPage() {
                   가족 그룹을 만들어주세요
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 mb-6">
-                  가족 그룹을 만들면 자녀를 초대하고 학습 현황을 확인할 수 있습니다
+                  가족 그룹을 만들면 학생을 초대하고 학습 현황을 확인할 수 있습니다
                 </p>
 
                 <div className="max-w-sm mx-auto space-y-4">
@@ -341,8 +341,8 @@ export default function ChildrenPage() {
                     <div className="text-sm text-blue-700 dark:text-blue-300">
                       <p className="font-medium mb-1">가족 연결의 장점</p>
                       <ul className="list-disc list-inside space-y-1 text-blue-600 dark:text-blue-400">
-                        <li>자녀의 학습 현황 실시간 확인</li>
-                        <li>자녀 2명 이상 시 10~20% 할인</li>
+                        <li>학생의 학습 현황 실시간 확인</li>
+                        <li>학생 2명 이상 시 10~20% 할인</li>
                         <li>활동/성적 업데이트 알림</li>
                       </ul>
                     </div>

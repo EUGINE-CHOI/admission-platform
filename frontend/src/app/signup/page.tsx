@@ -38,7 +38,7 @@ export default function SignupPage() {
 
   const roles = [
     { id: "STUDENT" as Role, icon: User, title: "학생", description: "입시 준비를 하고 있어요" },
-    { id: "PARENT" as Role, icon: Users, title: "학부모", description: "자녀의 입시를 함께해요" },
+    { id: "PARENT" as Role, icon: Users, title: "보호자", description: "학생의 입시를 함께해요" },
     { id: "CONSULTANT" as Role, icon: Briefcase, title: "컨설턴트", description: "전문가로 활동해요" },
   ];
 

@@ -223,7 +223,7 @@ export default function AdminDashboard() {
                       color="sky"
                     />
                     <UserTypeBar
-                      label="학부모"
+                      label="보호자"
                       count={stats?.totalParents || 0}
                       total={stats?.totalUsers || 1}
                       color="indigo"

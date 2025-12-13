@@ -219,7 +219,7 @@ export default function ConsultantDashboard() {
                               <Clock className="w-3 h-3" />
                               {consultation.scheduledAt}
                             </span>
-                            <span>{consultation.parent.name} 학부모</span>
+                            <span>{consultation.parent.name} 보호자</span>
                           </div>
                           {consultation.topic && (
                             <p className="text-sm text-slate-600 mt-1 truncate">

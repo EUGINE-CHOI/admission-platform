@@ -201,7 +201,7 @@ export default function FamilyPage() {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case "PARENT":
-        return "학부모";
+        return "보호자";
       case "STUDENT":
         return "학생";
       default:
@@ -496,7 +496,7 @@ export default function FamilyPage() {
                     <div className="text-sm text-blue-700 dark:text-blue-300">
                       <p className="font-medium mb-1">가족 연결의 장점</p>
                       <ul className="list-disc list-inside space-y-1 text-blue-600 dark:text-blue-400">
-                        <li>학부모가 자녀의 학습 현황을 확인할 수 있습니다</li>
+                        <li>보호자가 학생의 학습 현황을 확인할 수 있습니다</li>
                         <li>자녀 2명 이상 시 10~20% 가족 할인이 적용됩니다</li>
                         <li>자녀의 활동, 성적 업데이트 알림을 받을 수 있습니다</li>
                       </ul>

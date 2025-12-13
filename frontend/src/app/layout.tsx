@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 
 export const metadata: Metadata = {
   title: "입시 로드맵 | 정보 격차 해소 플랫폼",
-  description: "중학생과 학부모를 위한 고등학교 입시 준비 플랫폼",
+  description: "중학생과 보호자를 위한 고등학교 입시 준비 플랫폼",
 };
 
 export default function RootLayout({

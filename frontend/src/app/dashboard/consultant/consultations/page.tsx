@@ -295,7 +295,7 @@ export default function ConsultationsPage() {
                           </span>
                           <span className="flex items-center gap-1">
                             <User className="w-4 h-4" />
-                            {consultation.parent.name} 학부모
+                            {consultation.parent.name} 보호자
                           </span>
                         </div>
                         {consultation.topic && (
@@ -384,7 +384,7 @@ export default function ConsultationsPage() {
                     </h3>
                     {getStatusBadge(selectedConsultation.status)}
                   </div>
-                  <p className="text-slate-500">{selectedConsultation.parent.name} 학부모</p>
+                  <p className="text-slate-500">{selectedConsultation.parent.name} 보호자</p>
                 </div>
               </div>
 

@@ -71,7 +71,7 @@ export default function UsersPage() {
       case "STUDENT":
         return <Badge variant="info">학생</Badge>;
       case "PARENT":
-        return <Badge variant="success">학부모</Badge>;
+        return <Badge variant="success">보호자</Badge>;
       case "CONSULTANT":
         return <Badge className="bg-purple-100 text-purple-700">컨설턴트</Badge>;
       case "ADMIN":
@@ -145,7 +145,7 @@ export default function UsersPage() {
           </Card>
           <Card className="bg-emerald-50 border-emerald-200">
             <CardContent className="py-4">
-              <p className="text-sm text-emerald-600">학부모</p>
+              <p className="text-sm text-emerald-600">보호자</p>
               <p className="text-2xl font-bold text-emerald-900">{userCounts.parents}</p>
             </CardContent>
           </Card>
@@ -179,7 +179,7 @@ export default function UsersPage() {
                 options={[
                   { value: "all", label: "전체 역할" },
                   { value: "STUDENT", label: "학생" },
-                  { value: "PARENT", label: "학부모" },
+                  { value: "PARENT", label: "보호자" },
                   { value: "CONSULTANT", label: "컨설턴트" },
                   { value: "ADMIN", label: "관리자" },
                 ]}
