@@ -257,6 +257,8 @@ export class NewsService {
 
   private cleanText(text: string): string {
     return text
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&#160;/g, ' ')
       .replace(/\s+/g, ' ')
       .replace(/<[^>]*>/g, '')
       .replace(/&lt;/g, '<')
@@ -264,6 +266,9 @@ export class NewsService {
       .replace(/&amp;/g, '&')
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
+      .replace(/&[a-zA-Z]+;/g, ' ')
+      .replace(/&#\d+;/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
   }
 
