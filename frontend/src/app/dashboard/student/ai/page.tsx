@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { DashboardLayout } from "@/components/layout";
 import {
-  Sparkles, BookOpen, Users, FileText, Calendar, RefreshCw,
-  Copy, Check, Zap, Target, Lightbulb, School, Brain,
+  Sparkles, Users, RefreshCw,
+  Copy, Check, Zap, Target, Lightbulb, Brain,
   Star, MessageCircle, Send, Bot, Compass, Rocket, 
   PenTool, Library, ClipboardList, GraduationCap,
 } from "lucide-react";
@@ -95,7 +96,6 @@ const features = [
 
 export default function AIAdvisePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const [selectedFeature, setSelectedFeature] = useState<AIFeature | null>(null);
   const [inputText, setInputText] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -103,15 +103,6 @@ export default function AIAdvisePage() {
   const [copied, setCopied] = useState(false);
   const [region, setRegion] = useState("");
   const [schoolTypes, setSchoolTypes] = useState<string[]>([]);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      router.push("/login");
-      return;
-    }
-    setUser(JSON.parse(storedUser));
-  }, [router]);
 
   const getToken = () => localStorage.getItem("token") || localStorage.getItem("accessToken");
 
@@ -345,286 +336,272 @@ export default function AIAdvisePage() {
 
   const selectedFeatureData = features.find((f) => f.id === selectedFeature);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-violet-500 border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      {/* Ambient Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-600/10 rounded-full blur-[150px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-600/10 rounded-full blur-[120px]" />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-xl shadow-violet-500/30">
-              <Rocket className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white">AI 멘토</h1>
-              <p className="text-slate-400 text-lg">맞춤형 입시 전략을 제안합니다</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 mt-4">
-            <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 rounded-full border border-emerald-500/30">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-emerald-400 text-sm font-medium">AI 온라인</span>
-            </div>
-            <span className="text-slate-500">Powered by Gemini</span>
-          </div>
+    <DashboardLayout requiredRole="STUDENT">
+      {/* Dark Theme Container */}
+      <div className="min-h-[calc(100vh-4rem)] -m-6 p-6 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 relative">
+        {/* Ambient Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-600/10 rounded-full blur-[150px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-600/10 rounded-full blur-[120px]" />
         </div>
 
-        {/* Feature Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 mb-10">
-          {features.map((feature) => (
-            <button
-              key={feature.id}
-              onClick={() => {
-                setSelectedFeature(feature.id);
-                setOutput(null);
-                setInputText("");
-              }}
-              className={`group relative p-5 rounded-2xl border-2 transition-all duration-300 ${
-                selectedFeature === feature.id
-                  ? `${feature.bgColor} ${feature.borderColor} scale-[1.02]`
-                  : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-              }`}
-            >
-              {feature.isNew && (
-                <span className="absolute -top-2 -right-2 px-2.5 py-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-bold rounded-full shadow-lg">
-                  NEW
-                </span>
-              )}
-              <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg`}
-              >
-                <feature.icon className="w-6 h-6 text-white" />
+        <div className="relative z-10 max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-xl shadow-violet-500/30">
+                <Rocket className="w-7 h-7 text-white" />
               </div>
-              <h3 className="font-bold text-white text-base mb-1">{feature.title}</h3>
-              <p className="text-sm text-slate-400 leading-snug">{feature.description}</p>
-            </button>
-          ))}
-        </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white">AI 멘토</h1>
+                <p className="text-slate-400 text-lg">맞춤형 입시 전략을 제안합니다</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 mt-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 rounded-full border border-emerald-500/30">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-400 text-sm font-medium">AI 온라인</span>
+              </div>
+            </div>
+          </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Input & Output */}
-          <div className="lg:col-span-2">
-            {selectedFeature ? (
-              <div className="bg-slate-800/50 border border-slate-700/50 rounded-3xl overflow-hidden backdrop-blur-sm">
-                {/* Feature Header */}
-                <div className={`p-6 bg-gradient-to-r ${selectedFeatureData?.gradient}`}>
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
-                      {selectedFeatureData && <selectedFeatureData.icon className="w-7 h-7 text-white" />}
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">{selectedFeatureData?.title}</h2>
-                      <p className="text-white/80 text-lg">{selectedFeatureData?.description}</p>
-                    </div>
-                  </div>
+          {/* Feature Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
+            {features.map((feature) => (
+              <button
+                key={feature.id}
+                onClick={() => {
+                  setSelectedFeature(feature.id);
+                  setOutput(null);
+                  setInputText("");
+                }}
+                className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 ${
+                  selectedFeature === feature.id
+                    ? `${feature.bgColor} ${feature.borderColor} scale-[1.02]`
+                    : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
+                }`}
+              >
+                {feature.isNew && (
+                  <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-bold rounded-full shadow-lg">
+                    NEW
+                  </span>
+                )}
+                <div
+                  className={`w-11 h-11 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg`}
+                >
+                  <feature.icon className="w-5 h-5 text-white" />
                 </div>
+                <h3 className="font-bold text-white text-sm mb-0.5">{feature.title}</h3>
+                <p className="text-xs text-slate-400 leading-snug">{feature.description}</p>
+              </button>
+            ))}
+          </div>
 
-                {/* Input */}
-                <div className="p-6 border-b border-slate-700/50">
-                  {renderQuickTags()}
-
-                  {selectedFeature === "comprehensive-analysis" || selectedFeature === "action-plan" ? (
-                    <div className="p-5 bg-slate-700/30 rounded-xl border border-slate-600/50">
-                      <p className="text-slate-300 text-lg flex items-center gap-3">
-                        <Brain className="w-6 h-6 text-cyan-400" />
-                        {selectedFeature === "comprehensive-analysis"
-                          ? "현재 입력된 성적, 활동, 목표학교를 종합 분석합니다"
-                          : "12주 맞춤형 실행 계획을 생성합니다"}
-                      </p>
-                    </div>
-                  ) : selectedFeature === "school-recommendation" ? (
-                    <div className="space-y-5">
-                      <div>
-                        <label className="block text-base font-medium text-slate-300 mb-3">선호 지역</label>
-                        <select
-                          value={region}
-                          onChange={(e) => setRegion(e.target.value)}
-                          className="w-full px-5 py-4 bg-slate-700/50 border border-slate-600 rounded-xl text-white text-lg focus:outline-none focus:border-emerald-500"
-                        >
-                          <option value="">전체 지역</option>
-                          <option value="서울">서울</option>
-                          <option value="경기">경기</option>
-                          <option value="인천">인천</option>
-                        </select>
+          {/* Main Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Input & Output */}
+            <div className="lg:col-span-2">
+              {selectedFeature ? (
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-3xl overflow-hidden backdrop-blur-sm">
+                  {/* Feature Header */}
+                  <div className={`p-5 bg-gradient-to-r ${selectedFeatureData?.gradient}`}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        {selectedFeatureData && <selectedFeatureData.icon className="w-6 h-6 text-white" />}
                       </div>
                       <div>
-                        <label className="block text-base font-medium text-slate-300 mb-3">학교 유형</label>
-                        <div className="flex flex-wrap gap-3">
-                          {[
-                            { key: "SCIENCE", label: "과학고" },
-                            { key: "FOREIGN_LANGUAGE", label: "외국어고" },
-                            { key: "INTERNATIONAL", label: "국제고" },
-                            { key: "AUTONOMOUS_PRIVATE", label: "자사고" },
-                            { key: "ARTS", label: "예술고" },
-                          ].map(({ key, label }) => (
-                            <button
-                              key={key}
-                              onClick={() =>
-                                setSchoolTypes((prev) =>
-                                  prev.includes(key) ? prev.filter((t) => t !== key) : [...prev, key]
-                                )
-                              }
-                              className={`px-5 py-3 rounded-xl text-base font-medium transition-all ${
-                                schoolTypes.includes(key)
-                                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
-                                  : "bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600"
-                              }`}
-                            >
-                              {label}
-                            </button>
-                          ))}
+                        <h2 className="text-xl font-bold text-white">{selectedFeatureData?.title}</h2>
+                        <p className="text-white/80">{selectedFeatureData?.description}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Input */}
+                  <div className="p-5 border-b border-slate-700/50">
+                    {renderQuickTags()}
+
+                    {selectedFeature === "comprehensive-analysis" || selectedFeature === "action-plan" ? (
+                      <div className="p-4 bg-slate-700/30 rounded-xl border border-slate-600/50">
+                        <p className="text-slate-300 flex items-center gap-3">
+                          <Brain className="w-5 h-5 text-cyan-400" />
+                          {selectedFeature === "comprehensive-analysis"
+                            ? "현재 입력된 성적, 활동, 목표학교를 종합 분석합니다"
+                            : "12주 맞춤형 실행 계획을 생성합니다"}
+                        </p>
+                      </div>
+                    ) : selectedFeature === "school-recommendation" ? (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">선호 지역</label>
+                          <select
+                            value={region}
+                            onChange={(e) => setRegion(e.target.value)}
+                            className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-emerald-500"
+                          >
+                            <option value="">전체 지역</option>
+                            <option value="서울">서울</option>
+                            <option value="경기">경기</option>
+                            <option value="인천">인천</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">학교 유형</label>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { key: "SCIENCE", label: "과학고" },
+                              { key: "FOREIGN_LANGUAGE", label: "외국어고" },
+                              { key: "INTERNATIONAL", label: "국제고" },
+                              { key: "AUTONOMOUS_PRIVATE", label: "자사고" },
+                              { key: "ARTS", label: "예술고" },
+                            ].map(({ key, label }) => (
+                              <button
+                                key={key}
+                                onClick={() =>
+                                  setSchoolTypes((prev) =>
+                                    prev.includes(key) ? prev.filter((t) => t !== key) : [...prev, key]
+                                  )
+                                }
+                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                                  schoolTypes.includes(key)
+                                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+                                    : "bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 border border-slate-600"
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <textarea
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                      placeholder={getPlaceholder()}
-                      rows={4}
-                      className="w-full px-5 py-4 bg-slate-700/50 border border-slate-600 rounded-xl text-white text-lg placeholder:text-slate-500 focus:outline-none focus:border-violet-500 resize-none"
-                    />
-                  )}
-
-                  <button
-                    onClick={generateAI}
-                    disabled={generating || !canGenerate()}
-                    className={`mt-5 w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all ${
-                      generating || !canGenerate()
-                        ? "bg-slate-700 text-slate-500 cursor-not-allowed"
-                        : `bg-gradient-to-r ${selectedFeatureData?.gradient} text-white hover:opacity-90 shadow-xl`
-                    }`}
-                  >
-                    {generating ? (
-                      <>
-                        <RefreshCw className="w-5 h-5 animate-spin" />
-                        분석 중...
-                      </>
                     ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        AI 생성하기
-                      </>
+                      <textarea
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        placeholder={getPlaceholder()}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-violet-500 resize-none"
+                      />
                     )}
-                  </button>
-                </div>
 
-                {/* Output */}
-                {output && <div className="p-6">{renderOutput()}</div>}
-              </div>
-            ) : (
-              <div className="h-[600px] bg-slate-800/50 border border-slate-700/50 rounded-3xl flex items-center justify-center backdrop-blur-sm">
-                <div className="text-center px-8">
-                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center mx-auto mb-8 border border-violet-500/30">
-                    <Sparkles className="w-12 h-12 text-violet-400" />
+                    <button
+                      onClick={generateAI}
+                      disabled={generating || !canGenerate()}
+                      className={`mt-4 w-full py-3 rounded-xl font-bold flex items-center justify-center gap-3 transition-all ${
+                        generating || !canGenerate()
+                          ? "bg-slate-700 text-slate-500 cursor-not-allowed"
+                          : `bg-gradient-to-r ${selectedFeatureData?.gradient} text-white hover:opacity-90 shadow-xl`
+                      }`}
+                    >
+                      {generating ? (
+                        <>
+                          <RefreshCw className="w-5 h-5 animate-spin" />
+                          분석 중...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5" />
+                          AI 생성하기
+                        </>
+                      )}
+                    </button>
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">AI 기능을 선택하세요</h3>
-                  <p className="text-slate-400 text-lg max-w-md">
-                    위에서 원하는 기능을 선택하면 AI가 맞춤형 분석과 조언을 제공합니다
-                  </p>
+
+                  {/* Output */}
+                  {output && <div className="p-5">{renderOutput()}</div>}
+                </div>
+              ) : (
+                <div className="h-[500px] bg-slate-800/50 border border-slate-700/50 rounded-3xl flex items-center justify-center backdrop-blur-sm">
+                  <div className="text-center px-8">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center mx-auto mb-6 border border-violet-500/30">
+                      <Sparkles className="w-10 h-10 text-violet-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">AI 기능을 선택하세요</h3>
+                    <p className="text-slate-400 max-w-md">
+                      위에서 원하는 기능을 선택하면 AI가 맞춤형 분석과 조언을 제공합니다
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-5">
+              {/* AI Status */}
+              <div className="p-5 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/30 rounded-2xl backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                    <Brain className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white">AI 상태</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-emerald-400 text-sm">정상 운영</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-slate-400 text-sm">
+                  AI가 학생 데이터를 분석하여 맞춤형 전략을 제안합니다.
+                </p>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-4 bg-slate-800/50 border border-slate-700/50 rounded-xl text-center">
+                  <div className="text-2xl font-bold text-white mb-0.5">24/7</div>
+                  <div className="text-xs text-slate-400">항상 이용 가능</div>
+                </div>
+                <div className="p-4 bg-slate-800/50 border border-slate-700/50 rounded-xl text-center">
+                  <div className="text-2xl font-bold text-white mb-0.5">~3초</div>
+                  <div className="text-xs text-slate-400">평균 응답 시간</div>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* AI Status */}
-            <div className="p-6 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/30 rounded-2xl backdrop-blur-sm">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                  <Brain className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white">AI 상태</h4>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-emerald-400 text-sm">정상 운영</span>
+              {/* Tips */}
+              <div className="p-5 bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/30 flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white mb-1">💡 Tip</h4>
+                    <p className="text-slate-300 text-sm leading-relaxed">
+                      성적, 활동, 목표학교를 많이 입력할수록 더 정확한 분석을 받을 수 있어요!
+                    </p>
                   </div>
                 </div>
               </div>
-              <p className="text-slate-400">
-                Gemini AI가 학생 데이터를 분석하여 맞춤형 전략을 제안합니다.
-              </p>
-            </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 bg-slate-800/50 border border-slate-700/50 rounded-2xl text-center">
-                <div className="text-3xl font-bold text-white mb-1">24/7</div>
-                <div className="text-sm text-slate-400">항상 이용 가능</div>
-              </div>
-              <div className="p-5 bg-slate-800/50 border border-slate-700/50 rounded-2xl text-center">
-                <div className="text-3xl font-bold text-white mb-1">~3초</div>
-                <div className="text-sm text-slate-400">평균 응답 시간</div>
-              </div>
-            </div>
-
-            {/* Tips */}
-            <div className="p-6 bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-500/30 flex items-center justify-center flex-shrink-0">
-                  <Lightbulb className="w-6 h-6 text-amber-400" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white mb-2">💡 Tip</h4>
-                  <p className="text-slate-300 leading-relaxed">
-                    성적, 활동, 목표학교를 많이 입력할수록 더 정확한 분석을 받을 수 있어요!
-                  </p>
+              {/* Popular Questions */}
+              <div className="p-5 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
+                <h4 className="font-bold text-white mb-3 flex items-center gap-2">
+                  <Star className="w-4 h-4 text-amber-400" />
+                  인기 질문
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    "과학고 입시 전략은?",
+                    "비교과 활동 추천해줘",
+                    "면접 준비는 어떻게?",
+                  ].map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setSelectedFeature("quick-advice");
+                        setInputText(q);
+                      }}
+                      className="w-full p-3 text-left text-sm text-slate-300 bg-slate-700/30 hover:bg-slate-700/50 rounded-xl border border-slate-600/50 hover:border-slate-500 transition-all"
+                    >
+                      {q}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-
-            {/* Popular Questions */}
-            <div className="p-6 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
-              <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Star className="w-5 h-5 text-amber-400" />
-                인기 질문
-              </h4>
-              <div className="space-y-3">
-                {[
-                  "과학고 입시 전략은?",
-                  "비교과 활동 추천해줘",
-                  "면접 준비는 어떻게?",
-                ].map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setSelectedFeature("quick-advice");
-                      setInputText(q);
-                    }}
-                    className="w-full p-4 text-left text-base text-slate-300 bg-slate-700/30 hover:bg-slate-700/50 rounded-xl border border-slate-600/50 hover:border-slate-500 transition-all"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Back to Dashboard */}
-            <button
-              onClick={() => router.push("/dashboard/student")}
-              className="w-full p-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl text-slate-400 hover:text-white hover:border-slate-600 transition-all text-base"
-            >
-              ← 대시보드로 돌아가기
-            </button>
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
