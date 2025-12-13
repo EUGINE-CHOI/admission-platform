@@ -4,28 +4,32 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   GraduationCap,
-  Home,
-  BookOpen,
+  LayoutDashboard,
+  User,
   Target,
-  Sparkles,
-  CheckSquare,
+  Brain,
+  CalendarCheck,
   Users,
   Settings,
   BarChart3,
   UserCheck,
   School,
   CreditCard,
-  FileText,
-  MessageSquare,
+  FileBarChart,
+  MessageCircle,
   Calendar,
-  Trophy,
+  Activity,
   Database,
+  Crown,
+  Zap,
+  Heart,
 } from "lucide-react";
 
 interface MenuItem {
   icon: React.ElementType;
   label: string;
   href: string;
+  badge?: string;
 }
 
 interface SidebarProps {
@@ -34,39 +38,39 @@ interface SidebarProps {
 
 const menuItems: Record<string, MenuItem[]> = {
   STUDENT: [
-    { icon: Home, label: "대시보드", href: "/dashboard/student" },
-    { icon: BookOpen, label: "데이터 입력", href: "/dashboard/student/data" },
-    { icon: Trophy, label: "동아리", href: "/dashboard/student/clubs" },
-    { icon: Target, label: "진단", href: "/dashboard/student/diagnosis" },
-    { icon: Sparkles, label: "AI 조언", href: "/dashboard/student/ai" },
-    { icon: CheckSquare, label: "실행 계획", href: "/dashboard/student/tasks" },
-    { icon: MessageSquare, label: "상담", href: "/dashboard/student/consultation" },
-    { icon: Users, label: "학부모 연결", href: "/dashboard/family" },
+    { icon: LayoutDashboard, label: "홈", href: "/dashboard/student" },
+    { icon: User, label: "내 프로필", href: "/dashboard/student/data" },
+    { icon: Activity, label: "비교과", href: "/dashboard/student/clubs" },
+    { icon: Target, label: "입시 분석", href: "/dashboard/student/diagnosis" },
+    { icon: Brain, label: "AI 멘토", href: "/dashboard/student/ai", badge: "NEW" },
+    { icon: CalendarCheck, label: "플래너", href: "/dashboard/student/tasks" },
+    { icon: MessageCircle, label: "1:1 상담", href: "/dashboard/student/consultation" },
+    { icon: Heart, label: "보호자 연결", href: "/dashboard/family" },
   ],
   PARENT: [
-    { icon: Home, label: "대시보드", href: "/dashboard/parent" },
-    { icon: GraduationCap, label: "학생 현황", href: "/dashboard/parent/children" },
-    { icon: Calendar, label: "일정", href: "/dashboard/parent/calendar" },
-    { icon: FileText, label: "리포트", href: "/dashboard/parent/reports" },
-    { icon: CreditCard, label: "구독 관리", href: "/dashboard/subscription" },
+    { icon: LayoutDashboard, label: "홈", href: "/dashboard/parent" },
+    { icon: GraduationCap, label: "자녀 관리", href: "/dashboard/parent/children" },
+    { icon: Calendar, label: "캘린더", href: "/dashboard/parent/calendar" },
+    { icon: FileBarChart, label: "분석 리포트", href: "/dashboard/parent/reports" },
+    { icon: Crown, label: "멤버십", href: "/dashboard/subscription" },
   ],
   CONSULTANT: [
-    { icon: Home, label: "대시보드", href: "/dashboard/consultant" },
-    { icon: MessageSquare, label: "상담 관리", href: "/dashboard/consultant/consultations" },
-    { icon: Users, label: "학생 목록", href: "/dashboard/consultant/students" },
-    { icon: Calendar, label: "일정 관리", href: "/dashboard/consultant/schedule" },
-    { icon: FileText, label: "리포트 작성", href: "/dashboard/consultant/reports" },
-    { icon: Settings, label: "프로필 설정", href: "/dashboard/consultant/settings" },
+    { icon: LayoutDashboard, label: "홈", href: "/dashboard/consultant" },
+    { icon: MessageCircle, label: "상담", href: "/dashboard/consultant/consultations" },
+    { icon: Users, label: "담당 학생", href: "/dashboard/consultant/students" },
+    { icon: Calendar, label: "스케줄", href: "/dashboard/consultant/schedule" },
+    { icon: FileBarChart, label: "리포트", href: "/dashboard/consultant/reports" },
+    { icon: User, label: "프로필", href: "/dashboard/consultant/settings" },
   ],
   ADMIN: [
-    { icon: Home, label: "대시보드", href: "/dashboard/admin" },
-    { icon: BarChart3, label: "통계", href: "/dashboard/admin/stats" },
-    { icon: Users, label: "사용자 관리", href: "/dashboard/admin/users" },
-    { icon: UserCheck, label: "컨설턴트 승인", href: "/dashboard/admin/consultants" },
-    { icon: School, label: "학교 관리", href: "/dashboard/admin/schools" },
+    { icon: LayoutDashboard, label: "홈", href: "/dashboard/admin" },
+    { icon: BarChart3, label: "애널리틱스", href: "/dashboard/admin/stats" },
+    { icon: Users, label: "유저", href: "/dashboard/admin/users" },
+    { icon: UserCheck, label: "컨설턴트", href: "/dashboard/admin/consultants" },
+    { icon: School, label: "학교 DB", href: "/dashboard/admin/schools" },
     { icon: Database, label: "크롤러", href: "/dashboard/admin/crawler" },
-    { icon: CreditCard, label: "결제 관리", href: "/dashboard/admin/payments" },
-    { icon: Sparkles, label: "AI 품질", href: "/dashboard/admin/ai-quality" },
+    { icon: CreditCard, label: "결제", href: "/dashboard/admin/payments" },
+    { icon: Zap, label: "AI 모니터링", href: "/dashboard/admin/ai-quality" },
   ],
 };
 
@@ -75,19 +79,22 @@ export function Sidebar({ role }: SidebarProps) {
   const items = menuItems[role] || [];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 z-40 flex flex-col transition-colors">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 z-40 flex flex-col">
       {/* Logo */}
-      <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-100 dark:border-slate-800">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center">
-          <GraduationCap className="w-6 h-6 text-white" />
+      <div className="h-16 flex items-center gap-3 px-6">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
+          <GraduationCap className="w-5 h-5 text-white" />
         </div>
-        <span className="text-lg font-bold bg-gradient-to-r from-sky-600 to-indigo-600 dark:from-sky-400 dark:to-indigo-400 bg-clip-text text-transparent">
-          입시로드맵
-        </span>
+        <div className="flex flex-col">
+          <span className="text-base font-bold text-white tracking-tight">
+            입시로드맵
+          </span>
+          <span className="text-[10px] text-slate-500 -mt-0.5">ADMISSION ROADMAP</span>
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4">
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
           {items.map((item) => {
             const isActive = pathname === item.href;
@@ -95,20 +102,29 @@ export function Sidebar({ role }: SidebarProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200
+                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-all duration-200
                     ${
                       isActive
-                        ? "bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
+                        ? "bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 text-white"
+                        : "text-slate-400 hover:text-white hover:bg-white/5"
                     }
                   `}
                 >
-                  <item.icon
-                    className={`w-5 h-5 ${isActive ? "text-sky-600 dark:text-sky-400" : ""}`}
-                  />
-                  {item.label}
-                  {isActive && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-sky-600 dark:bg-sky-400" />
+                  <div className={`p-1.5 rounded-md transition-colors ${
+                    isActive 
+                      ? "bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/25" 
+                      : "bg-slate-800 group-hover:bg-slate-700"
+                  }`}>
+                    <item.icon className="w-4 h-4 text-white" />
+                  </div>
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="ml-auto px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded">
+                      {item.badge}
+                    </span>
+                  )}
+                  {isActive && !item.badge && (
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-violet-400" />
                   )}
                 </Link>
               </li>
@@ -118,13 +134,15 @@ export function Sidebar({ role }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+      <div className="p-3 border-t border-slate-800/50">
         <Link
           href="/dashboard/settings"
-          className="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-sm"
         >
-          <Settings className="w-5 h-5" />
-          설정
+          <div className="p-1.5 rounded-md bg-slate-800">
+            <Settings className="w-4 h-4" />
+          </div>
+          <span>설정</span>
         </Link>
       </div>
     </aside>
