@@ -17,13 +17,21 @@ export class NewsController {
   @Roles(Role.STUDENT, Role.PARENT, Role.CONSULTANT, Role.ADMIN)
   @ApiOperation({ summary: '특목고 관련 최신 뉴스 조회' })
   @ApiQuery({ name: 'keyword', required: false, description: '키워드 필터 (외고, 자사고, 과학고, 영재고)' })
-  async getNews(@Query('keyword') keyword?: string) {
-    const news = await this.newsService.getNews(keyword);
+  @ApiQuery({ name: 'page', required: false, description: '페이지 번호 (기본값: 1)' })
+  @ApiQuery({ name: 'limit', required: false, description: '페이지당 뉴스 수 (기본값: 10)' })
+  async getNews(
+    @Query('keyword') keyword?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = parseInt(page || '1', 10);
+    const limitNum = parseInt(limit || '10', 10);
+    
+    const result = await this.newsService.getNews(keyword, pageNum, limitNum);
     return {
       success: true,
-      count: news.length,
+      ...result,
       keywords: this.newsService.getKeywords(),
-      news,
     };
   }
 

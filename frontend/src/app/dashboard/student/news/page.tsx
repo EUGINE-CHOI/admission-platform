@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Sparkles,
   ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 
 interface NewsItem {
@@ -52,18 +53,23 @@ export default function NewsPage() {
   const [selectedKeyword, setSelectedKeyword] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const ITEMS_PER_PAGE = 10;
 
   const getToken = () => localStorage.getItem("token") || localStorage.getItem("accessToken");
 
-  const fetchNews = async (keyword?: string) => {
+  const fetchNews = async (keyword?: string, page: number = 1) => {
     setLoading(true);
     setError(null);
 
     try {
       const token = getToken();
-      const url = keyword
-        ? `http://localhost:3000/api/news?keyword=${encodeURIComponent(keyword)}`
-        : "http://localhost:3000/api/news";
+      let url = `http://localhost:3000/api/news?page=${page}&limit=${ITEMS_PER_PAGE}`;
+      if (keyword) {
+        url += `&keyword=${encodeURIComponent(keyword)}`;
+      }
 
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -71,8 +77,11 @@ export default function NewsPage() {
 
       if (res.ok) {
         const data = await res.json();
-        setNews(data.news);
+        setNews(data.news || []);
         setKeywords(data.keywords || []);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
+        setCurrentPage(data.page || 1);
       } else {
         const errorData = await res.json();
         setError(errorData.message || "뉴스를 불러오는데 실패했습니다.");
@@ -92,11 +101,19 @@ export default function NewsPage() {
   const handleKeywordClick = (keyword: string) => {
     if (selectedKeyword === keyword) {
       setSelectedKeyword(null);
-      fetchNews();
+      setCurrentPage(1);
+      fetchNews(undefined, 1);
     } else {
       setSelectedKeyword(keyword);
-      fetchNews(keyword);
+      setCurrentPage(1);
+      fetchNews(keyword, 1);
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchNews(selectedKeyword || undefined, page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const formatTime = (dateString: string) => {
@@ -114,12 +131,13 @@ export default function NewsPage() {
     return date.toLocaleDateString("ko-KR");
   };
 
-  const filteredNews = news.filter((item) =>
-    searchQuery
-      ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  // 클라이언트 사이드 검색 필터링 (페이지네이션은 서버에서 처리)
+  const filteredNews = searchQuery
+    ? news.filter((item) =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.description.toLowerCase().includes(searchQuery.toLowerCase())
-      : true
-  );
+      )
+    : news;
 
   const getKeywordStyle = (keyword: string) => {
     return keywordColors[keyword] || keywordColors["특목고"];
@@ -195,7 +213,7 @@ export default function NewsPage() {
         <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
           <span>
             {selectedKeyword ? `"${selectedKeyword}" 관련 ` : "전체 "}
-            뉴스 {filteredNews.length}건
+            뉴스 {total}건 중 {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, total)}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
@@ -285,6 +303,55 @@ export default function NewsPage() {
                 </a>
               );
             })}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && !loading && (
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              이전
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(page => {
+                  // 현재 페이지 주변 2페이지만 표시
+                  return page === 1 || page === totalPages || 
+                    (page >= currentPage - 1 && page <= currentPage + 1);
+                })
+                .map((page, index, arr) => (
+                  <div key={page} className="flex items-center">
+                    {index > 0 && arr[index - 1] !== page - 1 && (
+                      <span className="px-2 text-slate-400">...</span>
+                    )}
+                    <button
+                      onClick={() => handlePageChange(page)}
+                      className={`w-10 h-10 rounded-xl font-medium transition-colors ${
+                        currentPage === page
+                          ? "bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg"
+                          : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  </div>
+                ))}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              다음
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
 

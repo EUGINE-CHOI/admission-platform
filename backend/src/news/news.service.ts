@@ -21,24 +21,41 @@ export class NewsService {
   private lastFetchTime: number = 0;
   private readonly CACHE_DURATION = 30 * 60 * 1000; // 30분 캐시
 
-  async getNews(keyword?: string): Promise<NewsItem[]> {
+  async getNews(keyword?: string, page: number = 1, limit: number = 10): Promise<{
+    news: NewsItem[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const now = Date.now();
     
-    // 캐시가 유효하면 캐시된 뉴스 반환
-    if (this.cachedNews.length > 0 && now - this.lastFetchTime < this.CACHE_DURATION) {
-      if (keyword) {
-        return this.cachedNews.filter(news => news.keyword === keyword || news.title.includes(keyword));
-      }
-      return this.cachedNews;
+    // 캐시가 유효하지 않으면 새로 크롤링
+    if (this.cachedNews.length === 0 || now - this.lastFetchTime >= this.CACHE_DURATION) {
+      await this.fetchAllNews();
     }
 
-    // 새로 크롤링
-    await this.fetchAllNews();
-    
+    // 키워드 필터링
+    let filteredNews = this.cachedNews;
     if (keyword) {
-      return this.cachedNews.filter(news => news.keyword === keyword || news.title.includes(keyword));
+      filteredNews = this.cachedNews.filter(news => 
+        news.keyword === keyword || news.title.includes(keyword)
+      );
     }
-    return this.cachedNews;
+
+    // 페이지네이션
+    const total = filteredNews.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const paginatedNews = filteredNews.slice(startIndex, startIndex + limit);
+
+    return {
+      news: paginatedNews,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 
   private async fetchAllNews(): Promise<void> {
