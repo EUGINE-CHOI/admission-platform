@@ -40,14 +40,15 @@ const menuItems: Record<string, MenuItem[]> = {
     { icon: Target, label: "진단", href: "/dashboard/student/diagnosis" },
     { icon: Sparkles, label: "AI 조언", href: "/dashboard/student/ai" },
     { icon: CheckSquare, label: "실행 계획", href: "/dashboard/student/tasks" },
-    { icon: Users, label: "상담", href: "/dashboard/student/consultation" },
+    { icon: MessageSquare, label: "상담", href: "/dashboard/student/consultation" },
+    { icon: Users, label: "학부모 연결", href: "/dashboard/family" },
   ],
   PARENT: [
     { icon: Home, label: "대시보드", href: "/dashboard/parent" },
-    { icon: Users, label: "자녀 관리", href: "/dashboard/parent/children" },
+    { icon: GraduationCap, label: "학생 현황", href: "/dashboard/parent/children" },
     { icon: Calendar, label: "일정", href: "/dashboard/parent/calendar" },
     { icon: FileText, label: "리포트", href: "/dashboard/parent/reports" },
-    { icon: CreditCard, label: "구독 관리", href: "/dashboard/parent/subscription" },
+    { icon: CreditCard, label: "구독 관리", href: "/dashboard/subscription" },
   ],
   CONSULTANT: [
     { icon: Home, label: "대시보드", href: "/dashboard/consultant" },
