@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bell,
   LogOut,
   User,
   ChevronDown,
   Search,
   Menu,
+  Users,
+  CreditCard,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { NotificationDropdown } from "@/components/notification/NotificationDropdown";
 
 interface HeaderProps {
   user: {
@@ -31,10 +33,6 @@ const roleLabels: Record<string, string> = {
 export function Header({ user, onMenuClick }: HeaderProps) {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [notifications] = useState([
-    { id: 1, message: "새로운 상담 요청이 있습니다", time: "5분 전" },
-    { id: 2, message: "진단 결과가 업데이트되었습니다", time: "1시간 전" },
-  ]);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -72,14 +70,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
           <ThemeToggle />
 
           {/* Notifications */}
-          <div className="relative">
-            <button className="relative p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
-              <Bell className="w-5 h-5" />
-              {notifications.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-              )}
-            </button>
-          </div>
+          <NotificationDropdown />
 
           {/* Divider */}
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 mx-2" />
@@ -123,6 +114,26 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     >
                       <User className="w-4 h-4" />
                       프로필 설정
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        router.push("/dashboard/family");
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <Users className="w-4 h-4" />
+                      가족 관리
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        router.push("/dashboard/subscription");
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      구독 관리
                     </button>
                     <button
                       onClick={handleLogout}

@@ -19,6 +19,7 @@ import { AdminModule } from './admin/admin.module';
 import { CrawlerModule } from './crawler/crawler.module';
 import { MiddleSchoolModule } from './middle-school/middle-school.module';
 import { ClubModule } from './club/club.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ClubModule } from './club/club.module';
       isGlobal: true,
     }),
     PrismaModule,
+    NotificationModule,
     AuthModule,
     FamilyModule,
     StudentModule,
