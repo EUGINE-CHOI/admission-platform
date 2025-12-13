@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -16,10 +17,12 @@ import {
   Shield,
   Zap,
   TrendingUp,
+  Loader2,
 } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const handlePlanSelect = (planType: string) => {
     if (planType === "FREE") {
@@ -32,6 +35,40 @@ export default function Home() {
         localStorage.setItem("redirectAfterLogin", `/payment?plan=${planType}`);
         router.push("/login");
       }
+    }
+  };
+
+  const handleDemoClick = async () => {
+    setDemoLoading(true);
+    
+    try {
+      // 테스트 학생 계정으로 자동 로그인
+      const res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "student@test.com",
+          password: "password123",
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("token", data.accessToken);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("isDemo", "true"); // 데모 모드 표시
+        
+        // 대시보드로 이동
+        router.push("/dashboard/student");
+      } else {
+        alert("데모 계정 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      }
+    } catch (error) {
+      console.error("Demo login error:", error);
+      alert("서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setDemoLoading(false);
     }
   };
 
@@ -102,9 +139,22 @@ export default function Home() {
                 무료로 시작하기
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <button className="inline-flex items-center gap-2 px-6 py-3.5 bg-white/5 border border-white/10 rounded-xl font-medium hover:bg-white/10 transition-colors">
-                <Play className="w-4 h-4" />
-                데모 보기
+              <button 
+                onClick={handleDemoClick}
+                disabled={demoLoading}
+                className="inline-flex items-center gap-2 px-6 py-3.5 bg-white/5 border border-white/10 rounded-xl font-medium hover:bg-white/10 transition-colors disabled:opacity-50"
+              >
+                {demoLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    로그인 중...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    데모 체험하기
+                  </>
+                )}
               </button>
             </div>
 

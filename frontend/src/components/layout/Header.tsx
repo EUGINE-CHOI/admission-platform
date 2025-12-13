@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   LogOut,
@@ -10,6 +10,7 @@ import {
   Menu,
   Users,
   CreditCard,
+  Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { NotificationDropdown } from "@/components/notification/NotificationDropdown";
@@ -33,11 +34,17 @@ const roleLabels: Record<string, string> = {
 export function Header({ user, onMenuClick }: HeaderProps) {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+
+  useEffect(() => {
+    setIsDemo(localStorage.getItem("isDemo") === "true");
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+    localStorage.removeItem("isDemo");
     router.push("/login");
   };
 
@@ -66,6 +73,14 @@ export function Header({ user, onMenuClick }: HeaderProps) {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Demo Badge */}
+          {isDemo && (
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-white text-xs font-bold shadow-lg shadow-amber-500/25 animate-pulse">
+              <Sparkles className="w-3 h-3" />
+              체험 중
+            </div>
+          )}
+
           {/* Theme Toggle */}
           <ThemeToggle />
 
