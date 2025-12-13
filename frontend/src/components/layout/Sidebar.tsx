@@ -23,6 +23,7 @@ import {
   Crown,
   Zap,
   Heart,
+  Newspaper,
 } from "lucide-react";
 
 interface MenuItem {
@@ -43,6 +44,7 @@ const menuItems: Record<string, MenuItem[]> = {
     { icon: Activity, label: "비교과", href: "/dashboard/student/clubs" },
     { icon: Target, label: "입시 분석", href: "/dashboard/student/diagnosis" },
     { icon: Brain, label: "AI 멘토", href: "/dashboard/student/ai", badge: "NEW" },
+    { icon: Newspaper, label: "최신뉴스", href: "/dashboard/student/news", badge: "NEW" },
     { icon: CalendarCheck, label: "플래너", href: "/dashboard/student/tasks" },
     { icon: MessageCircle, label: "1:1 상담", href: "/dashboard/student/consultation" },
     { icon: Heart, label: "보호자 연결", href: "/dashboard/family" },

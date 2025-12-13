@@ -20,6 +20,7 @@ import { CrawlerModule } from './crawler/crawler.module';
 import { MiddleSchoolModule } from './middle-school/middle-school.module';
 import { ClubModule } from './club/club.module';
 import { NotificationModule } from './notification/notification.module';
+import { NewsModule } from './news/news.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { NotificationModule } from './notification/notification.module';
     CrawlerModule,
     MiddleSchoolModule,
     ClubModule,
+    NewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
