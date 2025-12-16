@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GraduationCap, Eye, EyeOff, Loader2, User, Users, Briefcase, School, Search, MapPin, ExternalLink, X, ArrowLeft, Check } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 type Role = "STUDENT" | "PARENT" | "CONSULTANT";
 
@@ -53,7 +54,7 @@ export default function SignupPage() {
         const params = new URLSearchParams();
         params.append("query", schoolSearch);
         if (selectedRegion) params.append("region", selectedRegion);
-        const res = await fetch(`http://localhost:3000/api/middle-schools/search?${params}`);
+        const res = await fetch(`${getApiUrl()}/api/middle-schools/search?${params}`);
         const data = await res.json();
         setSchoolResults(data.schools || []);
       } catch (err) {
@@ -100,7 +101,7 @@ export default function SignupPage() {
     }
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:3000/api/auth/signup", {
+      const res = await fetch(`${getApiUrl()}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

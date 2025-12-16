@@ -48,7 +48,7 @@ export class CalendarController {
   // ========== WP7.3: 캘린더 ==========
   @Get('admissions')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.STUDENT)
+  @Roles(Role.STUDENT, Role.PARENT)
   getAdmissionCalendar(
     @Request() req,
     @Query('year') year?: string,
@@ -64,7 +64,7 @@ export class CalendarController {
 
   @Get('admissions/upcoming')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.STUDENT)
+  @Roles(Role.STUDENT, Role.PARENT)
   getUpcomingSchedules(@Request() req, @Query('days') days?: string) {
     return this.dashboardService.getUpcomingSchedules(
       req.user.id,

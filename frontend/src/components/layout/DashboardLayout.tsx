@@ -4,6 +4,7 @@ import { useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { MobileNavBar } from "./MobileNavBar";
 import { OnboardingTour, useOnboarding } from "@/components/onboarding";
 
 interface User {
@@ -71,11 +72,15 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
       {isMobileMenuOpen && (
         <div className="lg:hidden">
           <div
-            className="fixed inset-0 bg-black/50 z-40"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fade-in"
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <div className="fixed inset-y-0 left-0 z-50">
-            <Sidebar role={user.role} />
+            <Sidebar 
+              role={user.role} 
+              onClose={() => setIsMobileMenuOpen(false)}
+              isMobile={true}
+            />
           </div>
         </div>
       )}
@@ -86,8 +91,11 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
           user={user}
           onMenuClick={() => setIsMobileMenuOpen(true)}
         />
-        <main className="p-6">{children}</main>
+        <main className="p-4 sm:p-6 pb-24 lg:pb-6">{children}</main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNavBar role={user.role} />
     </div>
   );
 }

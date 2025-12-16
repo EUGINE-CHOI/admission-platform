@@ -246,7 +246,7 @@ export default function CalendarPage() {
       case "COMPLETED":
         return <Badge variant="info">완료</Badge>;
       case "CANCELLED":
-        return <Badge variant="error">취소</Badge>;
+        return <Badge variant="danger">취소</Badge>;
       default:
         return null;
     }

@@ -380,7 +380,7 @@ export default function ChildDetailPage() {
                         <span className="font-medium text-slate-700 dark:text-slate-300">{grade.subject}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-slate-500">{grade.score}점</span>
-                          <Badge variant={grade.grade <= 2 ? "success" : grade.grade <= 4 ? "warning" : "error"}>
+                          <Badge variant={grade.grade <= 2 ? "success" : grade.grade <= 4 ? "warning" : "danger"}>
                             {grade.grade}등급
                           </Badge>
                         </div>
@@ -531,4 +531,5 @@ export default function ChildDetailPage() {
     </DashboardLayout>
   );
 }
+
 

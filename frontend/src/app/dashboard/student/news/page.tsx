@@ -8,13 +8,17 @@ import {
   ExternalLink,
   Clock,
   Search,
-  Filter,
   TrendingUp,
   BookOpen,
   GraduationCap,
   Sparkles,
   ChevronRight,
   ChevronLeft,
+  X,
+  Globe,
+  Share2,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 
 interface NewsItem {
@@ -56,16 +60,32 @@ export default function NewsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
   const ITEMS_PER_PAGE = 10;
 
-  const getToken = () => localStorage.getItem("token") || localStorage.getItem("accessToken");
+  const getToken = () => localStorage.getItem("accessToken");
+
+  // 북마크 로드
+  useEffect(() => {
+    const saved = localStorage.getItem('newsBookmarks');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setBookmarks(parsed.map((b: NewsItem) => b.id));
+    }
+  }, []);
 
   const fetchNews = async (keyword?: string, page: number = 1) => {
     setLoading(true);
     setError(null);
-
     try {
       const token = getToken();
+      if (!token) {
+        setError("로그인이 필요합니다.");
+        setLoading(false);
+        return;
+      }
+
       let url = `http://localhost:3000/api/news?page=${page}&limit=${ITEMS_PER_PAGE}`;
       if (keyword) {
         url += `&keyword=${encodeURIComponent(keyword)}`;
@@ -116,6 +136,29 @@ export default function NewsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleNewsClick = (item: NewsItem) => {
+    setSelectedNews(item);
+  };
+
+  const closeModal = () => {
+    setSelectedNews(null);
+  };
+
+  const toggleBookmark = (item: NewsItem) => {
+    const saved = JSON.parse(localStorage.getItem('newsBookmarks') || '[]');
+    const isBookmarked = saved.some((b: NewsItem) => b.id === item.id);
+    
+    if (isBookmarked) {
+      const newBookmarks = saved.filter((b: NewsItem) => b.id !== item.id);
+      localStorage.setItem('newsBookmarks', JSON.stringify(newBookmarks));
+      setBookmarks(newBookmarks.map((b: NewsItem) => b.id));
+    } else {
+      saved.push(item);
+      localStorage.setItem('newsBookmarks', JSON.stringify(saved));
+      setBookmarks(saved.map((b: NewsItem) => b.id));
+    }
+  };
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -131,7 +174,17 @@ export default function NewsPage() {
     return date.toLocaleDateString("ko-KR");
   };
 
-  // 클라이언트 사이드 검색 필터링 (페이지네이션은 서버에서 처리)
+  const formatFullDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const filteredNews = searchQuery
     ? news.filter((item) =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -148,7 +201,7 @@ export default function NewsPage() {
   };
 
   return (
-    <DashboardLayout requiredRole="STUDENT">
+    <DashboardLayout requiredRole={["STUDENT", "PARENT"]}>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -157,67 +210,80 @@ export default function NewsPage() {
               <Newspaper className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">최신 뉴스</h1>
-              <p className="text-slate-500 dark:text-slate-400">특목고 입시 관련 최신 뉴스</p>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                최신뉴스
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400">
+                특목고 입시 관련 최신 뉴스
+              </p>
             </div>
           </div>
           <button
-            onClick={() => fetchNews(selectedKeyword || undefined)}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-700 dark:text-slate-300 transition-colors"
+            onClick={() => fetchNews(selectedKeyword || undefined, currentPage)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             새로고침
           </button>
         </div>
 
-        {/* Search & Filter */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="뉴스 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
-            />
-          </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="뉴스 검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all"
+          />
+        </div>
 
-          {/* Keyword Filter */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-            <Filter className="w-5 h-5 text-slate-400 flex-shrink-0" />
-            {keywords.map((keyword) => {
-              const style = getKeywordStyle(keyword);
-              const Icon = getKeywordIcon(keyword);
-              return (
-                <button
-                  key={keyword}
-                  onClick={() => handleKeywordClick(keyword)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                    selectedKeyword === keyword
-                      ? "bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg"
-                      : `${style.bg} ${style.text} border ${style.border} hover:shadow-md`
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {keyword}
-                </button>
-              );
-            })}
-          </div>
+        {/* Keyword Filters */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => {
+              setSelectedKeyword(null);
+              setCurrentPage(1);
+              fetchNews(undefined, 1);
+            }}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              !selectedKeyword
+                ? "bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+            }`}
+          >
+            전체
+          </button>
+          {["외고", "자사고", "과학고", "영재고", "특목고", "자율형사립고"].map((keyword) => {
+            const style = getKeywordStyle(keyword);
+            const Icon = getKeywordIcon(keyword);
+            return (
+              <button
+                key={keyword}
+                onClick={() => handleKeywordClick(keyword)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedKeyword === keyword
+                    ? "bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg"
+                    : `${style.bg} ${style.text} border ${style.border} hover:shadow-md`
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {keyword}
+              </button>
+            );
+          })}
         </div>
 
         {/* News Count */}
         <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
           <span>
             {selectedKeyword ? `"${selectedKeyword}" 관련 ` : "전체 "}
-            뉴스 {total}건 중 {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, total)}
+            뉴스 {total}건
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            30분마다 자동 업데이트
+            클릭하면 상세 내용을 볼 수 있습니다
           </span>
         </div>
 
@@ -261,12 +327,10 @@ export default function NewsPage() {
               const style = getKeywordStyle(item.keyword);
               const Icon = getKeywordIcon(item.keyword);
               return (
-                <a
+                <button
                   key={item.id}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:shadow-xl hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300"
+                  onClick={() => handleNewsClick(item)}
+                  className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:shadow-xl hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 text-left"
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <span
@@ -296,93 +360,199 @@ export default function NewsPage() {
                       {item.source}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                      기사 보기
-                      <ExternalLink className="w-3 h-3" />
+                      자세히 보기
+                      <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
-                </a>
+                </button>
               );
             })}
           </div>
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && !loading && (
-          <div className="flex items-center justify-center gap-2">
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 pt-4">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <ChevronLeft className="w-4 h-4" />
-              이전
+              <ChevronLeft className="w-5 h-5" />
             </button>
             
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(page => {
-                  // 현재 페이지 주변 2페이지만 표시
-                  return page === 1 || page === totalPages || 
-                    (page >= currentPage - 1 && page <= currentPage + 1);
-                })
-                .map((page, index, arr) => (
-                  <div key={page} className="flex items-center">
-                    {index > 0 && arr[index - 1] !== page - 1 && (
-                      <span className="px-2 text-slate-400">...</span>
-                    )}
-                    <button
-                      onClick={() => handlePageChange(page)}
-                      className={`w-10 h-10 rounded-xl font-medium transition-colors ${
-                        currentPage === page
-                          ? "bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg"
-                          : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  </div>
-                ))}
-            </div>
-
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                    currentPage === pageNum
+                      ? "bg-rose-500 text-white"
+                      : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              다음
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         )}
+      </div>
 
-        {/* Quick Links */}
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-rose-500" />
-            인기 검색어
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {[
-              "2025 특목고 입시",
-              "과학고 경쟁률",
-              "외고 면접",
-              "자사고 폐지",
-              "영재고 입학",
-              "특목고 전형",
-            ].map((term) => (
+      {/* News Detail Modal */}
+      {selectedNews && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={(e) => e.target === e.currentTarget && closeModal()}
+        >
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-rose-500 to-orange-500">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                  <Newspaper className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <span className="text-white/90 text-sm font-medium">{selectedNews.keyword}</span>
+                  <p className="text-white/70 text-xs">{selectedNews.source}</p>
+                </div>
+              </div>
               <button
-                key={term}
-                onClick={() => setSearchQuery(term)}
-                className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 transition-colors"
+                onClick={closeModal}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
               >
-                {term}
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <X className="w-5 h-5" />
               </button>
-            ))}
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto">
+              {/* News Title & Meta */}
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 leading-tight">
+                  {selectedNews.title}
+                </h2>
+                
+                <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mb-6">
+                  <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+                    <Clock className="w-4 h-4" />
+                    {formatFullDate(selectedNews.publishedAt)}
+                  </span>
+                  <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+                    <Globe className="w-4 h-4" />
+                    {selectedNews.source}
+                  </span>
+                </div>
+
+                {/* News Description */}
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5 mb-6">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-rose-500" />
+                    뉴스 요약
+                  </h3>
+                  <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base">
+                    {selectedNews.description || "뉴스 요약 내용이 없습니다. 아래 버튼을 클릭하여 전체 기사를 확인해주세요."}
+                  </p>
+                </div>
+
+                {/* Related Keywords */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-500" />
+                    관련 키워드
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[selectedNews.keyword, '입시', '2025학년도', '고등학교'].map((tag, idx) => (
+                      <span 
+                        key={idx}
+                        className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-sm"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <a
+                    href={selectedNews.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full px-6 py-4 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white rounded-xl transition-all font-semibold text-lg shadow-lg shadow-rose-500/30 hover:shadow-xl hover:shadow-rose-500/40"
+                  >
+                    <ExternalLink className="w-5 h-5" />
+                    전체 기사 보기
+                  </a>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedNews.link);
+                        alert('링크가 복사되었습니다!');
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      링크 복사
+                    </button>
+                    <button
+                      onClick={() => toggleBookmark(selectedNews)}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl transition-colors ${
+                        bookmarks.includes(selectedNews.id)
+                          ? "bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400"
+                          : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      {bookmarks.includes(selectedNews.id) ? (
+                        <>
+                          <BookmarkCheck className="w-4 h-4" />
+                          저장됨
+                        </>
+                      ) : (
+                        <>
+                          <Bookmark className="w-4 h-4" />
+                          북마크
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-center p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium"
+              >
+                닫기
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </DashboardLayout>
   );
 }
-

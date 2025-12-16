@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-import * as cheerio from 'cheerio';
+import * as xml2js from 'xml2js';
 
 export interface NewsItem {
   id: string;
@@ -21,12 +21,18 @@ export class NewsService {
   private lastFetchTime: number = 0;
   private readonly CACHE_DURATION = 30 * 60 * 1000; // 30분 캐시
 
+  constructor() {
+    // 서버 시작 시 바로 뉴스 가져오기
+    this.fetchAllNews();
+  }
+
   async getNews(keyword?: string, page: number = 1, limit: number = 10): Promise<{
     news: NewsItem[];
     total: number;
     page: number;
     limit: number;
     totalPages: number;
+    keywords: string[];
   }> {
     const now = Date.now();
     
@@ -55,28 +61,40 @@ export class NewsService {
       page,
       limit,
       totalPages,
+      keywords: this.keywords,
     };
   }
 
   private async fetchAllNews(): Promise<void> {
     const allNews: NewsItem[] = [];
+    
+    this.logger.log('Starting to fetch news from Google News RSS...');
 
     for (const keyword of this.keywords) {
       try {
-        // Google News RSS 사용
-        const googleNews = await this.fetchGoogleNews(keyword);
-        allNews.push(...googleNews);
+        const googleNews = await this.fetchGoogleNewsRSS(keyword);
+        if (googleNews.length > 0) {
+          allNews.push(...googleNews);
+          this.logger.log(`✓ Fetched ${googleNews.length} news for "${keyword}"`);
+        } else {
+          this.logger.warn(`No news found for "${keyword}", using sample`);
+          allNews.push(...this.getSampleNews(keyword));
+        }
       } catch (error) {
-        this.logger.error(`Failed to fetch Google news for keyword: ${keyword}`, error);
+        this.logger.error(`Failed to fetch news for "${keyword}":`, error.message);
+        allNews.push(...this.getSampleNews(keyword));
       }
 
-      // 요청 간 딜레이
-      await this.delay(500);
+      // 요청 간 딜레이 (Google 차단 방지)
+      await this.delay(1000);
     }
 
     // 중복 제거 (제목 기준)
     const uniqueNews = allNews.reduce((acc: NewsItem[], current) => {
-      const exists = acc.find(item => item.title === current.title);
+      const exists = acc.find(item => 
+        item.title === current.title || 
+        item.link === current.link
+      );
       if (!exists) {
         acc.push(current);
       }
@@ -86,150 +104,173 @@ export class NewsService {
     // 최신순 정렬
     uniqueNews.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
-    this.cachedNews = uniqueNews.slice(0, 100); // 최대 100개
+    this.cachedNews = uniqueNews.slice(0, 100);
     this.lastFetchTime = Date.now();
-    this.logger.log(`Fetched ${this.cachedNews.length} news articles`);
+    this.logger.log(`✓ Total ${this.cachedNews.length} unique news articles cached`);
   }
 
-  private async fetchGoogleNews(keyword: string): Promise<NewsItem[]> {
+  private async fetchGoogleNewsRSS(keyword: string): Promise<NewsItem[]> {
     const news: NewsItem[] = [];
     
     try {
-      const encodedKeyword = encodeURIComponent(keyword + ' 입시');
-      const url = `https://news.google.com/rss/search?q=${encodedKeyword}&hl=ko&gl=KR&ceid=KR:ko`;
+      // Google News RSS URL
+      const searchQuery = encodeURIComponent(`${keyword} 입시 고등학교`);
+      const rssUrl = `https://news.google.com/rss/search?q=${searchQuery}&hl=ko&gl=KR&ceid=KR:ko`;
 
-      const response = await axios.get(url, {
+      this.logger.debug(`Fetching RSS: ${rssUrl}`);
+
+      const response = await axios.get(rssUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
         },
-        timeout: 10000,
+        timeout: 15000,
+        responseType: 'text',
       });
 
-      const $ = cheerio.load(response.data, { xmlMode: true });
-
-      $('item').each((index, element) => {
-        if (index >= 15) return; // 키워드당 최대 15개
-
-        const $item = $(element);
-        
-        const title = $item.find('title').text().trim();
-        const link = $item.find('link').text().trim();
-        const pubDate = $item.find('pubDate').text().trim();
-        const source = $item.find('source').text().trim() || '뉴스';
-        const description = $item.find('description').text().trim();
-
-        if (title && link) {
-          news.push({
-            id: `google-${keyword}-${index}-${Date.now()}`,
-            title: this.cleanText(title),
-            description: this.cleanText(description).substring(0, 200),
-            link,
-            source,
-            publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-            keyword,
-          });
-        }
+      // XML 파싱
+      const parser = new xml2js.Parser({
+        explicitArray: false,
+        ignoreAttrs: false,
       });
 
-      this.logger.log(`Fetched ${news.length} news from Google for keyword: ${keyword}`);
-    } catch (error) {
-      this.logger.error(`Error fetching Google news for ${keyword}:`, error.message);
+      const result = await parser.parseStringPromise(response.data);
       
-      // 폴백: 샘플 뉴스 데이터
-      news.push(...this.getSampleNews(keyword));
+      if (!result?.rss?.channel?.item) {
+        this.logger.warn(`No items found in RSS for "${keyword}"`);
+        return news;
+      }
+
+      // item이 배열이 아닌 경우 배열로 변환
+      const items = Array.isArray(result.rss.channel.item) 
+        ? result.rss.channel.item 
+        : [result.rss.channel.item];
+
+      for (let i = 0; i < Math.min(items.length, 10); i++) {
+        const item = items[i];
+        
+        try {
+          const title = this.cleanText(item.title || '');
+          const link = item.link || '';
+          const pubDate = item.pubDate || '';
+          const source = item.source?._ || item.source || '뉴스';
+          const description = this.cleanText(item.description || '');
+
+          if (title && link) {
+            // Google News 리다이렉트 URL에서 실제 URL 추출 시도
+            const actualLink = await this.resolveGoogleNewsUrl(link);
+            
+            news.push({
+              id: `gnews-${keyword}-${i}-${Date.now()}`,
+              title,
+              description: description.substring(0, 300),
+              link: actualLink,
+              source: this.cleanText(source),
+              publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+              keyword,
+            });
+          }
+        } catch (itemError) {
+          this.logger.debug(`Failed to parse item ${i} for "${keyword}"`);
+        }
+      }
+
+    } catch (error) {
+      this.logger.error(`Error fetching Google News RSS for "${keyword}":`, error.message);
+      throw error;
     }
 
     return news;
   }
 
+  // Google News URL에서 실제 기사 URL 추출
+  private async resolveGoogleNewsUrl(googleUrl: string): Promise<string> {
+    try {
+      // Google News URL 형식: https://news.google.com/rss/articles/...
+      // 또는 직접 원본 URL이 포함된 경우
+      
+      if (!googleUrl.includes('news.google.com')) {
+        return googleUrl; // 이미 직접 URL
+      }
+
+      // HEAD 요청으로 리다이렉트 따라가기
+      const response = await axios.head(googleUrl, {
+        maxRedirects: 5,
+        timeout: 5000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+      });
+
+      // 최종 URL 반환
+      if (response.request?.res?.responseUrl) {
+        return response.request.res.responseUrl;
+      }
+
+      return googleUrl;
+    } catch (error) {
+      // 리다이렉트 실패해도 Google URL 그대로 사용 (클릭하면 리다이렉트됨)
+      return googleUrl;
+    }
+  }
+
   private getSampleNews(keyword: string): NewsItem[] {
+    // 실제 뉴스 검색 결과 페이지로 연결
+    const getGoogleSearchUrl = (query: string) => 
+      `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=nws&hl=ko`;
+    
     const sampleNews: Record<string, NewsItem[]> = {
       '과학고': [
         {
-          id: `sample-과학고-1`,
-          title: '2025학년도 과학고 입시 경쟁률 발표',
-          description: '전국 과학고 입시 경쟁률이 발표되었습니다. 올해 지원자 수가 전년 대비 증가한 것으로 나타났습니다.',
-          link: '#',
-          source: '교육뉴스',
-          publishedAt: new Date().toISOString(),
-          keyword: '과학고',
-        },
-        {
-          id: `sample-과학고-2`,
-          title: '과학고 면접 준비 핵심 전략',
-          description: '과학고 면접에서 좋은 점수를 받기 위한 준비 방법과 핵심 전략을 소개합니다.',
-          link: '#',
-          source: '입시매거진',
+          id: `sample-과학고-1-${Date.now()}`,
+          title: '2025학년도 과학고 입학전형 주요 일정 안내',
+          description: '전국 과학고등학교 2025학년도 입학전형 일정이 발표되었습니다. 원서 접수, 면접, 합격자 발표 일정을 확인하세요.',
+          link: getGoogleSearchUrl('과학고 입시 2025'),
+          source: '교육부',
           publishedAt: new Date(Date.now() - 3600000).toISOString(),
           keyword: '과학고',
         },
       ],
       '외고': [
         {
-          id: `sample-외고-1`,
-          title: '2025학년도 외고 입시 주요 변화',
-          description: '올해 외고 입시에서 달라지는 점을 정리했습니다. 지원 자격과 전형 방법을 확인하세요.',
-          link: '#',
-          source: '교육뉴스',
-          publishedAt: new Date().toISOString(),
-          keyword: '외고',
-        },
-        {
-          id: `sample-외고-2`,
-          title: '외고 vs 일반고, 어떤 선택이 맞을까?',
-          description: '외고 진학을 고민하는 학생들을 위한 비교 분석 가이드입니다.',
-          link: '#',
-          source: '입시매거진',
+          id: `sample-외고-1-${Date.now()}`,
+          title: '2025학년도 외국어고 입시 전형 안내',
+          description: '외국어고등학교 입시 준비를 위한 전형 방법과 지원 자격을 안내합니다.',
+          link: getGoogleSearchUrl('외고 입시 2025'),
+          source: '교육청',
           publishedAt: new Date(Date.now() - 7200000).toISOString(),
           keyword: '외고',
         },
       ],
       '자사고': [
         {
-          id: `sample-자사고-1`,
-          title: '자사고 존폐 논란, 현재 상황은?',
-          description: '자율형사립고등학교의 현재 운영 현황과 향후 전망을 분석합니다.',
-          link: '#',
-          source: '교육뉴스',
-          publishedAt: new Date().toISOString(),
-          keyword: '자사고',
-        },
-        {
-          id: `sample-자사고-2`,
-          title: '전국 자사고 합격 커트라인 분석',
-          description: '주요 자사고 합격 커트라인과 입시 전략을 소개합니다.',
-          link: '#',
-          source: '입시매거진',
+          id: `sample-자사고-1-${Date.now()}`,
+          title: '자율형사립고 입시 정보 및 지원 전략',
+          description: '자사고 지원을 고민하는 학생과 학부모를 위한 입시 정보와 전략을 소개합니다.',
+          link: getGoogleSearchUrl('자사고 입시'),
+          source: '입시정보',
           publishedAt: new Date(Date.now() - 5400000).toISOString(),
           keyword: '자사고',
         },
       ],
       '영재고': [
         {
-          id: `sample-영재고-1`,
-          title: '영재고 지원 자격 및 전형 안내',
-          description: '영재고 입학을 위한 지원 자격과 전형 절차를 상세히 안내합니다.',
-          link: '#',
-          source: '교육뉴스',
-          publishedAt: new Date().toISOString(),
-          keyword: '영재고',
-        },
-        {
-          id: `sample-영재고-2`,
-          title: '영재고 창의적 문제해결력 평가 대비법',
-          description: '영재고 입시의 핵심인 창의적 문제해결력 평가를 준비하는 방법입니다.',
-          link: '#',
-          source: '입시매거진',
+          id: `sample-영재고-1-${Date.now()}`,
+          title: '영재고 입학을 위한 준비 가이드',
+          description: '영재학교 입학 전형과 창의적 문제해결력 평가 준비 방법을 안내합니다.',
+          link: getGoogleSearchUrl('영재고 입시'),
+          source: '교육부',
           publishedAt: new Date(Date.now() - 9000000).toISOString(),
           keyword: '영재고',
         },
       ],
       '특목고': [
         {
-          id: `sample-특목고-1`,
-          title: '2025 특목고 입시 일정 총정리',
-          description: '과학고, 외고, 국제고 등 특목고 입시 일정을 한눈에 확인하세요.',
-          link: '#',
+          id: `sample-특목고-1-${Date.now()}`,
+          title: '2025 특목고 입시 일정 및 전형 총정리',
+          description: '과학고, 외고, 국제고 등 특목고 입시 일정과 전형 방법을 한눈에 확인하세요.',
+          link: getGoogleSearchUrl('특목고 입시 일정 2025'),
           source: '교육뉴스',
           publishedAt: new Date().toISOString(),
           keyword: '특목고',
@@ -237,11 +278,11 @@ export class NewsService {
       ],
       '자율형사립고': [
         {
-          id: `sample-자율형사립고-1`,
-          title: '자율형사립고 선택 가이드',
-          description: '자율형사립고의 특징과 장단점을 비교 분석합니다.',
-          link: '#',
-          source: '교육뉴스',
+          id: `sample-자율형사립고-1-${Date.now()}`,
+          title: '자율형사립고 선택 시 고려해야 할 사항',
+          description: '자율형사립고의 특징, 장단점, 입시 정보를 비교 분석합니다.',
+          link: getGoogleSearchUrl('자율형사립고 입시'),
+          source: '교육정보',
           publishedAt: new Date().toISOString(),
           keyword: '자율형사립고',
         },
@@ -256,18 +297,27 @@ export class NewsService {
   }
 
   private cleanText(text: string): string {
+    if (!text) return '';
+    
     return text
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&#160;/g, ' ')
-      .replace(/\s+/g, ' ')
+      // HTML 태그 제거
       .replace(/<[^>]*>/g, '')
+      // HTML 엔티티 변환
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&#160;/g, ' ')
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'")
+      // 기타 HTML 엔티티 제거
       .replace(/&[a-zA-Z]+;/g, ' ')
       .replace(/&#\d+;/g, ' ')
+      // 특수 문자 정리
+      .replace(/\u00A0/g, ' ')
+      .replace(/[\r\n\t]+/g, ' ')
+      // 연속 공백 제거
       .replace(/\s+/g, ' ')
       .trim();
   }

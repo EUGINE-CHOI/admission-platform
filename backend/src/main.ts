@@ -6,9 +6,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS 활성화
+  // CORS 활성화 - 개발 환경에서는 모든 origin 허용
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:4000'],
+    origin: true, // 모든 origin 허용 (개발용)
     credentials: true,
   });
 
@@ -97,9 +97,11 @@ async function bootstrap() {
     customSiteTitle: '입시 플랫폼 API 문서',
   });
 
-  const port = process.env.PORT || 4000;
-  await app.listen(port);
+  const port = process.env.PORT || 3000;
+  // 모든 네트워크 인터페이스에서 리스닝 (모바일 테스트용)
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 Application is running on: http://localhost:${port}/api`);
   console.log(`📚 Swagger docs available at: http://localhost:${port}/api-docs`);
+  console.log(`📱 Mobile access: http://[YOUR_IP]:${port}/api`);
 }
 bootstrap();

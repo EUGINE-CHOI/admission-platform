@@ -24,6 +24,7 @@ import {
   Zap,
   Heart,
   Newspaper,
+  X,
 } from "lucide-react";
 
 interface MenuItem {
@@ -35,6 +36,8 @@ interface MenuItem {
 
 interface SidebarProps {
   role: "STUDENT" | "PARENT" | "CONSULTANT" | "ADMIN";
+  onClose?: () => void;
+  isMobile?: boolean;
 }
 
 const menuItems: Record<string, MenuItem[]> = {
@@ -53,6 +56,7 @@ const menuItems: Record<string, MenuItem[]> = {
     { icon: LayoutDashboard, label: "홈", href: "/dashboard/parent" },
     { icon: GraduationCap, label: "학생 현황", href: "/dashboard/parent/children" },
     { icon: Calendar, label: "캘린더", href: "/dashboard/parent/calendar" },
+    { icon: Newspaper, label: "최신뉴스", href: "/dashboard/student/news", badge: "NEW" },
     { icon: FileBarChart, label: "분석 리포트", href: "/dashboard/parent/reports" },
     { icon: Crown, label: "멤버십", href: "/dashboard/subscription" },
   ],
@@ -76,23 +80,34 @@ const menuItems: Record<string, MenuItem[]> = {
   ],
 };
 
-export function Sidebar({ role }: SidebarProps) {
+export function Sidebar({ role, onClose, isMobile }: SidebarProps) {
   const pathname = usePathname();
   const items = menuItems[role] || [];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 z-40 flex flex-col">
+    <aside className={`fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 z-40 flex flex-col ${isMobile ? 'animate-slide-in-left' : ''}`}>
       {/* Logo */}
-      <div className="h-16 flex items-center gap-3 px-6">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
-          <GraduationCap className="w-5 h-5 text-white" />
+      <div className="h-16 flex items-center justify-between px-6">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
+            <GraduationCap className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-base font-bold text-white tracking-tight">
+              입시로드맵
+            </span>
+            <span className="text-[10px] text-slate-500 -mt-0.5">ADMISSION ROADMAP</span>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <span className="text-base font-bold text-white tracking-tight">
-            입시로드맵
-          </span>
-          <span className="text-[10px] text-slate-500 -mt-0.5">ADMISSION ROADMAP</span>
-        </div>
+        {/* Mobile Close Button */}
+        {isMobile && onClose && (
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}

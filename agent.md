@@ -100,7 +100,7 @@ C:\EUGINE-CHOI\Dev\Roadmap\
 
 ---
 
-## 🧩 Milestones 구조 (M0~M10)
+## 🧩 Milestones 구조 (M0~M17)
 
 > 상세 내용: [`MILESTONES-FINAL.md`](./MILESTONES-FINAL.md)
 
@@ -117,6 +117,13 @@ C:\EUGINE-CHOI\Dev\Roadmap\
 | **M8** | Premium | 컨설턴트 기능 | 상담 예약, 상담 노트, AI 리포트 |
 | **M9** | Business | 결제/구독 | PG 연동, 프리미엄 unlock, 가족 할인 |
 | **M10** | Growth | Analytics & 운영 | Sentry, KPI 대시보드, AI Feedback 분석 |
+| **M11** | Info Service | 뉴스 & 정보 | 특목고 뉴스 RSS, 데모 체험 모드 |
+| **M12** | Data Expansion | 데이터 확장 | 중학교 DB, 특목고/자사고 확장 |
+| **M13** | AI Advanced | AI 멘토 고도화 | 종합분석, 학교추천, 동아리/독서 추천 |
+| **M14** | Feature Polish | 기능 완성도 | 상담캘린더, PDF 리포트, 보호자 상세화 |
+| **M15** | UX Polish | 사용자 경험 | 온보딩 튜토리얼, 이메일 알림, 로딩 UI |
+| **M16** | Data Advanced | 데이터 고도화 | 학교 확장, 입시일정 2025-2026, AI 진단 개선 |
+| **M17** | Mobile & Performance | 모바일 & 성능 | 반응형 UI, 성능 최적화, 모바일 테스트 환경 |
 
 ### Milestone 의존성
 ```
@@ -366,5 +373,38 @@ backend/
 ---
 
 > 📝 **Note**: 이 문서는 프로젝트 진행에 따라 지속적으로 업데이트됩니다.
-> 마지막 업데이트: 2025-12-02
+> 마지막 업데이트: 2025-12-16
+
+---
+
+## 🆕 최근 업데이트 (2025-12-16)
+
+### 완료된 기능
+| 기능 | 설명 |
+|------|------|
+| **모바일 반응형 UI** | 사이드바 슬라이드 애니메이션, 하단 네비게이션 바, 터치 최적화 |
+| **성능 최적화** | 이미지 최적화 (WebP/AVIF), 스켈레톤 UI, API 캐싱 |
+| **모바일 테스트 환경** | 동적 API URL, CORS 확장, 전체 네트워크 바인딩 |
+| **Google News RSS 크롤링** | 특목고 관련 실시간 뉴스 수집 (외고, 자사고, 과학고, 영재고) |
+| **뉴스 상세 모달** | 페이지 내에서 뉴스 상세 보기, 북마크, 링크 복사 |
+| **데모 체험 모드** | 랜딩 페이지에서 테스트 계정으로 즉시 체험 |
+| **로그인 에러 개선** | 서버 연결 실패/인증 실패 구분 메시지 |
+| **PDF 리포트** | 학생 종합 리포트 및 진단 결과 PDF 다운로드 |
+| **상담 예약 캘린더** | 보호자용 입시일정 + 상담 예약 통합 캘린더 |
+| **온보딩 튜토리얼** | 첫 로그인 시 역할별 가이드 (react-joyride) |
+| **이메일 알림** | 환영/상담예약/진단완료 알림 (Nodemailer) |
+| **AI 멘토 고도화** | 종합분석, 학교추천, 독서/동아리 추천, 히스토리 |
+| **데이터 확장** | 전국 특목고/자사고, 2019-2026 경쟁률/입시일정 |
+
+### 기술 스택 추가
+- `xml2js` - Google News RSS 파싱
+- `pdfkit` - PDF 리포트 생성
+- `nodemailer` - 이메일 발송
+- `react-joyride` - 온보딩 튜토리얼
+
+### 모바일 지원 파일
+- `frontend/src/components/layout/MobileNavBar.tsx` - 하단 네비게이션 바
+- `frontend/src/lib/api.ts` - 동적 API URL (getApiUrl)
+- `frontend/src/lib/cache.ts` - API 캐싱 유틸리티
+- `frontend/src/components/ui/Skeleton.tsx` - 스켈레톤 UI 컴포넌트
 

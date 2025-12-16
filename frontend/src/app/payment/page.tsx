@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CreditCard, Check, Shield, Clock, Users } from "lucide-react";
+import { CreditCard, Check, Shield, Clock, Users, Loader2 } from "lucide-react";
 
 interface Plan {
   name: string;
@@ -30,7 +30,7 @@ declare global {
   }
 }
 
-export default function PaymentPage() {
+function PaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const planType = searchParams.get("plan") || "BASIC";
@@ -322,4 +322,23 @@ function getPlanFeatures(planType: string): string[] {
   }
 }
 
+// Loading component for Suspense fallback
+function PaymentLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+        <p className="text-white/70">결제 정보를 불러오는 중...</p>
+      </div>
+    </div>
+  );
+}
 
+// Main export with Suspense boundary
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<PaymentLoading />}>
+      <PaymentContent />
+    </Suspense>
+  );
+}

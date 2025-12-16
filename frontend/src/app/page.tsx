@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Loader2,
 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 export default function Home() {
   const router = useRouter();
@@ -43,7 +44,8 @@ export default function Home() {
     
     try {
       // 테스트 학생 계정으로 자동 로그인
-      const res = await fetch("http://localhost:3000/api/auth/login", {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

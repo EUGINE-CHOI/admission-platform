@@ -9,3 +9,4 @@ import { NewsService } from './news.service';
 })
 export class NewsModule {}
 
+

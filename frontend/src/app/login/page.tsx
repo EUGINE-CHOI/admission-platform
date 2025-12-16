@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GraduationCap, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,7 +20,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
+      const apiUrl = getApiUrl(); // 호출 시점에 URL 결정
+      const res = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -28,7 +30,11 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "로그인에 실패했습니다");
+        // 서버에서 401 (Unauthorized) 응답 시 더 명확한 메시지
+        if (res.status === 401) {
+          throw new Error("이메일 또는 비밀번호를 확인해주세요.");
+        }
+        throw new Error(data.message || "로그인에 실패했습니다.");
       }
 
       localStorage.setItem("token", data.accessToken);
@@ -56,7 +62,12 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (err: any) {
-      setError(err.message);
+      // 서버 연결 실패 시 (Failed to fetch)
+      if (err.message === "Failed to fetch" || err.name === "TypeError") {
+        setError("서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.");
+      } else {
+        setError(err.message || "이메일 또는 비밀번호를 확인해주세요.");
+      }
     } finally {
       setIsLoading(false);
     }
