@@ -25,6 +25,10 @@ import {
   Heart,
   Newspaper,
   X,
+  TrendingUp,
+  GitCompare,
+  MessageSquare,
+  Clock,
 } from "lucide-react";
 
 interface MenuItem {
@@ -44,10 +48,14 @@ const menuItems: Record<string, MenuItem[]> = {
   STUDENT: [
     { icon: LayoutDashboard, label: "홈", href: "/dashboard/student" },
     { icon: User, label: "내 프로필", href: "/dashboard/student/data" },
+    { icon: TrendingUp, label: "성적 분석", href: "/dashboard/student/grades", badge: "NEW" },
     { icon: Activity, label: "비교과", href: "/dashboard/student/clubs" },
     { icon: Target, label: "입시 분석", href: "/dashboard/student/diagnosis" },
-    { icon: Brain, label: "AI 멘토", href: "/dashboard/student/ai", badge: "NEW" },
-    { icon: Newspaper, label: "최신뉴스", href: "/dashboard/student/news", badge: "NEW" },
+    { icon: GitCompare, label: "학교 비교", href: "/dashboard/student/compare", badge: "NEW" },
+    { icon: Clock, label: "D-Day", href: "/dashboard/student/dday", badge: "NEW" },
+    { icon: MessageSquare, label: "면접 준비", href: "/dashboard/student/interview", badge: "NEW" },
+    { icon: Brain, label: "AI 멘토", href: "/dashboard/student/ai" },
+    { icon: Newspaper, label: "최신뉴스", href: "/dashboard/student/news" },
     { icon: CalendarCheck, label: "플래너", href: "/dashboard/student/tasks" },
     { icon: MessageCircle, label: "1:1 상담", href: "/dashboard/student/consultation" },
     { icon: Heart, label: "보호자 연결", href: "/dashboard/family" },
@@ -55,8 +63,9 @@ const menuItems: Record<string, MenuItem[]> = {
   PARENT: [
     { icon: LayoutDashboard, label: "홈", href: "/dashboard/parent" },
     { icon: GraduationCap, label: "학생 현황", href: "/dashboard/parent/children" },
+    { icon: Clock, label: "D-Day", href: "/dashboard/student/dday", badge: "NEW" },
     { icon: Calendar, label: "캘린더", href: "/dashboard/parent/calendar" },
-    { icon: Newspaper, label: "최신뉴스", href: "/dashboard/student/news", badge: "NEW" },
+    { icon: Newspaper, label: "최신뉴스", href: "/dashboard/student/news" },
     { icon: FileBarChart, label: "분석 리포트", href: "/dashboard/parent/reports" },
     { icon: Crown, label: "멤버십", href: "/dashboard/subscription" },
   ],

@@ -23,6 +23,7 @@ import { NotificationModule } from './notification/notification.module';
 import { NewsModule } from './news/news.module';
 import { ReportModule } from './report/report.module';
 import { EmailModule } from './email/email.module';
+import { SynergyModule } from './synergy/synergy.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { EmailModule } from './email/email.module';
     NewsModule,
     ReportModule,
     EmailModule,
+    SynergyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
