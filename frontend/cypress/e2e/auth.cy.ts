@@ -1,7 +1,8 @@
 // 인증 관련 E2E 테스트
 describe('인증 시스템', () => {
   beforeEach(() => {
-    // 테스트 전 로그아웃 상태 유지
+    // Bug 2 Fix: cy.visit() 먼저 호출하여 window 컨텍스트 확보 후 localStorage 클리어
+    cy.visit('/login');
     cy.window().then((win) => {
       win.localStorage.clear();
     });
@@ -9,21 +10,18 @@ describe('인증 시스템', () => {
 
   describe('로그인 페이지', () => {
     it('로그인 페이지 접근 가능', () => {
-      cy.visit('/login');
       cy.contains('로그인').should('be.visible');
       cy.get('input[type="email"]').should('be.visible');
       cy.get('input[type="password"]').should('be.visible');
     });
 
     it('빈 폼 제출 시 에러 표시', () => {
-      cy.visit('/login');
       cy.get('button[type="submit"]').click();
       // 필수 입력 검증
       cy.get('input[type="email"]:invalid').should('exist');
     });
 
     it('잘못된 자격증명으로 로그인 시 에러 메시지', () => {
-      cy.visit('/login');
       cy.get('input[type="email"]').type('wrong@email.com');
       cy.get('input[type="password"]').type('wrongpassword');
       cy.get('button[type="submit"]').click();
@@ -33,7 +31,6 @@ describe('인증 시스템', () => {
     });
 
     it('학생 계정으로 로그인 성공', () => {
-      cy.visit('/login');
       cy.get('input[type="email"]').type('student@test.com');
       cy.get('input[type="password"]').type('test1234');
       cy.get('button[type="submit"]').click();
@@ -44,7 +41,6 @@ describe('인증 시스템', () => {
     });
 
     it('보호자 계정으로 로그인 성공', () => {
-      cy.visit('/login');
       cy.get('input[type="email"]').type('parent@test.com');
       cy.get('input[type="password"]').type('test1234');
       cy.get('button[type="submit"]').click();
@@ -77,7 +73,6 @@ describe('인증 시스템', () => {
   describe('로그아웃', () => {
     it('로그인 후 로그아웃 가능', () => {
       // 로그인
-      cy.visit('/login');
       cy.get('input[type="email"]').type('student@test.com');
       cy.get('input[type="password"]').type('test1234');
       cy.get('button[type="submit"]').click();
@@ -100,4 +95,3 @@ describe('인증 시스템', () => {
     });
   });
 });
-

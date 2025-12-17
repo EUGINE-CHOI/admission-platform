@@ -52,25 +52,27 @@ describe('대시보드', () => {
   });
 
   describe('반응형 네비게이션', () => {
-    beforeEach(() => {
-      cy.login('student@test.com', 'test1234');
-    });
-
+    // Bug 1 Fix: viewport를 로그인 전에 설정하여 인증 상태 유지
     it('모바일 뷰포트에서 하단 네비게이션 표시', () => {
+      // viewport를 먼저 설정
       cy.viewport(375, 667); // iPhone SE
-      cy.visit('/dashboard/student');
+      
+      // 그 다음 로그인 (login 커맨드가 visit과 인증을 처리)
+      cy.login('student@test.com', 'test1234');
       
       // 모바일 하단 네비게이션 확인
       cy.get('nav').should('be.visible');
     });
 
     it('데스크톱 뷰포트에서 사이드바 표시', () => {
+      // viewport를 먼저 설정
       cy.viewport(1280, 720);
-      cy.visit('/dashboard/student');
+      
+      // 그 다음 로그인
+      cy.login('student@test.com', 'test1234');
       
       // 사이드바 확인
       cy.contains('홈').should('be.visible');
     });
   });
 });
-
