@@ -22,61 +22,6 @@ enum Role {
   ADMIN
 }
 
-// ============================================
-// M1.5: 중학교 데이터베이스
-// ============================================
-
-model MiddleSchool {
-  id        String   @id @default(cuid())
-  name      String
-  region    String   // 서울, 인천 등
-  district  String?  // 구/군 (예: 강남구, 남동구)
-  address   String?
-  website   String?
-  phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  students User[]
-  clubs    Club[]
-
-  @@unique([name, region])
-  @@map("middle_schools")
-}
-
-// ============================================
-// M1.6: 동아리 데이터베이스
-// ============================================
-
-enum ClubCategory {
-  ACADEMIC    // 학술 (과학, 수학, 토론 등)
-  ARTS        // 예술 (음악, 미술, 연극 등)
-  SPORTS      // 체육 (축구, 농구, 태권도 등)
-  SERVICE     // 봉사
-  CAREER      // 진로/리더십
-  CULTURE     // 문화 (전통, 요리 등)
-  OTHER       // 기타
-}
-
-model Club {
-  id             String       @id @default(cuid())
-  name           String       // 동아리명
-  category       ClubCategory @default(OTHER)
-  description    String?      // 설명
-  memberCount    Int?         // 회원 수
-  advisor        String?      // 지도교사
-  activities     String?      // 주요 활동 내용
-  isGeneral      Boolean      @default(false) // 일반 동아리 유형 여부 (템플릿)
-  
-  middleSchoolId String?
-  middleSchool   MiddleSchool? @relation(fields: [middleSchoolId], references: [id])
-  
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-
-  @@map("clubs")
-}
-
 enum ConsultantStatus {
   PENDING
   APPROVED
@@ -90,8 +35,7 @@ model User {
   name             String?
   role             Role              @default(STUDENT)
   consultantStatus ConsultantStatus?
-  schoolName       String?           // 레거시: 수동 입력한 학교명 (deprecated)
-  middleSchoolId   String?           // M1.5: 중학교 DB 연결
+  schoolName       String?
   grade            Int?
   familyId         String?
   refreshToken     String?
@@ -108,7 +52,6 @@ model User {
   hasPremium     Boolean   @default(false)
 
   // 기존 관계
-  middleSchool      MiddleSchool?      @relation(fields: [middleSchoolId], references: [id])
   family            Family?            @relation(fields: [familyId], references: [id])
   createdInvites    InviteCode[]       @relation("CreatedInvites")
   usedInvite        InviteCode?        @relation("UsedInvite")
@@ -288,19 +231,10 @@ model Volunteer {
 // ============================================
 
 enum SchoolType {
-  GENERAL              // 일반고
-  SPECIAL              // 특수목적고 (전체)
-  AUTONOMOUS           // 자율형고 (전체)
-  SPECIALIZED          // 특성화고
-  // 세부 특목고 타입
-  SCIENCE              // 과학고/영재학교
-  FOREIGN_LANGUAGE     // 외국어고
-  INTERNATIONAL        // 국제고
-  ARTS                 // 예술고
-  SPORTS               // 체육고
-  // 세부 자율고 타입
-  AUTONOMOUS_PRIVATE   // 자율형 사립고 (자사고)
-  AUTONOMOUS_PUBLIC    // 자율형 공립고
+  GENERAL
+  SPECIAL
+  AUTONOMOUS
+  SPECIALIZED
 }
 
 enum AdmissionType {
@@ -318,15 +252,12 @@ enum PublishStatus {
 }
 
 enum ScheduleType {
-  INFO_SESSION          // 입학설명회
-  APPLICATION           // 원서접수
-  DOCUMENT              // 서류제출
-  DOCUMENT_SCREENING    // 서류심사
-  EXAM                  // 시험/평가
-  INTERVIEW             // 면접
-  ANNOUNCEMENT          // 발표 (일반)
-  RESULT_ANNOUNCEMENT   // 합격자 발표
-  REGISTRATION          // 등록
+  INFO_SESSION
+  APPLICATION
+  DOCUMENT
+  INTERVIEW
+  ANNOUNCEMENT
+  REGISTRATION
 }
 
 model School {
@@ -350,48 +281,9 @@ model School {
   targetSchools      TargetSchool[]
   diagnosisResults   DiagnosisResult[]
   recommendedSchools RecommendedSchool[]
-  admissionHistories AdmissionHistory[]
 
   @@unique([name, region])
   @@map("schools")
-}
-
-// ============================================
-// M3.8: 입시 경쟁률 히스토리
-// ============================================
-
-model AdmissionHistory {
-  id              String   @id @default(cuid())
-  schoolId        String
-  year            Int      // 입학년도 (2022, 2023, 2024, 2025)
-  type            String   // 전형 유형 (일반, 사회통합, 지역우선 등)
-  
-  // 모집 정보
-  quota           Int?     // 모집 정원
-  applicants      Int?     // 지원자 수
-  accepted        Int?     // 합격자 수
-  
-  // 경쟁률
-  competitionRate Float?   // 경쟁률 (지원자/모집정원)
-  
-  // 커트라인 (선택)
-  cutoffGrade     Float?   // 내신 커트라인
-  cutoffScore     Float?   // 종합 점수 커트라인
-  
-  // 일정 정보
-  applicationStart DateTime? // 원서접수 시작
-  applicationEnd   DateTime? // 원서접수 마감
-  examDate         DateTime? // 시험/면접일
-  announcementDate DateTime? // 합격 발표일
-  
-  note            String?  // 비고
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  school School @relation(fields: [schoolId], references: [id])
-
-  @@unique([schoolId, year, type])
-  @@map("admission_histories")
 }
 
 model Admission {
@@ -777,7 +669,6 @@ enum PlanType {
 }
 
 enum SubscriptionStatus {
-  PENDING
   ACTIVE
   TRIAL
   PAST_DUE
@@ -843,7 +734,6 @@ model Payment {
   pgProvider      String?                // "toss", "portone" 등
   pgTransactionId String?                // PG 거래 ID
   pgPaymentKey    String?                // PG 결제 키
-  pgOrderId       String?       @unique  // PG 주문 ID
   failReason      String?
   paidAt          DateTime?
   refundedAt      DateTime?
