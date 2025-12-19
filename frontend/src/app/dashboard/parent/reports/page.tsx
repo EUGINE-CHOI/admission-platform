@@ -12,7 +12,7 @@ import {
   Search,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -44,7 +44,7 @@ export default function ReportsPage() {
   const downloadPDF = async (childId: string, childName: string) => {
     try {
       const token = getToken();
-      const response = await fetch(`http://localhost:3000/api/reports/student/${childId}/pdf`, {
+      const response = await fetch(`${getApiUrl()}/api/reports/student/${childId}/pdf`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -71,7 +71,7 @@ export default function ReportsPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/reports/received", {
+      const res = await fetch("${getApiUrl()}/api/reports/received", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

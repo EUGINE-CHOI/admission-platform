@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout";
+import { getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -80,7 +81,7 @@ export default function FamilyPage() {
   const fetchFamily = async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/family", {
+      const res = await fetch("${getApiUrl()}/api/family", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -100,7 +101,7 @@ export default function FamilyPage() {
     setCreating(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/family", {
+      const res = await fetch("${getApiUrl()}/api/family", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +124,7 @@ export default function FamilyPage() {
   const generateInviteCode = async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/family/invite-code", {
+      const res = await fetch("${getApiUrl()}/api/family/invite-code", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -142,7 +143,7 @@ export default function FamilyPage() {
     setJoining(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/family/join", {
+      const res = await fetch("${getApiUrl()}/api/family/join", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -168,7 +169,7 @@ export default function FamilyPage() {
     if (!confirm("정말 가족에서 탈퇴하시겠습니까?")) return;
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/family/leave", {
+      const res = await fetch("${getApiUrl()}/api/family/leave", {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

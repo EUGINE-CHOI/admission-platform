@@ -16,6 +16,7 @@ import {
   Video,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
+import { getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -68,7 +69,7 @@ export default function ConsultantDashboard() {
   const fetchDashboard = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch("http://localhost:3000/api/consultant/dashboard", {
+      const res = await fetch("${getApiUrl()}/api/consultant/dashboard", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -85,7 +86,7 @@ export default function ConsultantDashboard() {
   const confirmConsultation = async (id: string) => {
     try {
       const token = localStorage.getItem("accessToken");
-      await fetch(`http://localhost:3000/api/consultations/${id}/confirm`, {
+      await fetch(`${getApiUrl()}/api/consultations/${id}/confirm`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });

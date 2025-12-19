@@ -15,7 +15,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Input, Textarea, Select } from "@/components/ui";
@@ -87,7 +87,7 @@ export default function StudentDataPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const endpoint = `http://localhost:3000/api/student/${activeTab}`;
+      const endpoint = `${getApiUrl()}/api/student/${activeTab}`;
       const res = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -120,8 +120,8 @@ export default function StudentDataPage() {
     try {
       const token = getToken();
       const endpoint = editingItem
-        ? `http://localhost:3000/api/student/${activeTab}/${editingItem.id}`
-        : `http://localhost:3000/api/student/${activeTab}`;
+        ? `${getApiUrl()}/api/student/${activeTab}/${editingItem.id}`
+        : `${getApiUrl()}/api/student/${activeTab}`;
       
       const res = await fetch(endpoint, {
         method: editingItem ? "PATCH" : "POST",
@@ -148,7 +148,7 @@ export default function StudentDataPage() {
     try {
       const token = getToken();
       const res = await fetch(
-        `http://localhost:3000/api/student/${activeTab}/${deleteConfirm.id}`,
+        `${getApiUrl()}/api/student/${activeTab}/${deleteConfirm.id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },

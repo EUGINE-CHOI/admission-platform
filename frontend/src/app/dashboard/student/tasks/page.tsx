@@ -17,7 +17,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -73,7 +73,7 @@ export default function TasksPage() {
   const fetchPlans = async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/ai/action-plan", {
+      const res = await fetch("${getApiUrl()}/api/ai/action-plan", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -95,7 +95,7 @@ export default function TasksPage() {
     try {
       const token = getToken();
       const res = await fetch(
-        `http://localhost:3000/api/tasks/plan/${selectedPlanId}/week/${currentWeek}`,
+        `${getApiUrl()}/api/tasks/plan/${selectedPlanId}/week/${currentWeek}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -113,7 +113,7 @@ export default function TasksPage() {
     try {
       const token = getToken();
       const res = await fetch(
-        `http://localhost:3000/api/tasks/plan/${selectedPlanId}/progress`,
+        `${getApiUrl()}/api/tasks/plan/${selectedPlanId}/progress`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -130,7 +130,7 @@ export default function TasksPage() {
   const updateTaskStatus = async (taskId: string, status: string) => {
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/tasks/${taskId}/status`, {
+      await fetch(`${getApiUrl()}/api/tasks/${taskId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

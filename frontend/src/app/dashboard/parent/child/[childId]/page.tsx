@@ -19,7 +19,7 @@ import {
   Star,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -118,7 +118,7 @@ export default function ChildDetailPage() {
     try {
       const token = getToken();
       const res = await fetch(
-        `http://localhost:3000/api/dashboard/parent/children/${childId}`,
+        `${getApiUrl()}/api/dashboard/parent/children/${childId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.ok) {
@@ -135,7 +135,7 @@ export default function ChildDetailPage() {
   const approveItem = async (type: string, id: string) => {
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/student/${type}/${id}/approve`, {
+      await fetch(`${getApiUrl()}/api/student/${type}/${id}/approve`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -148,7 +148,7 @@ export default function ChildDetailPage() {
   const requestRevision = async (type: string, id: string, reason: string) => {
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/student/${type}/${id}/revision`, {
+      await fetch(`${getApiUrl()}/api/student/${type}/${id}/revision`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

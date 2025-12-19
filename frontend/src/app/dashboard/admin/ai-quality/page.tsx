@@ -15,7 +15,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -68,13 +68,13 @@ export default function AIQualityPage() {
     try {
       const token = getToken();
       const [qualityRes, feedbackRes, patternsRes] = await Promise.all([
-        fetch("http://localhost:3000/api/admin/ai/quality", {
+        fetch("${getApiUrl()}/api/admin/ai/quality", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:3000/api/admin/ai/feedback-stats", {
+        fetch("${getApiUrl()}/api/admin/ai/feedback-stats", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:3000/api/admin/ai/quality/edit-patterns", {
+        fetch("${getApiUrl()}/api/admin/ai/quality/edit-patterns", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

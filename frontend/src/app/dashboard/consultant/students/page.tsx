@@ -13,7 +13,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -53,7 +53,7 @@ export default function StudentsPage() {
     try {
       const token = getToken();
       // 상담을 받은 학생 목록을 가져옵니다
-      const res = await fetch("http://localhost:3000/api/consultations", {
+      const res = await fetch("${getApiUrl()}/api/consultations", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

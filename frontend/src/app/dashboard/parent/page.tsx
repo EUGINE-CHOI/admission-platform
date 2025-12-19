@@ -17,6 +17,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
+import { getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -76,7 +77,7 @@ export default function ParentDashboard() {
   const fetchDashboard = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch("http://localhost:3000/api/dashboard/parent", {
+      const res = await fetch("${getApiUrl()}/api/dashboard/parent", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

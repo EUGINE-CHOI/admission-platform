@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout";
+import { getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -73,7 +74,7 @@ export default function ChildrenPage() {
       const token = getToken();
       
       // 가족 정보 조회
-      const familyRes = await fetch("http://localhost:3000/api/family", {
+      const familyRes = await fetch("${getApiUrl()}/api/family", {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -84,7 +85,7 @@ export default function ChildrenPage() {
         
         if (familyData.family) {
           // 자녀 목록 조회
-          const childrenRes = await fetch("http://localhost:3000/api/family/children", {
+          const childrenRes = await fetch("${getApiUrl()}/api/family/children", {
             headers: { Authorization: `Bearer ${token}` },
           });
           
@@ -106,7 +107,7 @@ export default function ChildrenPage() {
     setCreating(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/family", {
+      const res = await fetch("${getApiUrl()}/api/family", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,7 +129,7 @@ export default function ChildrenPage() {
   const generateInviteCode = async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/family/invite-code", {
+      const res = await fetch("${getApiUrl()}/api/family/invite-code", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

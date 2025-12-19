@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, Check, Shield, Clock, Users, Loader2 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 interface Plan {
   name: string;
@@ -69,7 +70,7 @@ function PaymentContent() {
         return;
       }
 
-      const res = await fetch("http://localhost:3000/api/payment/prepare", {
+      const res = await fetch("${getApiUrl()}/api/payment/prepare", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

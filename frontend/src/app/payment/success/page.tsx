@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Sparkles, ArrowRight, PartyPopper } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 function PaymentSuccessContent() {
   const router = useRouter();
@@ -41,7 +42,7 @@ function PaymentSuccessContent() {
         return;
       }
 
-      const res = await fetch("http://localhost:3000/api/payment/confirm", {
+      const res = await fetch("${getApiUrl()}/api/payment/confirm", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

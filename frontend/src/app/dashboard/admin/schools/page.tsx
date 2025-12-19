@@ -15,7 +15,7 @@ import {
   Eye,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -63,7 +63,7 @@ export default function SchoolsPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/school/admin/all", {
+      const res = await fetch("${getApiUrl()}/api/school/admin/all", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -81,7 +81,7 @@ export default function SchoolsPage() {
     setSaving(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/school", {
+      const res = await fetch("${getApiUrl()}/api/school", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +104,7 @@ export default function SchoolsPage() {
   const publishSchool = async (id: string) => {
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/school/${id}/publish`, {
+      await fetch(`${getApiUrl()}/api/school/${id}/publish`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

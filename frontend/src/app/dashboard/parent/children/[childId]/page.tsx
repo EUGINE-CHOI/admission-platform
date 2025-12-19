@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -110,7 +110,7 @@ export default function ChildDetailPage() {
       const token = getToken();
       
       // 자녀 기본 정보
-      const childRes = await fetch(`http://localhost:3000/api/students/${childId}`, {
+      const childRes = await fetch(`${getApiUrl()}/api/students/${childId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (childRes.ok) {
@@ -119,7 +119,7 @@ export default function ChildDetailPage() {
       }
 
       // 성적
-      const gradesRes = await fetch(`http://localhost:3000/api/students/${childId}/grades`, {
+      const gradesRes = await fetch(`${getApiUrl()}/api/students/${childId}/grades`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (gradesRes.ok) {
@@ -128,7 +128,7 @@ export default function ChildDetailPage() {
       }
 
       // 비교과 활동
-      const activitiesRes = await fetch(`http://localhost:3000/api/students/${childId}/activities`, {
+      const activitiesRes = await fetch(`${getApiUrl()}/api/students/${childId}/activities`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (activitiesRes.ok) {
@@ -137,7 +137,7 @@ export default function ChildDetailPage() {
       }
 
       // 독서
-      const booksRes = await fetch(`http://localhost:3000/api/students/${childId}/books`, {
+      const booksRes = await fetch(`${getApiUrl()}/api/students/${childId}/books`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (booksRes.ok) {
@@ -146,7 +146,7 @@ export default function ChildDetailPage() {
       }
 
       // 목표 학교
-      const schoolsRes = await fetch(`http://localhost:3000/api/students/${childId}/target-schools`, {
+      const schoolsRes = await fetch(`${getApiUrl()}/api/students/${childId}/target-schools`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (schoolsRes.ok) {
@@ -164,7 +164,7 @@ export default function ChildDetailPage() {
   const downloadPDF = async () => {
     try {
       const token = getToken();
-      const response = await fetch(`http://localhost:3000/api/reports/student/${childId}/pdf`, {
+      const response = await fetch(`${getApiUrl()}/api/reports/student/${childId}/pdf`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       

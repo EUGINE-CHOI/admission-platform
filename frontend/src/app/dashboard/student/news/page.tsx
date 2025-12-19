@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import {
   Newspaper,
   RefreshCw,
@@ -85,7 +85,7 @@ export default function NewsPage() {
         return;
       }
 
-      let url = `http://localhost:3000/api/news?page=${page}&limit=${ITEMS_PER_PAGE}`;
+      let url = `${getApiUrl()}/api/news?page=${page}&limit=${ITEMS_PER_PAGE}`;
       if (keyword) {
         url += `&keyword=${encodeURIComponent(keyword)}`;
       }

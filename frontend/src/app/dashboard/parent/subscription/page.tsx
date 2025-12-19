@@ -16,7 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -125,13 +125,13 @@ export default function SubscriptionPage() {
     try {
       const token = getToken();
       const [subRes, usageRes, historyRes] = await Promise.all([
-        fetch("http://localhost:3000/api/subscriptions/me", {
+        fetch("${getApiUrl()}/api/subscriptions/me", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:3000/api/subscriptions/usage", {
+        fetch("${getApiUrl()}/api/subscriptions/usage", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:3000/api/subscriptions/history", {
+        fetch("${getApiUrl()}/api/subscriptions/history", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -155,8 +155,8 @@ export default function SubscriptionPage() {
     try {
       const token = getToken();
       const endpoint = subscription 
-        ? "http://localhost:3000/api/subscriptions/upgrade"
-        : "http://localhost:3000/api/subscriptions";
+        ? "${getApiUrl()}/api/subscriptions/upgrade"
+        : "${getApiUrl()}/api/subscriptions";
       
       await fetch(endpoint, {
         method: "POST",
@@ -180,7 +180,7 @@ export default function SubscriptionPage() {
     setProcessing(true);
     try {
       const token = getToken();
-      await fetch("http://localhost:3000/api/subscriptions/cancel", {
+      await fetch("${getApiUrl()}/api/subscriptions/cancel", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

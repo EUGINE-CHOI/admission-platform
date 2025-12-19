@@ -11,7 +11,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -54,7 +54,7 @@ export default function SchedulePage() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/consultant/availability", {
+      const res = await fetch("${getApiUrl()}/api/consultant/availability", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -72,7 +72,7 @@ export default function SchedulePage() {
     setSaving(true);
     try {
       const token = getToken();
-      await fetch("http://localhost:3000/api/consultant/availability", {
+      await fetch("${getApiUrl()}/api/consultant/availability", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

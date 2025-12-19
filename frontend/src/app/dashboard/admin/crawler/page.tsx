@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout";
+import { getApiUrl } from "@/lib/api";
 import { Card, Button, Badge, Modal } from "@/components/ui";
 
 interface CrawlResult {
@@ -84,7 +85,7 @@ export default function CrawlerPage() {
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/crawler/scheduler/tasks", {
+      const res = await fetch("${getApiUrl()}/api/admin/crawler/scheduler/tasks", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -98,7 +99,7 @@ export default function CrawlerPage() {
 
   const fetchPendingData = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/crawler/pending", {
+      const res = await fetch("${getApiUrl()}/api/admin/crawler/pending", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -120,7 +121,7 @@ export default function CrawlerPage() {
     setLoading(true);
     setResult(null);
     
-    const url = `http://localhost:3000/api/admin/crawler/${type}?source=${selectedSource}`;
+    const url = `${getApiUrl()}/api/admin/crawler/${type}?source=${selectedSource}`;
     console.log("크롤링 API 호출:", url);
     console.log("토큰:", token.substring(0, 30) + "...");
     
@@ -164,7 +165,7 @@ export default function CrawlerPage() {
     const action = enabled ? "stop" : "start";
     try {
       const res = await fetch(
-        `http://localhost:3000/api/admin/crawler/scheduler/tasks/${taskName}/${action}`,
+        `${getApiUrl()}/api/admin/crawler/scheduler/tasks/${taskName}/${action}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -181,7 +182,7 @@ export default function CrawlerPage() {
   const executeTask = async (taskName: string) => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/admin/crawler/scheduler/tasks/${taskName}/execute`,
+        `${getApiUrl()}/api/admin/crawler/scheduler/tasks/${taskName}/execute`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -199,7 +200,7 @@ export default function CrawlerPage() {
   const approveItem = async (type: "schools" | "admissions" | "schedules", id: string) => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/admin/crawler/${type}/${id}/approve`,
+        `${getApiUrl()}/api/admin/crawler/${type}/${id}/approve`,
         {
           method: "PATCH",
           headers: { Authorization: `Bearer ${token}` },
@@ -217,7 +218,7 @@ export default function CrawlerPage() {
     if (!confirm("정말 삭제하시겠습니까?")) return;
     try {
       const res = await fetch(
-        `http://localhost:3000/api/admin/crawler/${type}/${id}/reject`,
+        `${getApiUrl()}/api/admin/crawler/${type}/${id}/reject`,
         {
           method: "PATCH",
           headers: { Authorization: `Bearer ${token}` },
@@ -234,7 +235,7 @@ export default function CrawlerPage() {
   const approveAll = async () => {
     if (!confirm("모든 미승인 데이터를 승인하시겠습니까?")) return;
     try {
-      const res = await fetch("http://localhost:3000/api/admin/crawler/approve-all", {
+      const res = await fetch("${getApiUrl()}/api/admin/crawler/approve-all", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -252,8 +253,8 @@ export default function CrawlerPage() {
   const fetchAvailableSchools = async (type?: string) => {
     try {
       const url = type 
-        ? `http://localhost:3000/api/admin/crawler/real/available-schools?type=${type}`
-        : "http://localhost:3000/api/admin/crawler/real/available-schools";
+        ? `${getApiUrl()}/api/admin/crawler/real/available-schools?type=${type}`
+        : "${getApiUrl()}/api/admin/crawler/real/available-schools";
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -268,7 +269,7 @@ export default function CrawlerPage() {
 
   const fetchCrawlHistory = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/crawler/real/crawl-history?limit=20", {
+      const res = await fetch("${getApiUrl()}/api/admin/crawler/real/crawl-history?limit=20", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -284,7 +285,7 @@ export default function CrawlerPage() {
     setLoading(true);
     setRealCrawlResult(null);
     try {
-      const res = await fetch("http://localhost:3000/api/admin/crawler/real/schools", {
+      const res = await fetch("${getApiUrl()}/api/admin/crawler/real/schools", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -314,7 +315,7 @@ export default function CrawlerPage() {
     setLoading(true);
     setRealCrawlResult(null);
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/crawler/real/type/${type}`, {
+      const res = await fetch(`${getApiUrl()}/api/admin/crawler/real/type/${type}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

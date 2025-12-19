@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout";
+import { getApiUrl } from "@/lib/api";
 
 interface Club {
   id: string;
@@ -68,7 +69,7 @@ export default function ClubsPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/clubs/categories");
+      const res = await fetch("${getApiUrl()}/api/clubs/categories");
       const data = await res.json();
       setCategories(data);
     } catch (error) {
@@ -79,7 +80,7 @@ export default function ClubsPage() {
   const fetchClubs = async () => {
     setLoading(true);
     try {
-      let url = "http://localhost:3000/api/clubs?limit=100";
+      let url = "${getApiUrl()}/api/clubs?limit=100";
       if (selectedCategory) {
         url += `&category=${selectedCategory}`;
       }

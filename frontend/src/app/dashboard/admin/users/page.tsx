@@ -14,7 +14,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -50,7 +50,7 @@ export default function UsersPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/admin/stats/users", {
+      const res = await fetch("${getApiUrl()}/api/admin/stats/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

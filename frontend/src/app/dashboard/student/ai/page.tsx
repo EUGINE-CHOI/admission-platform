@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import {
   Sparkles, Users, RefreshCw,
   Copy, Check, Zap, Target, Lightbulb, Brain,
@@ -163,31 +163,31 @@ export default function AIAdvisePage() {
 
       switch (selectedFeature) {
         case "quick-advice":
-          endpoint = "http://localhost:3000/api/ai/advice/quick";
+          endpoint = "${getApiUrl()}/api/ai/advice/quick";
           body = { topic: inputText };
           break;
         case "comprehensive-analysis":
-          endpoint = "http://localhost:3000/api/ai/analysis/comprehensive";
+          endpoint = "${getApiUrl()}/api/ai/analysis/comprehensive";
           body = {};
           break;
         case "school-recommendation":
-          endpoint = "http://localhost:3000/api/ai/recommend/school";
+          endpoint = "${getApiUrl()}/api/ai/recommend/school";
           body = { region, schoolTypes };
           break;
         case "record-sentence":
-          endpoint = "http://localhost:3000/api/ai/record-sentence";
+          endpoint = "${getApiUrl()}/api/ai/record-sentence";
           body = { activityDescription: inputText };
           break;
         case "recommend-club":
-          endpoint = "http://localhost:3000/api/ai/recommend/club";
+          endpoint = "${getApiUrl()}/api/ai/recommend/club";
           body = { interests: inputText.split(",").map((s) => s.trim()) };
           break;
         case "recommend-reading":
-          endpoint = "http://localhost:3000/api/ai/recommend/reading";
+          endpoint = "${getApiUrl()}/api/ai/recommend/reading";
           body = { genre: inputText };
           break;
         case "action-plan":
-          endpoint = "http://localhost:3000/api/ai/action-plan";
+          endpoint = "${getApiUrl()}/api/ai/action-plan";
           body = {};
           break;
       }

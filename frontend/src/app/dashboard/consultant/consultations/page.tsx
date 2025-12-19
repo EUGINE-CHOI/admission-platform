@@ -17,7 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -75,7 +75,7 @@ export default function ConsultationsPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/consultations", {
+      const res = await fetch("${getApiUrl()}/api/consultations", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -93,7 +93,7 @@ export default function ConsultationsPage() {
     setProcessing(true);
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/consultations/${id}/confirm`, {
+      await fetch(`${getApiUrl()}/api/consultations/${id}/confirm`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -109,7 +109,7 @@ export default function ConsultationsPage() {
     setProcessing(true);
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/consultations/${id}/reject`, {
+      await fetch(`${getApiUrl()}/api/consultations/${id}/reject`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -125,7 +125,7 @@ export default function ConsultationsPage() {
     setProcessing(true);
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/consultations/${id}/complete`, {
+      await fetch(`${getApiUrl()}/api/consultations/${id}/complete`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -143,7 +143,7 @@ export default function ConsultationsPage() {
     setProcessing(true);
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/consultations/${id}/notes`, {
+      await fetch(`${getApiUrl()}/api/consultations/${id}/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

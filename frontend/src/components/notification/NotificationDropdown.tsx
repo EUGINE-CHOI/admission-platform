@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Info,
 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 interface Notification {
   id: string;
@@ -63,7 +64,7 @@ export function NotificationDropdown() {
       const token = getToken();
       if (!token) return;
 
-      const res = await fetch("http://localhost:3000/api/notifications?limit=20", {
+      const res = await fetch("${getApiUrl()}/api/notifications?limit=20", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -80,7 +81,7 @@ export function NotificationDropdown() {
   const markAsRead = async (id: string) => {
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/notifications/${id}/read`, {
+      await fetch(`${getApiUrl()}/api/notifications/${id}/read`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -97,7 +98,7 @@ export function NotificationDropdown() {
   const markAllAsRead = async () => {
     try {
       const token = getToken();
-      await fetch("http://localhost:3000/api/notifications/read-all", {
+      await fetch("${getApiUrl()}/api/notifications/read-all", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -112,7 +113,7 @@ export function NotificationDropdown() {
   const deleteNotification = async (id: string) => {
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/notifications/${id}`, {
+      await fetch(`${getApiUrl()}/api/notifications/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

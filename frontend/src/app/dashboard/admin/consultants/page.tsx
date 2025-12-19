@@ -14,7 +14,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -55,7 +55,7 @@ export default function ConsultantsPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/admin/consultants", {
+      const res = await fetch("${getApiUrl()}/api/admin/consultants", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -73,7 +73,7 @@ export default function ConsultantsPage() {
     setProcessing(true);
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/admin/consultants/${id}/approve`, {
+      await fetch(`${getApiUrl()}/api/admin/consultants/${id}/approve`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -90,7 +90,7 @@ export default function ConsultantsPage() {
     setProcessing(true);
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/admin/consultants/${id}/reject`, {
+      await fetch(`${getApiUrl()}/api/admin/consultants/${id}/reject`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

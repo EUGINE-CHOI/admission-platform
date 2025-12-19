@@ -17,7 +17,7 @@ import {
   FileText,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -71,10 +71,10 @@ export default function ConsultationPage() {
       const token = getToken();
 
       const [consultantsRes, consultationsRes] = await Promise.all([
-        fetch("http://localhost:3000/api/consultants", {
+        fetch("${getApiUrl()}/api/consultants", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:3000/api/consultations", {
+        fetch("${getApiUrl()}/api/consultations", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -98,7 +98,7 @@ export default function ConsultationPage() {
     try {
       const token = getToken();
       const res = await fetch(
-        `http://localhost:3000/api/consultants/${consultantId}/slots`,
+        `${getApiUrl()}/api/consultants/${consultantId}/slots`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -118,7 +118,7 @@ export default function ConsultationPage() {
     setIsBooking(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/consultations", {
+      const res = await fetch("${getApiUrl()}/api/consultations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -147,7 +147,7 @@ export default function ConsultationPage() {
   const cancelConsultation = async (id: string) => {
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/consultations/${id}/cancel`, {
+      await fetch(`${getApiUrl()}/api/consultations/${id}/cancel`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });

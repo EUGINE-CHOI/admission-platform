@@ -18,6 +18,7 @@ import {
   School,
   BarChart3,
 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 import { DashboardLayout } from "@/components/layout";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
@@ -104,7 +105,7 @@ export default function StudentDashboard() {
   const fetchDashboard = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch("http://localhost:3000/api/dashboard/student", {
+      const res = await fetch("${getApiUrl()}/api/dashboard/student", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

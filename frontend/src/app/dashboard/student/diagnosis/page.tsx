@@ -22,7 +22,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Input } from "@/components/ui";
@@ -102,13 +102,13 @@ export default function DiagnosisPage() {
       const token = getToken();
       
       const [targetsRes, resultsRes, recsRes] = await Promise.all([
-        fetch("http://localhost:3000/api/diagnosis/target-schools", {
+        fetch("${getApiUrl()}/api/diagnosis/target-schools", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:3000/api/diagnosis/results", {
+        fetch("${getApiUrl()}/api/diagnosis/results", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:3000/api/diagnosis/recommendations", {
+        fetch("${getApiUrl()}/api/diagnosis/recommendations", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -143,7 +143,7 @@ export default function DiagnosisPage() {
     setSearching(true);
     try {
       const token = getToken();
-      const res = await fetch(`http://localhost:3000/api/school?search=${encodeURIComponent(query)}`, {
+      const res = await fetch(`${getApiUrl()}/api/school?search=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -164,7 +164,7 @@ export default function DiagnosisPage() {
       const token = getToken();
       console.log("Adding target school:", schoolId);
       
-      const res = await fetch("http://localhost:3000/api/diagnosis/target-schools", {
+      const res = await fetch("${getApiUrl()}/api/diagnosis/target-schools", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -195,7 +195,7 @@ export default function DiagnosisPage() {
   const removeTargetSchool = async (schoolId: string) => {
     try {
       const token = getToken();
-      await fetch(`http://localhost:3000/api/diagnosis/target-schools/${schoolId}`, {
+      await fetch(`${getApiUrl()}/api/diagnosis/target-schools/${schoolId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -209,7 +209,7 @@ export default function DiagnosisPage() {
     setDiagnosing(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/diagnosis/run", {
+      const res = await fetch("${getApiUrl()}/api/diagnosis/run", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

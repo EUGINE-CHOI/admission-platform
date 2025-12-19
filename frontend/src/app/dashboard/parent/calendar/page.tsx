@@ -18,7 +18,7 @@ import {
   Check,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
-import { getToken } from "@/lib/api";
+import { getToken, getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -92,13 +92,13 @@ export default function CalendarPage() {
       
       // 입시 일정
       const admissionRes = await fetch(
-        `http://localhost:3000/api/calendar/admissions?year=${year}&month=${month}`,
+        `${getApiUrl()}/api/calendar/admissions?year=${year}&month=${month}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       // 상담 일정
       const consultationRes = await fetch(
-        `http://localhost:3000/api/consultations`,
+        `${getApiUrl()}/api/consultations`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -139,7 +139,7 @@ export default function CalendarPage() {
   const fetchConsultants = async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/consultants", {
+      const res = await fetch("${getApiUrl()}/api/consultants", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -154,7 +154,7 @@ export default function CalendarPage() {
   const fetchChildren = async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/family/children", {
+      const res = await fetch("${getApiUrl()}/api/family/children", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -179,7 +179,7 @@ export default function CalendarPage() {
       const [hours, minutes] = selectedTime.split(":");
       scheduledAt.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-      const res = await fetch("http://localhost:3000/api/consultations", {
+      const res = await fetch("${getApiUrl()}/api/consultations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

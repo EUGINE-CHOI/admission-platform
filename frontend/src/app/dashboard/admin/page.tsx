@@ -20,6 +20,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
+import { getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -87,10 +88,10 @@ export default function AdminDashboard() {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [statsRes, kpiRes, aiRes, eventsRes] = await Promise.all([
-        fetch("http://localhost:3000/api/admin/stats/overview", { headers }),
-        fetch("http://localhost:3000/api/admin/kpi", { headers }),
-        fetch("http://localhost:3000/api/admin/ai/quality", { headers }),
-        fetch("http://localhost:3000/api/admin/stats/events", { headers }),
+        fetch("${getApiUrl()}/api/admin/stats/overview", { headers }),
+        fetch("${getApiUrl()}/api/admin/kpi", { headers }),
+        fetch("${getApiUrl()}/api/admin/ai/quality", { headers }),
+        fetch("${getApiUrl()}/api/admin/stats/events", { headers }),
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());

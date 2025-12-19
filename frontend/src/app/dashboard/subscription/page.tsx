@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout";
+import { getApiUrl } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -73,7 +74,7 @@ export default function SubscriptionPage() {
   const fetchSubscription = async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/subscriptions/me", {
+      const res = await fetch("${getApiUrl()}/api/subscriptions/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -91,7 +92,7 @@ export default function SubscriptionPage() {
   const fetchPaymentHistory = async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/subscriptions/history", {
+      const res = await fetch("${getApiUrl()}/api/subscriptions/history", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -109,7 +110,7 @@ export default function SubscriptionPage() {
     setCanceling(true);
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:3000/api/subscriptions/cancel", {
+      const res = await fetch("${getApiUrl()}/api/subscriptions/cancel", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
