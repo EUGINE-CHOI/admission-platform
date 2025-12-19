@@ -142,9 +142,31 @@ export class DDayController {
   @Get('dashboard')
   @Roles('STUDENT', 'PARENT')
   async getDDayDashboard(@Request() req) {
-    // 학생 ID 결정 (학생인 경우 본인, 학부모인 경우 추가 로직 필요)
-    const studentId = req.user.role === 'STUDENT' ? req.user.id : req.user.id;
+    // 학생 ID 결정 (학생인 경우 본인, 학부모인 경우 연결된 자녀)
+    const studentId = await this.resolveStudentId(req);
     return this.ddayService.getDDayDashboard(studentId);
+  }
+
+  // 학부모인 경우 연결된 자녀의 ID를 반환
+  private async resolveStudentId(req: any): Promise<string> {
+    if (req.user.role === 'STUDENT') {
+      return req.user.id;
+    }
+    // 학부모인 경우 가족 관계를 통해 자녀 ID 조회
+    if (req.user.familyId) {
+      const familyMembers = await this.ddayService['prisma'].user.findMany({
+        where: {
+          familyId: req.user.familyId,
+          role: 'STUDENT',
+        },
+        select: { id: true },
+      });
+      if (familyMembers.length > 0) {
+        return familyMembers[0].id;
+      }
+    }
+    // 자녀가 없는 경우 본인 ID 반환 (에러 방지)
+    return req.user.id;
   }
 
   @Post('custom')
@@ -167,7 +189,7 @@ export class DDayController {
   @Get('alerts')
   @Roles('STUDENT', 'PARENT')
   async checkAlerts(@Request() req) {
-    const studentId = req.user.role === 'STUDENT' ? req.user.id : req.user.id;
+    const studentId = await this.resolveStudentId(req);
     return this.ddayService.checkDDayAlerts(studentId);
   }
 }

@@ -28,15 +28,51 @@ export const API_URL = typeof window !== 'undefined'
   : 'http://localhost:3000';
 
 /**
+ * 토큰 키 상수 (통일된 키 사용)
+ */
+export const TOKEN_KEY = 'accessToken';
+export const REFRESH_TOKEN_KEY = 'refreshToken';
+
+/**
+ * 토큰 조회 함수
+ * - 통일된 방식으로 토큰 조회
+ * - fallback으로 'token' 키도 확인 (하위 호환성)
+ */
+export function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('token');
+}
+
+/**
+ * 토큰 저장 함수
+ */
+export function setToken(accessToken: string, refreshToken?: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(TOKEN_KEY, accessToken);
+  localStorage.setItem('token', accessToken); // 하위 호환성
+  if (refreshToken) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
+}
+
+/**
+ * 토큰 삭제 함수 (로그아웃 시)
+ */
+export function clearToken(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem('token');
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+/**
  * API 요청 헬퍼 함수
  */
 export async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
-  const token = typeof window !== 'undefined' 
-    ? localStorage.getItem('accessToken') 
-    : null;
+  const token = getToken();
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

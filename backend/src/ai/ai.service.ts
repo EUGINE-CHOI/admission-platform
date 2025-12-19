@@ -253,7 +253,7 @@ export class AiService {
 
     // DB에서 동아리 데이터 조회
     const existingClubs = await this.prisma.club.findMany({
-      where: { isGeneral: true },
+      where: { isActive: true },
       take: 50,
     });
 

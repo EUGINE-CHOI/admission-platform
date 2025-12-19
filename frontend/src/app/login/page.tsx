@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GraduationCap, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, setToken } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,9 +37,7 @@ export default function LoginPage() {
         throw new Error(data.message || "로그인에 실패했습니다.");
       }
 
-      localStorage.setItem("token", data.accessToken);
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
+      setToken(data.accessToken, data.refreshToken);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       const redirectUrl = localStorage.getItem("redirectAfterLogin");

@@ -38,6 +38,7 @@ model User {
   schoolName       String?
   grade            Int?
   familyId         String?
+  middleSchoolId   String?           // 중학교 ID
   refreshToken     String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -50,6 +51,9 @@ model User {
   
   // M9 임시 필드 (결제 연동 전)
   hasPremium     Boolean   @default(false)
+  
+  // 중학교 관계
+  middleSchool   MiddleSchool? @relation(fields: [middleSchoolId], references: [id])
 
   // 기존 관계
   family            Family?            @relation(fields: [familyId], references: [id])
@@ -78,6 +82,20 @@ model User {
 
   // M9: 구독 관계
   subscriptions Subscription[]
+
+  // M18: 게이미피케이션 & 목표 관계
+  userBadges    UserBadge[]
+  gradeGoals    GradeGoal[]
+  customDDays   CustomDDay[]
+
+  // M19: 커뮤니티 & 후기 관계
+  questions       Question[]     @relation("QuestionAuthor")
+  answers         Answer[]       @relation("AnswerAuthor")
+  questionLikes   QuestionLike[] @relation("QuestionLikes")
+  answerLikes     AnswerLike[]   @relation("AnswerLikes")
+  successStories  SuccessStory[] @relation("StoryAuthor")
+  storyComments   StoryComment[] @relation("StoryCommentAuthor")
+  storyLikes      StoryLike[]    @relation("StoryLikes")
 
   @@map("users")
 }
@@ -235,6 +253,13 @@ enum SchoolType {
   SPECIAL
   AUTONOMOUS
   SPECIALIZED
+  SCIENCE
+  FOREIGN_LANGUAGE
+  INTERNATIONAL
+  ARTS
+  SPORTS
+  AUTONOMOUS_PRIVATE
+  AUTONOMOUS_PUBLIC
 }
 
 enum AdmissionType {
@@ -258,6 +283,9 @@ enum ScheduleType {
   INTERVIEW
   ANNOUNCEMENT
   REGISTRATION
+  DOCUMENT_SCREENING
+  EXAM
+  RESULT_ANNOUNCEMENT
 }
 
 model School {
@@ -265,6 +293,7 @@ model School {
   name          String
   type          SchoolType
   region        String
+  district      String?
   address       String?
   website       String?
   phone         String?
@@ -276,11 +305,13 @@ model School {
   updatedAt     DateTime      @updatedAt
 
   admissions         Admission[]
+  admissionHistories AdmissionHistory[]
   schedules          AdmissionSchedule[]
   favoriteSchools    FavoriteSchool[]
   targetSchools      TargetSchool[]
   diagnosisResults   DiagnosisResult[]
   recommendedSchools RecommendedSchool[]
+  successStories     SuccessStory[]     @relation("StorySchool")
 
   @@unique([name, region])
   @@map("schools")
@@ -414,6 +445,8 @@ enum AIOutputType {
   READING_GUIDE         // 독서 추천/가이드
   ACTION_PLAN           // 액션 플랜
   CONSULTATION_REPORT   // M8: AI 상담 리포트 초안
+  PERSONAL_STATEMENT    // 자기소개서
+  DIAGNOSIS             // 진단/예측
 }
 
 enum FeedbackType {
@@ -674,6 +707,7 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELLED
   EXPIRED
+  PENDING
 }
 
 enum PaymentStatus {
@@ -734,6 +768,7 @@ model Payment {
   pgProvider      String?                // "toss", "portone" 등
   pgTransactionId String?                // PG 거래 ID
   pgPaymentKey    String?                // PG 결제 키
+  pgOrderId       String?                // PG 주문 ID
   failReason      String?
   paidAt          DateTime?
   refundedAt      DateTime?
@@ -745,4 +780,314 @@ model Payment {
   @@index([subscriptionId])
   @@index([pgTransactionId])
   @@map("payments")
+}
+
+// ============================================
+// M18: 게이미피케이션 (성취 뱃지)
+// ============================================
+
+enum BadgeCategory {
+  ATTENDANCE   // 출석 관련
+  TASK         // Task 완료 관련
+  DATA_INPUT   // 데이터 입력 관련
+  DIAGNOSIS    // 진단 관련
+  AI_USAGE     // AI 사용 관련
+  MILESTONE    // 마일스톤 달성
+}
+
+model Badge {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String
+  category    BadgeCategory
+  iconUrl     String?       // 뱃지 아이콘 URL
+  condition   String        @db.Text  // JSON: 획득 조건
+  points      Int           @default(10)  // 뱃지 포인트
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  userBadges UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+  metadata  String?  @db.Text  // JSON: 추가 정보
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+// ============================================
+// M18: 목표 성적 트래커
+// ============================================
+
+model GradeGoal {
+  id          String   @id @default(cuid())
+  studentId   String
+  subject     String
+  targetRank  Int      // 목표 등급 (1-9)
+  targetYear  Int      // 목표 년도
+  targetSemester Int   // 목표 학기
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subject, targetYear, targetSemester])
+  @@map("grade_goals")
+}
+
+// ============================================
+// M18: 주간 리포트 발송 기록
+// ============================================
+
+model WeeklyReportLog {
+  id         String   @id @default(cuid())
+  studentId  String
+  parentId   String
+  weekStart  DateTime
+  weekEnd    DateTime
+  content    String   @db.Text  // JSON: 리포트 내용
+  sentAt     DateTime @default(now())
+  emailSent  Boolean  @default(false)
+
+  @@index([studentId, weekStart])
+  @@map("weekly_report_logs")
+}
+
+// ============================================
+// M18: 사용자 정의 D-Day 이벤트
+// ============================================
+
+model CustomDDay {
+  id        String   @id @default(cuid())
+  studentId String
+  title     String
+  date      DateTime
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("custom_ddays")
+}
+
+// ============================================
+// M12: 중학교 및 동아리 데이터
+// ============================================
+
+model MiddleSchool {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  region      String
+  district    String?
+  address     String?
+  phone       String?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  clubs       Club[]
+
+  @@map("middle_schools")
+}
+
+model Club {
+  id            String        @id @default(cuid())
+  name          String
+  category      String        // 동아리 유형 (학술, 예술, 체육 등)
+  description   String?       @db.Text
+  schoolId      String?       // 중학교 ID (선택)
+  targetGrade   String?       // 대상 학년
+  memberCount   Int?
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  school        MiddleSchool? @relation(fields: [schoolId], references: [id])
+
+  @@map("clubs")
+}
+
+// ============================================
+// M3: 입시 역사 데이터
+// ============================================
+
+model AdmissionHistory {
+  id              String   @id @default(cuid())
+  schoolId        String
+  year            Int
+  admissionType   AdmissionType
+  quota           Int?           // 정원
+  applicants      Int?           // 지원자 수
+  accepted        Int?           // 합격자 수
+  competitionRate Float?         // 경쟁률
+  cutoffGrade     Float?         // 커트라인 등급
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  school          School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, year, admissionType])
+  @@index([schoolId])
+  @@map("admission_histories")
+}
+
+// ============================================
+// M19: 커뮤니티 Q&A
+// ============================================
+
+enum QuestionCategory {
+  ADMISSION      // 입시 일반
+  SCHOOL_INFO    // 학교 정보
+  STUDY_TIP      // 학습 방법
+  ACTIVITY       // 비교과 활동
+  INTERVIEW      // 면접 준비
+  OTHER          // 기타
+}
+
+model Question {
+  id          String           @id @default(cuid())
+  authorId    String
+  title       String
+  content     String           @db.Text
+  category    QuestionCategory
+  isAnonymous Boolean          @default(false)
+  viewCount   Int              @default(0)
+  likeCount   Int              @default(0)
+  isResolved  Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  author      User             @relation("QuestionAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  likes       QuestionLike[]
+
+  @@index([category])
+  @@index([authorId])
+  @@map("questions")
+}
+
+model Answer {
+  id          String   @id @default(cuid())
+  questionId  String
+  authorId    String
+  content     String   @db.Text
+  isAnonymous Boolean  @default(false)
+  isAccepted  Boolean  @default(false)
+  likeCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  question    Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  author      User         @relation("AnswerAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  likes       AnswerLike[]
+
+  @@index([questionId])
+  @@index([authorId])
+  @@map("answers")
+}
+
+model QuestionLike {
+  id         String   @id @default(cuid())
+  questionId String
+  userId     String
+  createdAt  DateTime @default(now())
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user       User     @relation("QuestionLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, userId])
+  @@map("question_likes")
+}
+
+model AnswerLike {
+  id        String   @id @default(cuid())
+  answerId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  answer    Answer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  user      User   @relation("AnswerLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([answerId, userId])
+  @@map("answer_likes")
+}
+
+// ============================================
+// M19: 합격생 후기
+// ============================================
+
+enum StoryCategory {
+  PREPARATION    // 준비 과정
+  INTERVIEW_EXP  // 면접 경험
+  STUDY_METHOD   // 학습 방법
+  ACTIVITY_TIP   // 활동 팁
+  GENERAL        // 일반 후기
+}
+
+model SuccessStory {
+  id            String        @id @default(cuid())
+  authorId      String
+  schoolId      String?       // 합격 학교 (선택)
+  title         String
+  content       String        @db.Text
+  category      StoryCategory
+  admissionYear Int           // 합격 연도
+  isAnonymous   Boolean       @default(false)
+  isVerified    Boolean       @default(false)  // 관리자 인증
+  viewCount     Int           @default(0)
+  likeCount     Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  author        User          @relation("StoryAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  school        School?       @relation("StorySchool", fields: [schoolId], references: [id])
+  comments      StoryComment[]
+  likes         StoryLike[]
+
+  @@index([schoolId])
+  @@index([category])
+  @@index([authorId])
+  @@map("success_stories")
+}
+
+model StoryComment {
+  id          String   @id @default(cuid())
+  storyId     String
+  authorId    String
+  content     String   @db.Text
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  story       SuccessStory @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  author      User         @relation("StoryCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([storyId])
+  @@map("story_comments")
+}
+
+model StoryLike {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  story     SuccessStory @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User         @relation("StoryLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@map("story_likes")
 }

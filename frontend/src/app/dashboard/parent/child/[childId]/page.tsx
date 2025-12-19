@@ -19,6 +19,7 @@ import {
   Star,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
+import { getToken } from "@/lib/api";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -111,8 +112,6 @@ export default function ChildDetailPage() {
   useEffect(() => {
     fetchChildData();
   }, [childId]);
-
-  const getToken = () => localStorage.getItem("accessToken");
 
   const fetchChildData = async () => {
     setLoading(true);

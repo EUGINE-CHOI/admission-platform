@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout";
+import { getToken } from "@/lib/api";
 import {
   Sparkles, Users, RefreshCw,
   Copy, Check, Zap, Target, Lightbulb, Brain,
@@ -149,8 +150,6 @@ export default function AIAdvisePage() {
     setHistory([]);
     localStorage.removeItem(HISTORY_KEY);
   };
-
-  const getToken = () => localStorage.getItem("token") || localStorage.getItem("accessToken");
 
   const generateAI = async () => {
     if (!selectedFeature) return;

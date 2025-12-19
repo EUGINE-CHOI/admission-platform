@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Query, Param, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { ClubService } from './club.service';
-import { ClubCategory } from '../../generated/prisma';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('동아리')
@@ -12,22 +11,19 @@ export class ClubController {
   @Get()
   @ApiOperation({ summary: '동아리 검색' })
   @ApiQuery({ name: 'keyword', required: false, description: '검색어' })
-  @ApiQuery({ name: 'category', required: false, enum: ClubCategory })
+  @ApiQuery({ name: 'category', required: false })
   @ApiQuery({ name: 'schoolId', required: false })
-  @ApiQuery({ name: 'isGeneral', required: false, type: Boolean })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async searchClubs(
     @Query('keyword') keyword?: string,
-    @Query('category') category?: ClubCategory,
+    @Query('category') category?: string,
     @Query('schoolId') schoolId?: string,
-    @Query('isGeneral') isGeneral?: string,
     @Query('limit') limit?: string,
   ) {
     const clubs = await this.clubService.searchClubs({
       keyword,
       category,
       schoolId,
-      isGeneral: isGeneral === 'true' ? true : isGeneral === 'false' ? false : undefined,
       limit: limit ? parseInt(limit) : undefined,
     });
 
@@ -37,10 +33,10 @@ export class ClubController {
     };
   }
 
-  @Get('general')
-  @ApiOperation({ summary: '일반 동아리 템플릿 목록' })
-  async getGeneralClubs() {
-    const clubs = await this.clubService.getGeneralClubs();
+  @Get('active')
+  @ApiOperation({ summary: '활성 동아리 목록' })
+  async getActiveClubs() {
+    const clubs = await this.clubService.getActiveClubs();
     return {
       clubs,
       count: clubs.length,
@@ -48,14 +44,15 @@ export class ClubController {
   }
 
   @Get('categories')
-  @ApiOperation({ summary: '카테고리 목록 및 통계' })
-  async getCategoryStats() {
-    return this.clubService.getCategoryStats();
+  @ApiOperation({ summary: '카테고리 목록' })
+  async getCategories() {
+    const categories = await this.clubService.getCategories();
+    return { categories };
   }
 
   @Get('category/:category')
   @ApiOperation({ summary: '카테고리별 동아리 조회' })
-  async getClubsByCategory(@Param('category') category: ClubCategory) {
+  async getClubsByCategory(@Param('category') category: string) {
     const clubs = await this.clubService.getClubsByCategory(category);
     return {
       clubs,
@@ -82,13 +79,12 @@ export class ClubController {
   @Post('recommend')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '관심사 기반 동아리 추천' })
-  async recommendClubs(@Body() body: { interests: string[] }) {
-    const clubs = await this.clubService.recommendClubs(body.interests);
+  @ApiOperation({ summary: '카테고리 기반 동아리 추천' })
+  async recommendClubs(@Body() body: { category?: string; limit?: number }) {
+    const clubs = await this.clubService.recommendClubs(body.category, body.limit);
     return {
       clubs,
       count: clubs.length,
     };
   }
 }
-

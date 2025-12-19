@@ -24,6 +24,8 @@ import { NewsModule } from './news/news.module';
 import { ReportModule } from './report/report.module';
 import { EmailModule } from './email/email.module';
 import { SynergyModule } from './synergy/synergy.module';
+import { GamificationModule } from './gamification/gamification.module';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { SynergyModule } from './synergy/synergy.module';
     ReportModule,
     EmailModule,
     SynergyModule,
+    GamificationModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -236,7 +236,12 @@ export class DDayService {
     type: string,
   ): 'urgent' | 'important' | 'normal' {
     if (daysLeft <= 3) return 'urgent';
-    if (daysLeft <= 14 || type === 'admission') return 'important';
+    // 입시 일정은 30일 이내일 때 important, 일반 항목은 14일 이내일 때 important
+    if (type === 'admission') {
+      if (daysLeft <= 30) return 'important';
+    } else {
+      if (daysLeft <= 14) return 'important';
+    }
     return 'normal';
   }
 

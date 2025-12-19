@@ -19,7 +19,7 @@ import {
   TrendingUp,
   Loader2,
 } from "lucide-react";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, getToken, setToken } from "@/lib/api";
 
 export default function Home() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function Home() {
     if (planType === "FREE") {
       router.push("/signup");
     } else {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token = getToken();
       if (token) {
         router.push(`/payment?plan=${planType}`);
       } else {
@@ -56,8 +56,7 @@ export default function Home() {
 
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("token", data.accessToken);
+        setToken(data.accessToken, data.refreshToken);
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("isDemo", "true"); // 데모 모드 표시
         

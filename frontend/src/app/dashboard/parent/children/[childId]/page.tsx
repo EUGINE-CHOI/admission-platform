@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout";
+import { getToken } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -102,8 +103,6 @@ export default function ChildDetailPage() {
   useEffect(() => {
     fetchChildData();
   }, [childId]);
-
-  const getToken = () => localStorage.getItem("accessToken");
 
   const fetchChildData = async () => {
     setLoading(true);

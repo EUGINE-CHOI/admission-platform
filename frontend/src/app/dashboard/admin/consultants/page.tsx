@@ -14,6 +14,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
+import { getToken } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -49,8 +50,6 @@ export default function ConsultantsPage() {
   useEffect(() => {
     fetchConsultants();
   }, []);
-
-  const getToken = () => localStorage.getItem("accessToken");
 
   const fetchConsultants = async () => {
     setLoading(true);

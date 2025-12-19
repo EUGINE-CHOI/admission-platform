@@ -12,6 +12,7 @@ import {
   Search,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
+import { getToken } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -39,8 +40,6 @@ export default function ReportsPage() {
   useEffect(() => {
     fetchReports();
   }, []);
-
-  const getToken = () => localStorage.getItem("accessToken");
 
   const downloadPDF = async (childId: string, childName: string) => {
     try {

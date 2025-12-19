@@ -22,6 +22,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
+import { getToken } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Input } from "@/components/ui";
@@ -94,8 +95,6 @@ export default function DiagnosisPage() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const getToken = () => localStorage.getItem("accessToken");
 
   const fetchData = async () => {
     setLoading(true);

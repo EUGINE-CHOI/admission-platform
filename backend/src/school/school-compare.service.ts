@@ -170,8 +170,8 @@ export class SchoolCompareService {
       (s.competitionRate ?? 0) > (max.competitionRate ?? 0) ? s : max
     );
 
-    return `경쟁률 기준으로 ${lowestRate.name}(${lowestRate.competitionRate}:1)이 가장 도전적이고, ` +
-           `${highestRate.name}(${highestRate.competitionRate}:1)이 상대적으로 경쟁이 치열합니다. ` +
+    return `경쟁률 기준으로 ${lowestRate.name}(${lowestRate.competitionRate}:1)이 상대적으로 합격 가능성이 높고, ` +
+           `${highestRate.name}(${highestRate.competitionRate}:1)이 가장 도전적입니다. ` +
            `본인의 성적과 준비 상황을 고려하여 선택하세요.`;
   }
 }

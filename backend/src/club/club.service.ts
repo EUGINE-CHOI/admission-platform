@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ClubCategory } from '../../generated/prisma';
 
 @Injectable()
 export class ClubService {
@@ -11,12 +10,11 @@ export class ClubService {
    */
   async searchClubs(query: {
     keyword?: string;
-    category?: ClubCategory;
+    category?: string;
     schoolId?: string;
-    isGeneral?: boolean;
     limit?: number;
   }) {
-    const { keyword, category, schoolId, isGeneral, limit = 50 } = query;
+    const { keyword, category, schoolId, limit = 50 } = query;
 
     const where: any = {};
 
@@ -32,17 +30,13 @@ export class ClubService {
     }
 
     if (schoolId) {
-      where.middleSchoolId = schoolId;
-    }
-
-    if (isGeneral !== undefined) {
-      where.isGeneral = isGeneral;
+      where.schoolId = schoolId;
     }
 
     const clubs = await this.prisma.club.findMany({
       where,
       include: {
-        middleSchool: {
+        school: {
           select: {
             id: true,
             name: true,
@@ -50,7 +44,7 @@ export class ClubService {
           },
         },
       },
-      orderBy: [{ isGeneral: 'desc' }, { name: 'asc' }],
+      orderBy: [{ name: 'asc' }],
       take: limit,
     });
 
@@ -58,11 +52,11 @@ export class ClubService {
   }
 
   /**
-   * 일반 동아리 템플릿 목록
+   * 활성 동아리 목록
    */
-  async getGeneralClubs() {
+  async getActiveClubs() {
     return this.prisma.club.findMany({
-      where: { isGeneral: true },
+      where: { isActive: true },
       orderBy: [{ category: 'asc' }, { name: 'asc' }],
     });
   }
@@ -70,11 +64,11 @@ export class ClubService {
   /**
    * 카테고리별 동아리 조회
    */
-  async getClubsByCategory(category: ClubCategory) {
+  async getClubsByCategory(category: string) {
     return this.prisma.club.findMany({
       where: { category },
       include: {
-        middleSchool: {
+        school: {
           select: { name: true, region: true },
         },
       },
@@ -87,7 +81,7 @@ export class ClubService {
    */
   async getSchoolClubs(schoolId: string) {
     return this.prisma.club.findMany({
-      where: { middleSchoolId: schoolId },
+      where: { schoolId },
       orderBy: [{ category: 'asc' }, { name: 'asc' }],
     });
   }
@@ -99,84 +93,94 @@ export class ClubService {
     return this.prisma.club.findUnique({
       where: { id },
       include: {
-        middleSchool: true,
+        school: {
+          select: {
+            id: true,
+            name: true,
+            region: true,
+          },
+        },
       },
     });
   }
 
   /**
-   * 카테고리 목록 및 통계
+   * 동아리 생성 (Admin)
    */
-  async getCategoryStats() {
-    const stats = await this.prisma.club.groupBy({
-      by: ['category'],
-      _count: { id: true },
+  async createClub(data: {
+    name: string;
+    category: string;
+    description?: string;
+    schoolId?: string;
+    targetGrade?: string;
+    memberCount?: number;
+  }) {
+    return this.prisma.club.create({
+      data: {
+        name: data.name,
+        category: data.category,
+        description: data.description,
+        schoolId: data.schoolId,
+        targetGrade: data.targetGrade,
+        memberCount: data.memberCount,
+        isActive: true,
+      },
     });
+  }
 
-    const categoryNames: Record<ClubCategory, string> = {
-      ACADEMIC: '학술',
-      ARTS: '예술',
-      SPORTS: '체육',
-      SERVICE: '봉사',
-      CAREER: '진로',
-      CULTURE: '문화',
-      OTHER: '기타',
-    };
+  /**
+   * 동아리 업데이트
+   */
+  async updateClub(
+    id: string,
+    data: {
+      name?: string;
+      category?: string;
+      description?: string;
+      targetGrade?: string;
+      memberCount?: number;
+      isActive?: boolean;
+    },
+  ) {
+    return this.prisma.club.update({
+      where: { id },
+      data,
+    });
+  }
 
-    return stats.map((s) => ({
-      category: s.category,
-      name: categoryNames[s.category],
-      count: s._count.id,
-    }));
+  /**
+   * 동아리 삭제
+   */
+  async deleteClub(id: string) {
+    return this.prisma.club.delete({
+      where: { id },
+    });
+  }
+
+  /**
+   * 카테고리 목록 조회
+   */
+  async getCategories(): Promise<string[]> {
+    const clubs = await this.prisma.club.findMany({
+      select: { category: true },
+      distinct: ['category'],
+    });
+    return clubs.map(c => c.category);
   }
 
   /**
    * 동아리 추천 (카테고리 기반)
    */
-  async recommendClubs(interests: string[]) {
-    // 관심사에 맞는 카테고리 매핑
-    const categoryMapping: Record<string, ClubCategory[]> = {
-      '과학': [ClubCategory.ACADEMIC],
-      '수학': [ClubCategory.ACADEMIC],
-      '영어': [ClubCategory.ACADEMIC],
-      '독서': [ClubCategory.ACADEMIC],
-      '코딩': [ClubCategory.ACADEMIC],
-      '음악': [ClubCategory.ARTS],
-      '미술': [ClubCategory.ARTS],
-      '연극': [ClubCategory.ARTS],
-      '축구': [ClubCategory.SPORTS],
-      '농구': [ClubCategory.SPORTS],
-      '운동': [ClubCategory.SPORTS],
-      '봉사': [ClubCategory.SERVICE],
-      '진로': [ClubCategory.CAREER],
-      '리더십': [ClubCategory.CAREER],
-    };
-
-    const categories = new Set<ClubCategory>();
-    for (const interest of interests) {
-      const mapped = categoryMapping[interest];
-      if (mapped) {
-        mapped.forEach((c) => categories.add(c));
-      }
-    }
-
-    if (categories.size === 0) {
-      // 기본 추천
-      return this.prisma.club.findMany({
-        where: { isGeneral: true },
-        take: 10,
-        orderBy: { name: 'asc' },
-      });
+  async recommendClubs(category?: string, limit = 5) {
+    const where: any = { isActive: true };
+    if (category) {
+      where.category = category;
     }
 
     return this.prisma.club.findMany({
-      where: {
-        category: { in: Array.from(categories) },
-        isGeneral: true,
-      },
-      take: 10,
-      orderBy: { name: 'asc' },
+      where,
+      take: limit,
+      orderBy: { memberCount: 'desc' },
     });
   }
 }
-

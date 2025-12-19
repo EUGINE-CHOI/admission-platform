@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout";
+import { getToken } from "@/lib/api";
 import {
   Newspaper,
   RefreshCw,
@@ -63,8 +64,6 @@ export default function NewsPage() {
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const ITEMS_PER_PAGE = 10;
-
-  const getToken = () => localStorage.getItem("accessToken");
 
   // 북마크 로드
   useEffect(() => {

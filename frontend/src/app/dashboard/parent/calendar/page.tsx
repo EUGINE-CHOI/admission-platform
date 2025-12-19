@@ -18,6 +18,7 @@ import {
   Check,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
+import { getToken } from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -81,8 +82,6 @@ export default function CalendarPage() {
     fetchConsultants();
     fetchChildren();
   }, [currentDate]);
-
-  const getToken = () => localStorage.getItem("accessToken");
 
   const fetchEvents = async () => {
     setLoading(true);
