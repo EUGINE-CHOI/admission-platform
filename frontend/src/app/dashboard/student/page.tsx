@@ -21,6 +21,8 @@ import {
   FileText,
 } from "lucide-react";
 import { getApiUrl } from "@/lib/api";
+import { useWidgetSettings } from "@/hooks/useWidgetSettings";
+import { WidgetSettingsButton } from "@/components/dashboard/WidgetSettings";
 import { DashboardLayout } from "@/components/layout";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
@@ -96,6 +98,15 @@ export default function StudentDashboard() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  
+  // 위젯 설정
+  const { 
+    widgets, 
+    isWidgetEnabled, 
+    toggleWidget, 
+    reorderWidgets, 
+    resetToDefault 
+  } = useWidgetSettings('student');
 
   // PDF 다운로드 함수
   const downloadPdf = async () => {
@@ -188,6 +199,15 @@ export default function StudentDashboard() {
       <div className="space-y-6">
         {/* Welcome Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 p-6 sm:p-8 text-white">
+          {/* 위젯 설정 버튼 */}
+          <div className="absolute top-4 right-4 z-20">
+            <WidgetSettingsButton
+              widgets={widgets}
+              onToggle={toggleWidget}
+              onReorder={reorderWidgets}
+              onReset={resetToDefault}
+            />
+          </div>
           <div className="relative z-10">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
               안녕하세요, {user?.name || "학생"}님! 👋
