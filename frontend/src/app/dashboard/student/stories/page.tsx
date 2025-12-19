@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, handleApiError } from "@/lib/api";
 import { formatDateShort, getCurrentYear } from "@/lib/utils";
 import { LoadingState } from "@/components/ui/LoadingState";
 import {
@@ -104,7 +104,7 @@ export default function StoriesPage() {
         setTotalPages(data.totalPages);
       }
     } catch (error) {
-      console.error("Failed to fetch stories:", error);
+      handleApiError(error, "후기 목록 조회");
     } finally {
       setLoading(false);
     }
@@ -118,7 +118,7 @@ export default function StoriesPage() {
         setPopularStories(await res.json());
       }
     } catch (error) {
-      console.error("Failed to fetch popular stories:", error);
+      handleApiError(error, "인기 후기 조회");
     }
   };
 
@@ -138,7 +138,7 @@ export default function StoriesPage() {
         setSelectedStory(await res.json());
       }
     } catch (error) {
-      console.error("Failed to fetch story detail:", error);
+      handleApiError(error, "후기 상세 조회");
     }
   };
 
@@ -170,7 +170,7 @@ export default function StoriesPage() {
         fetchStories();
       }
     } catch (error) {
-      console.error("Failed to create story:", error);
+      handleApiError(error, "후기 작성");
     }
   };
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, handleApiError } from "@/lib/api";
 import { LoadingState } from "@/components/ui/LoadingState";
 import {
   Calculator,
@@ -104,7 +104,7 @@ export default function SimulatorPage() {
         setTargetSchools(await res.json());
       }
     } catch (error) {
-      console.error("Failed to fetch target schools:", error);
+      handleApiError(error, "학교 목록 조회");
     } finally {
       setLoading(false);
     }
@@ -126,7 +126,7 @@ export default function SimulatorPage() {
         setComparison(await res.json());
       }
     } catch (error) {
-      console.error("Failed to run simulation:", error);
+      handleApiError(error, "시뮬레이션 실행");
     } finally {
       setSimulating(false);
     }

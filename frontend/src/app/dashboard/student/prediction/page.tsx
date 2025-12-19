@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, handleApiError } from "@/lib/api";
 import { LoadingState } from "@/components/ui/LoadingState";
 import {
   TrendingUp,
@@ -99,7 +99,7 @@ export default function PredictionPage() {
         setAnalysis(await res.json());
       }
     } catch (error) {
-      console.error("Failed to fetch analysis:", error);
+      handleApiError(error, "합격 예측 조회");
     } finally {
       setLoading(false);
     }

@@ -127,3 +127,64 @@ export function apiDelete<T>(endpoint: string): Promise<T> {
   return apiRequest<T>(endpoint, { method: 'DELETE' });
 }
 
+/**
+ * API 에러 타입
+ */
+export interface ApiError {
+  message: string;
+  status?: number;
+  code?: string;
+}
+
+/**
+ * 에러 메시지 추출
+ * - Error 객체에서 사용자 친화적 메시지 추출
+ */
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    // 네트워크 에러
+    if (error.message === 'Failed to fetch') {
+      return '서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.';
+    }
+    // 인증 에러
+    if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+      return '인증이 만료되었습니다. 다시 로그인해주세요.';
+    }
+    // 권한 에러
+    if (error.message.includes('403') || error.message.includes('Forbidden')) {
+      return '접근 권한이 없습니다.';
+    }
+    // 404 에러
+    if (error.message.includes('404') || error.message.includes('Not Found')) {
+      return '요청한 정보를 찾을 수 없습니다.';
+    }
+    // 서버 에러
+    if (error.message.includes('500') || error.message.includes('Internal Server')) {
+      return '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    }
+    return error.message;
+  }
+  
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  return '알 수 없는 오류가 발생했습니다.';
+}
+
+/**
+ * 에러 로깅 및 메시지 반환
+ * - 개발 환경에서는 콘솔에 에러 출력
+ * - 사용자 친화적 메시지 반환
+ */
+export function handleApiError(error: unknown, context?: string): string {
+  const message = getErrorMessage(error);
+  
+  // 개발 환경에서만 콘솔 로깅
+  if (process.env.NODE_ENV === 'development') {
+    console.error(`[API Error${context ? ` - ${context}` : ''}]:`, error);
+  }
+  
+  return message;
+}
+

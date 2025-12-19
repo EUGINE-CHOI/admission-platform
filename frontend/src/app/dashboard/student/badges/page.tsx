@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingState } from "@/components/ui/LoadingState";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, handleApiError } from "@/lib/api";
 import { formatDateShort } from "@/lib/utils";
 import { 
   Trophy, 
@@ -87,7 +87,7 @@ export default function BadgesPage() {
         setAllBadges(await badgesRes.json());
       }
     } catch (error) {
-      console.error("Failed to fetch badges:", error);
+      handleApiError(error, "뱃지 조회");
     } finally {
       setLoading(false);
     }
