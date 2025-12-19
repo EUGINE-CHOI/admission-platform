@@ -6,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ApiResponse } from '../common';
 import { AddTargetSchoolDto, UpdatePriorityDto } from './dto';
 import {
   PublishStatus,
@@ -103,7 +104,7 @@ export class DiagnosisService {
       where: { id: targetSchool.id },
     });
 
-    return { message: '목표 학교에서 삭제되었습니다' };
+    return ApiResponse.deleted('목표 학교에서 삭제되었습니다');
   }
 
   async getTargetSchools(studentId: string) {

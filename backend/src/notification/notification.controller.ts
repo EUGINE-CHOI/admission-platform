@@ -11,6 +11,7 @@ import {
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
 import { JwtAuthGuard } from '../auth/guards';
+import { ApiResponse } from '../common';
 
 @ApiTags('Notifications')
 @ApiBearerAuth('access-token')
@@ -38,28 +39,28 @@ export class NotificationController {
   @ApiOperation({ summary: '알림 읽음 처리' })
   async markAsRead(@Request() req, @Param('id') id: string) {
     await this.notificationService.markAsRead(req.user.id, id);
-    return { success: true, message: '알림을 읽음 처리했습니다' };
+    return ApiResponse.message('알림을 읽음 처리했습니다');
   }
 
   @Post('read-all')
   @ApiOperation({ summary: '모든 알림 읽음 처리' })
   async markAllAsRead(@Request() req) {
     await this.notificationService.markAllAsRead(req.user.id);
-    return { success: true, message: '모든 알림을 읽음 처리했습니다' };
+    return ApiResponse.message('모든 알림을 읽음 처리했습니다');
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '알림 삭제' })
   async delete(@Request() req, @Param('id') id: string) {
     await this.notificationService.delete(req.user.id, id);
-    return { success: true, message: '알림을 삭제했습니다' };
+    return ApiResponse.deleted('알림을 삭제했습니다');
   }
 
   @Delete('read/all')
   @ApiOperation({ summary: '읽은 알림 전체 삭제' })
   async deleteAllRead(@Request() req) {
     const result = await this.notificationService.deleteAllRead(req.user.id);
-    return { success: true, message: `${result.count}개의 알림을 삭제했습니다` };
+    return ApiResponse.deleted(`${result.count}개의 알림을 삭제했습니다`);
   }
 }
 

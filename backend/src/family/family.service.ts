@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService, NotificationType } from '../notification/notification.service';
+import { ApiResponse } from '../common';
 import { randomBytes } from 'crypto';
 
 @Injectable()
@@ -256,7 +257,7 @@ export class FamilyService {
       );
     }
 
-    return { message: '가족에서 탈퇴했습니다' };
+    return ApiResponse.message('가족에서 탈퇴했습니다');
   }
 
   // 학부모가 자녀(학생) 목록 조회
@@ -378,6 +379,6 @@ export class FamilyService {
       data: { name: newName },
     });
 
-    return { message: '가족 이름이 변경되었습니다' };
+    return ApiResponse.updated(null, '가족 이름이 변경되었습니다');
   }
 }

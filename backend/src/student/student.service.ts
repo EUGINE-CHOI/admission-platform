@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ApiResponse } from '../common';
 import {
   CreateGradeDto,
   UpdateGradeDto,
@@ -111,7 +112,7 @@ export class StudentService {
       where: { id: gradeId },
     });
 
-    return { message: '성적이 삭제되었습니다' };
+    return ApiResponse.deleted('성적이 삭제되었습니다');
   }
 
   // ========== 활동 관리 ==========
@@ -192,7 +193,7 @@ export class StudentService {
       where: { id: activityId },
     });
 
-    return { message: '활동이 삭제되었습니다' };
+    return ApiResponse.deleted('활동이 삭제되었습니다');
   }
 
   // ========== 독서 기록 관리 ==========
@@ -285,7 +286,7 @@ export class StudentService {
       where: { id: readingId },
     });
 
-    return { message: '독서 기록이 삭제되었습니다' };
+    return ApiResponse.deleted('독서 기록이 삭제되었습니다');
   }
 
   // ========== 출결 관리 ==========
@@ -402,7 +403,7 @@ export class StudentService {
       where: { id: volunteerId },
     });
 
-    return { message: '봉사활동이 삭제되었습니다' };
+    return ApiResponse.deleted('봉사활동이 삭제되었습니다');
   }
 
   // ========== 프로필 관리 ==========

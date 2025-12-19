@@ -4,6 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ApiResponse } from '../common';
 import {
   CreateSchoolDto,
   CreateAdmissionDto,
@@ -294,7 +295,7 @@ export class SchoolService {
       data: { studentId, schoolId },
     });
 
-    return { message: '관심 학교로 등록되었습니다' };
+    return ApiResponse.message('관심 학교로 등록되었습니다');
   }
 
   async removeFavorite(studentId: string, schoolId: string) {
@@ -312,7 +313,7 @@ export class SchoolService {
       where: { id: favorite.id },
     });
 
-    return { message: '관심 학교에서 삭제되었습니다' };
+    return ApiResponse.deleted('관심 학교에서 삭제되었습니다');
   }
 
   async getMyFavorites(studentId: string) {

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StoryCategory } from '../../generated/prisma';
+import { ApiResponse } from '../common';
 
 export interface CreateStoryDto {
   title: string;
@@ -211,7 +212,7 @@ export class StoryService {
     }
 
     await this.prisma.successStory.delete({ where: { id: storyId } });
-    return { message: '후기가 삭제되었습니다.' };
+    return ApiResponse.deleted('후기가 삭제되었습니다.');
   }
 
   // 후기 인증 (관리자)
@@ -262,7 +263,7 @@ export class StoryService {
     }
 
     await this.prisma.storyComment.delete({ where: { id: commentId } });
-    return { message: '댓글이 삭제되었습니다.' };
+    return ApiResponse.deleted('댓글이 삭제되었습니다.');
   }
 
   // 후기 좋아요

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { QuestionCategory } from '../../generated/prisma';
+import { ApiResponse } from '../common';
 
 export interface CreateQuestionDto {
   title: string;
@@ -197,7 +198,7 @@ export class QnaService {
     }
 
     await this.prisma.question.delete({ where: { id: questionId } });
-    return { message: '질문이 삭제되었습니다.' };
+    return ApiResponse.deleted('질문이 삭제되었습니다.');
   }
 
   // 답변 작성
@@ -251,7 +252,7 @@ export class QnaService {
       data: { isResolved: true },
     });
 
-    return { message: '답변이 채택되었습니다.' };
+    return ApiResponse.message('답변이 채택되었습니다.');
   }
 
   // 답변 삭제
@@ -267,7 +268,7 @@ export class QnaService {
     }
 
     await this.prisma.answer.delete({ where: { id: answerId } });
-    return { message: '답변이 삭제되었습니다.' };
+    return ApiResponse.deleted('답변이 삭제되었습니다.');
   }
 
   // 질문 좋아요
