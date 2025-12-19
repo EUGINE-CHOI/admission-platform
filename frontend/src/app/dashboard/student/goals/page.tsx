@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { LoadingState } from "@/components/ui/LoadingState";
 import { getApiUrl } from "@/lib/api";
 import { getCurrentYear } from "@/lib/utils";
 import {
@@ -162,11 +163,7 @@ export default function GoalsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div>
-      </div>
-    );
+    return <LoadingState message="목표 정보를 불러오는 중..." />;
   }
 
   return (

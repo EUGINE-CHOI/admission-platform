@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { getApiUrl } from "@/lib/api";
+import { LoadingState } from "@/components/ui/LoadingState";
 import {
   TrendingUp,
   School,
@@ -128,14 +129,7 @@ export default function PredictionPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500 mx-auto mb-4"></div>
-          <p className="text-slate-400">AI가 분석 중입니다...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="AI가 분석 중입니다..." />;
   }
 
   return (

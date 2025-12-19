@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { getApiUrl } from "@/lib/api";
 import { formatDateShort, getCurrentYear } from "@/lib/utils";
+import { LoadingState } from "@/components/ui/LoadingState";
 import {
   BookOpen,
   ThumbsUp,
@@ -217,11 +218,7 @@ export default function StoriesPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div>
-      </div>
-    );
+    return <LoadingState message="합격생 후기를 불러오는 중..." />;
   }
 
   return (
