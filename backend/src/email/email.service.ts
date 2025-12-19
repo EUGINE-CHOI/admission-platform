@@ -220,6 +220,133 @@ export class EmailService {
     });
   }
 
+  async sendDDayReminder(
+    to: string,
+    name: string,
+    events: { title: string; date: string; daysLeft: number }[]
+  ): Promise<boolean> {
+    const eventsList = events
+      .map(e => `<li><strong>${e.title}</strong> - ${e.date} (D-${e.daysLeft})</li>`)
+      .join('');
+
+    return this.sendEmail({
+      to,
+      subject: '⏰ 다가오는 일정 알림',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Apple SD Gothic Neo', sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+            .content { background: #f8fafc; padding: 30px; border-radius: 0 0 12px 12px; }
+            .events { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .events ul { margin: 0; padding-left: 20px; }
+            .events li { margin: 10px 0; }
+            .button { display: inline-block; background: #f59e0b; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; }
+            .footer { text-align: center; margin-top: 20px; color: #64748b; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>⏰ D-Day 알림</h1>
+            </div>
+            <div class="content">
+              <h2>안녕하세요, ${name}님!</h2>
+              <p>다가오는 중요한 일정을 알려드립니다.</p>
+              <div class="events">
+                <ul>${eventsList}</ul>
+              </div>
+              <a href="http://localhost:4000/dashboard/student/dday" class="button">일정 확인하기</a>
+            </div>
+            <div class="footer">
+              <p>© 2025 입시로드맵. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+  }
+
+  async sendWeeklyReport(
+    to: string,
+    name: string,
+    stats: {
+      completedTasks: number;
+      totalTasks: number;
+      studyHours?: number;
+      badgesEarned?: number;
+      topSubject?: string;
+    }
+  ): Promise<boolean> {
+    const completionRate = stats.totalTasks > 0 
+      ? Math.round((stats.completedTasks / stats.totalTasks) * 100) 
+      : 0;
+
+    return this.sendEmail({
+      to,
+      subject: '📈 이번 주 학습 리포트',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Apple SD Gothic Neo', sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #10b981, #0ea5e9); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+            .content { background: #f8fafc; padding: 30px; border-radius: 0 0 12px 12px; }
+            .stats { display: flex; flex-wrap: wrap; gap: 15px; margin: 20px 0; }
+            .stat-box { flex: 1; min-width: 120px; background: white; padding: 20px; border-radius: 8px; text-align: center; }
+            .stat-value { font-size: 28px; font-weight: bold; color: #0ea5e9; }
+            .stat-label { font-size: 12px; color: #64748b; }
+            .button { display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; }
+            .footer { text-align: center; margin-top: 20px; color: #64748b; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>📈 주간 리포트</h1>
+              <p>이번 주 학습 현황</p>
+            </div>
+            <div class="content">
+              <h2>안녕하세요, ${name}님!</h2>
+              <p>이번 주 학습 현황을 정리했습니다.</p>
+              <div class="stats">
+                <div class="stat-box">
+                  <div class="stat-value">${stats.completedTasks}</div>
+                  <div class="stat-label">완료한 과제</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-value">${completionRate}%</div>
+                  <div class="stat-label">완료율</div>
+                </div>
+                ${stats.badgesEarned ? `
+                <div class="stat-box">
+                  <div class="stat-value">${stats.badgesEarned}</div>
+                  <div class="stat-label">획득 뱃지</div>
+                </div>
+                ` : ''}
+              </div>
+              ${stats.topSubject ? `<p>🌟 이번 주 최고 성과 과목: <strong>${stats.topSubject}</strong></p>` : ''}
+              <p>다음 주도 화이팅! 💪</p>
+              <a href="http://localhost:4000/dashboard/student" class="button">대시보드 확인</a>
+            </div>
+            <div class="footer">
+              <p>© 2025 입시로드맵. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+  }
+
   async sendDiagnosisComplete(to: string, name: string, score: number): Promise<boolean> {
     return this.sendEmail({
       to,

@@ -17,6 +17,8 @@ import {
   ExternalLink,
   School,
   BarChart3,
+  Download,
+  FileText,
 } from "lucide-react";
 import { getApiUrl } from "@/lib/api";
 import { DashboardLayout } from "@/components/layout";
@@ -93,6 +95,37 @@ export default function StudentDashboard() {
   const [user, setUser] = useState<any>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+
+  // PDF 다운로드 함수
+  const downloadPdf = async () => {
+    if (!user?.id) return;
+    
+    setDownloading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(`${getApiUrl()}/reports/my/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (!response.ok) throw new Error("PDF 생성 실패");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${user.name || "student"}_report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("PDF download error:", error);
+      alert("PDF 다운로드에 실패했습니다.");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -159,9 +192,26 @@ export default function StudentDashboard() {
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
               안녕하세요, {user?.name || "학생"}님! 👋
             </h1>
-            <p className="text-sky-100 text-base sm:text-lg">
+            <p className="text-sky-100 text-base sm:text-lg mb-4">
               오늘도 목표를 향해 한 걸음 더 나아가세요!
             </p>
+            <button
+              onClick={downloadPdf}
+              disabled={downloading}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              {downloading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  생성 중...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4" />
+                  내 리포트 PDF 다운로드
+                </>
+              )}
+            </button>
             {(user?.middleSchool || user?.schoolName || user?.grade) && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1.5 bg-white/20 rounded-full text-sm flex items-center gap-2">
