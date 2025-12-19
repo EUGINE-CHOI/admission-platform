@@ -35,6 +35,7 @@ import {
   BookOpen,
   FileText,
   Sparkles,
+  Bot,
 } from "lucide-react";
 
 interface MenuItem {
@@ -64,6 +65,7 @@ const menuItems: Record<string, MenuItem[]> = {
     { icon: Calendar, label: "학습 캘린더", href: "/dashboard/student/calendar", badge: "NEW" },
     { icon: MessageCircle, label: "상담 채팅", href: "/dashboard/student/chat", badge: "NEW" },
     { icon: Clock, label: "학습 시간", href: "/dashboard/student/study-time", badge: "NEW" },
+    { icon: Bot, label: "AI 튜터", href: "/dashboard/student/tutor", badge: "NEW" },
     { icon: MessageSquare, label: "면접 준비", href: "/dashboard/student/interview" },
     { icon: FileText, label: "자기소개서", href: "/dashboard/student/statement", badge: "NEW" },
     { icon: Sparkles, label: "합격 예측", href: "/dashboard/student/prediction", badge: "NEW" },
