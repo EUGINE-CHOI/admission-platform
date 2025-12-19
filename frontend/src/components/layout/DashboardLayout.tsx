@@ -6,13 +6,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { MobileNavBar } from "./MobileNavBar";
 import { OnboardingTour, useOnboarding } from "@/components/onboarding";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "STUDENT" | "PARENT" | "CONSULTANT" | "ADMIN";
-}
+import type { User } from "@/lib/types";
 
 interface DashboardLayoutProps {
   children: ReactNode;
