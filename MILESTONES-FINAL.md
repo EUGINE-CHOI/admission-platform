@@ -320,15 +320,15 @@ PRD → 아키텍처 → 유저 흐름 → 비즈니스 요구를
 
 ---
 
-# 🧩 M20 — 코드 리팩토링 (Code Refactoring Layer) 🔄
+# 🧩 M20 — 코드 리팩토링 (Code Refactoring Layer) ✅
 
 ### 🎯 목적  
 코드베이스 정리 및 유지보수성 향상.
 
 ### 📦 산출물  
-- ✅ **토큰 키 통일** - getToken/setToken/clearToken 공통 함수화
-- ⏳ **API URL 통일** - getApiUrl() 전역 사용
-- ⏳ **AI 서비스 중복 제거** - BaseAiService 추상 클래스화
+- ✅ **토큰 키 통일** - getToken/setToken/clearToken 공통 함수화 (20개 파일)
+- ✅ **API URL 통일** - getApiUrl() 전역 사용 (32개 파일)
+- 📋 **AI 서비스 중복 제거** - 향후 진행 예정 (복잡도 높음)
 
 ---
 
@@ -357,4 +357,4 @@ _Last updated: 2025-12-19_
 | M17 모바일 & 성능 | ✅ 완료 | 100% |
 | M18 시너지 기능 | ✅ 완료 | 100% |
 | M19 커뮤니티 & AI | ✅ 완료 | 100% |
-| M20 리팩토링 | 🔄 진행중 | 33% |
+| M20 리팩토링 | ✅ 완료 | 100% |

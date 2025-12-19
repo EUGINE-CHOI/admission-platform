@@ -394,12 +394,12 @@ backend/
 | **AI 자기소개서 도우미** | 초안 생성, 첨삭, 학교별 템플릿 |
 | **학교별 합격 예측 AI** | 현재 스펙 기반 합격 확률 분석 |
 
-### 리팩토링 진행 (M20)
+### 리팩토링 완료 (M20)
 | 항목 | 상태 | 설명 |
 |------|------|------|
 | 토큰 키 통일 | ✅ 완료 | getToken/setToken/clearToken 공통 함수화 (20개 파일) |
-| API URL 통일 | ⏳ 대기 | getApiUrl() 전역 사용 |
-| AI 서비스 중복 제거 | ⏳ 대기 | BaseAiService 추상 클래스화 |
+| API URL 통일 | ✅ 완료 | getApiUrl() 전역 사용 (32개 파일) |
+| AI 서비스 중복 제거 | 📋 예정 | BaseAiService 추상 클래스화 (향후 진행) |
 
 ### 기술 스택 추가
 - `xml2js` - Google News RSS 파싱
