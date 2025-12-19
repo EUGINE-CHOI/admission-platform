@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { API_URL } from '@/lib/api';
+import { LoadingState } from '@/components/ui/LoadingState';
+import { getApiUrl } from '@/lib/api';
 import { TrendingUp, TrendingDown, Minus, BookOpen, Target, Lightbulb } from 'lucide-react';
 
 interface GradeTrend {
@@ -46,8 +47,8 @@ export default function GradeTrendsPage() {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [trendsRes, adviceRes] = await Promise.all([
-        fetch(`${API_URL}/v1/analysis/grades/trends`, { headers }),
-        fetch(`${API_URL}/v1/analysis/grades/advice`, { headers }),
+        fetch(`${getApiUrl()}/v1/analysis/grades/trends`, { headers }),
+        fetch(`${getApiUrl()}/v1/analysis/grades/advice`, { headers }),
       ]);
 
       if (trendsRes.ok) {
@@ -85,11 +86,7 @@ export default function GradeTrendsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <LoadingState message="성적 트렌드를 불러오는 중..." />;
   }
 
   return (

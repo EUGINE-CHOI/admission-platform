@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { API_URL } from '@/lib/api';
+import { LoadingState } from '@/components/ui/LoadingState';
+import { getApiUrl } from '@/lib/api';
 import { Building2, BarChart3, CheckCircle, Info, Search } from 'lucide-react';
 
 interface SchoolCompareItem {
@@ -39,7 +40,7 @@ export default function SchoolComparePage() {
   const fetchTargetComparison = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/v1/schools/compare/targets`, {
+      const res = await fetch(`${getApiUrl()}/v1/schools/compare/targets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -57,11 +58,7 @@ export default function SchoolComparePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <LoadingState message="학교 비교 정보를 불러오는 중..." />;
   }
 
   if (error) {

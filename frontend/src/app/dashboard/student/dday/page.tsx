@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { getApiUrl } from '@/lib/api';
 import { formatDate, formatDateShort } from '@/lib/utils';
 import { 
@@ -113,11 +114,7 @@ export default function DDayPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <LoadingState message="D-Day 정보를 불러오는 중..." />;
   }
 
   return (

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { API_URL } from '@/lib/api';
+import { LoadingState } from '@/components/ui/LoadingState';
+import { getApiUrl } from '@/lib/api';
 import { 
   MessageSquare, Lightbulb, CheckCircle, 
   ChevronDown, ChevronUp, Send, School, AlertCircle 
@@ -50,7 +51,7 @@ export default function InterviewPrepPage() {
   const fetchTargetSchools = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/v1/students/me/targets`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/students/me/targets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -76,7 +77,7 @@ export default function InterviewPrepPage() {
   const fetchInterviewPrep = async (schoolId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/v1/interview/prep/${schoolId}`, {
+      const res = await fetch(`${getApiUrl()}/v1/interview/prep/${schoolId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -95,7 +96,7 @@ export default function InterviewPrepPage() {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/v1/interview/mock/${selectedSchool}`, {
+      const res = await fetch(`${getApiUrl()}/v1/interview/mock/${selectedSchool}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,11 +116,7 @@ export default function InterviewPrepPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <LoadingState message="면접 질문을 불러오는 중..." />;
   }
 
   if (targetSchools.length === 0) {
