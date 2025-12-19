@@ -52,13 +52,16 @@ export function LoadingState({
   );
 }
 
+// Shimmer 효과 베이스 클래스
+const shimmerClass = "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent";
+
 // 스켈레톤 로더
 export function SkeletonCard() {
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm animate-pulse">
-      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-4" />
-      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-2" />
-      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3" />
+    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+      <div className={`h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-4 ${shimmerClass}`} />
+      <div className={`h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-2 ${shimmerClass}`} />
+      <div className={`h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3 ${shimmerClass}`} />
     </div>
   );
 }
@@ -69,12 +72,13 @@ export function SkeletonList({ count = 3 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-4 p-4 bg-white dark:bg-slate-800 rounded-xl animate-pulse"
+          className="flex items-center gap-4 p-4 bg-white dark:bg-slate-800 rounded-xl"
+          style={{ animationDelay: `${i * 100}ms` }}
         >
-          <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+          <div className={`w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-xl ${shimmerClass}`} />
           <div className="flex-1">
-            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2" />
-            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
+            <div className={`h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2 ${shimmerClass}`} />
+            <div className={`h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 ${shimmerClass}`} />
           </div>
         </div>
       ))}

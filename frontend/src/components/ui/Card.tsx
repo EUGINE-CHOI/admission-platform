@@ -6,6 +6,8 @@ interface CardProps {
   children: ReactNode;
   className?: string;
   hover?: boolean;
+  animate?: boolean;
+  glass?: boolean;
   padding?: "none" | "sm" | "md" | "lg";
   onClick?: () => void;
 }
@@ -14,6 +16,8 @@ export function Card({
   children,
   className = "",
   hover = false,
+  animate = false,
+  glass = false,
   padding = "md",
   onClick,
 }: CardProps) {
@@ -24,12 +28,28 @@ export function Card({
     lg: "p-8",
   };
 
+  const baseStyles = glass
+    ? "backdrop-blur-md bg-white/70 dark:bg-slate-800/70"
+    : "bg-white dark:bg-slate-800";
+
+  const hoverStyles = hover
+    ? "hover:shadow-lg hover:-translate-y-1 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer"
+    : "";
+
+  const animateStyles = animate ? "animate-fade-in" : "";
+
   return (
     <div
       onClick={onClick}
-      className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm ${
-        hover ? "hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer" : ""
-      } ${paddings[padding]} ${className}`}
+      className={`
+        ${baseStyles}
+        rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm
+        transition-all duration-200
+        ${hoverStyles}
+        ${animateStyles}
+        ${paddings[padding]}
+        ${className}
+      `}
     >
       {children}
     </div>
