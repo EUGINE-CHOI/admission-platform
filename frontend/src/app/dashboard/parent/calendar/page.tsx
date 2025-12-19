@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
 import { getToken, getApiUrl } from "@/lib/api";
+import { formatDate, formatTime } from "@/lib/utils";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -118,7 +119,7 @@ export default function CalendarPage() {
             id: c.id,
             title: `${c.consultant?.name || '컨설턴트'} 상담`,
             date: c.scheduledAt?.split('T')[0],
-            time: new Date(c.scheduledAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+            time: formatTime(c.scheduledAt),
             type: "CONSULTATION" as const,
             childName: c.student?.name,
             status: c.status,
@@ -547,7 +548,7 @@ export default function CalendarPage() {
                     예약 날짜
                   </label>
                   <div className="p-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-slate-900 dark:text-white">
-                    {selectedDate?.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+                    {selectedDate && formatDate(selectedDate, { weekday: 'long' })}
                   </div>
                 </div>
 

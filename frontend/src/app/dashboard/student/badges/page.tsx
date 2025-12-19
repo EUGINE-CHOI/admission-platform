@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { getApiUrl } from "@/lib/api";
+import { formatDateShort } from "@/lib/utils";
 import { 
   Trophy, 
   Star, 
@@ -280,7 +281,7 @@ export default function BadgesPage() {
                     </div>
                     {badge.isEarned && badge.earnedAt && (
                       <p className="text-xs text-slate-500 mt-2">
-                        {new Date(badge.earnedAt).toLocaleDateString("ko-KR")} 획득
+                        {formatDateShort(badge.earnedAt)} 획득
                       </p>
                     )}
                   </div>

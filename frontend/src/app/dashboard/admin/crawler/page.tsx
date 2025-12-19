@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout";
 import { getApiUrl } from "@/lib/api";
+import { formatDateShort, formatDateTime } from "@/lib/utils";
 import { Card, Button, Badge, Modal } from "@/components/ui";
 
 interface CrawlResult {
@@ -758,7 +759,7 @@ export default function CrawlerPage() {
                             <td className="p-2">{schedule.title}</td>
                             <td className="p-2">{schedule.type}</td>
                             <td className="p-2">
-                              {new Date(schedule.startDate).toLocaleDateString("ko-KR")}
+                              {formatDateShort(schedule.startDate)}
                             </td>
                             <td className="p-2 text-center">
                               <Badge variant={schedule.publishStatus === "PUBLISHED" ? "success" : "warning"}>
@@ -808,12 +809,12 @@ export default function CrawlerPage() {
                           <span className="mr-4">📆 스케줄: {task.schedule}</span>
                           {task.lastRun && (
                             <span className="mr-4">
-                              ⏱️ 마지막 실행: {new Date(task.lastRun).toLocaleString("ko-KR")}
+                              ⏱️ 마지막 실행: {formatDateTime(task.lastRun)}
                             </span>
                           )}
                           {task.nextRun && (
                             <span>
-                              ⏰ 다음 실행: {new Date(task.nextRun).toLocaleString("ko-KR")}
+                              ⏰ 다음 실행: {formatDateTime(task.nextRun)}
                             </span>
                           )}
                         </div>
@@ -981,8 +982,8 @@ export default function CrawlerPage() {
                         <div>
                           <div className="font-medium">{schedule.school?.name} - {schedule.title}</div>
                           <div className="text-sm text-gray-500">
-                            {schedule.eventType} | {new Date(schedule.startDate).toLocaleDateString("ko-KR")}
-                            {schedule.endDate && ` ~ ${new Date(schedule.endDate).toLocaleDateString("ko-KR")}`}
+                            {schedule.eventType} | {formatDateShort(schedule.startDate)}
+                            {schedule.endDate && ` ~ ${formatDateShort(schedule.endDate)}`}
                           </div>
                         </div>
                         <div className="flex gap-2">

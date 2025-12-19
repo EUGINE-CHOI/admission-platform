@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { getApiUrl } from "@/lib/api";
+import { formatDateShort, getCurrentYear } from "@/lib/utils";
 import {
   BookOpen,
   ThumbsUp,
@@ -78,7 +79,7 @@ export default function StoriesPage() {
     title: "",
     content: "",
     category: "GENERAL",
-    admissionYear: new Date().getFullYear(),
+    admissionYear: getCurrentYear(),
     isAnonymous: false,
   });
   const [newComment, setNewComment] = useState({ content: "", isAnonymous: false });
@@ -162,7 +163,7 @@ export default function StoriesPage() {
           title: "",
           content: "",
           category: "GENERAL",
-          admissionYear: new Date().getFullYear(),
+          admissionYear: getCurrentYear(),
           isAnonymous: false,
         });
         fetchStories();
@@ -411,7 +412,7 @@ export default function StoriesPage() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {new Date(selectedStory.createdAt).toLocaleDateString("ko-KR")}
+                  {formatDateShort(selectedStory.createdAt)}
                 </span>
                 <span className="flex items-center gap-1">
                   <Eye className="w-4 h-4" />
@@ -437,7 +438,7 @@ export default function StoriesPage() {
                     <div className="flex items-center gap-2 text-xs text-slate-500">
                       <span>{comment.author?.name || "익명"}</span>
                       <span>•</span>
-                      <span>{new Date(comment.createdAt).toLocaleDateString("ko-KR")}</span>
+                      <span>{formatDateShort(comment.createdAt)}</span>
                     </div>
                   </div>
                 ))}

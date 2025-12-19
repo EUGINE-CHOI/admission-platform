@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { getApiUrl } from "@/lib/api";
+import { formatDateShort } from "@/lib/utils";
 import {
   MessageCircle,
   ThumbsUp,
@@ -353,7 +354,7 @@ export default function QnaPage() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {new Date(selectedQuestion.createdAt).toLocaleDateString("ko-KR")}
+                  {formatDateShort(selectedQuestion.createdAt)}
                 </span>
                 <span className="flex items-center gap-1">
                   <Eye className="w-4 h-4" />
@@ -390,7 +391,7 @@ export default function QnaPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 text-sm text-slate-400">
                         <span>{answer.author?.name || "익명"}</span>
-                        <span>{new Date(answer.createdAt).toLocaleDateString("ko-KR")}</span>
+                        <span>{formatDateShort(answer.createdAt)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button className="flex items-center gap-1 px-2 py-1 rounded text-slate-400 hover:text-white">
@@ -463,7 +464,7 @@ export default function QnaPage() {
                         <p className="text-sm text-slate-400 line-clamp-2">{question.content}</p>
                         <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
                           <span>{question.author?.name || "익명"}</span>
-                          <span>{new Date(question.createdAt).toLocaleDateString("ko-KR")}</span>
+                          <span>{formatDateShort(question.createdAt)}</span>
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2 text-sm">

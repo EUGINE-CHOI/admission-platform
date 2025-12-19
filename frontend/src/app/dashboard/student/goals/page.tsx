@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { getApiUrl } from "@/lib/api";
+import { getCurrentYear } from "@/lib/utils";
 import {
   Target,
   TrendingUp,
@@ -76,7 +77,7 @@ export default function GoalsPage() {
   const [newGoal, setNewGoal] = useState({
     subject: "",
     targetRank: 3,
-    targetYear: new Date().getFullYear(),
+    targetYear: getCurrentYear(),
     targetSemester: 1,
   });
 
@@ -129,7 +130,7 @@ export default function GoalsPage() {
 
       if (res.ok) {
         setShowAddForm(false);
-        setNewGoal({ subject: "", targetRank: 3, targetYear: new Date().getFullYear(), targetSemester: 1 });
+        setNewGoal({ subject: "", targetRank: 3, targetYear: getCurrentYear(), targetSemester: 1 });
         fetchGoals();
       }
     } catch (error) {

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
 import { getToken, getApiUrl } from "@/lib/api";
+import { getToday } from "@/lib/utils";
 import { Card, CardHeader, CardContent } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
@@ -189,7 +190,7 @@ export default function ConsultationsPage() {
 
   const pendingCount = consultations.filter((c) => c.status === "PENDING").length;
   const todayCount = consultations.filter((c) => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getToday();
     return c.scheduledAt.startsWith(today) && c.status === "CONFIRMED";
   }).length;
 

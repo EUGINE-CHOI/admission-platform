@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { API_URL } from '@/lib/api';
+import { getApiUrl } from '@/lib/api';
+import { formatDate, formatDateShort } from '@/lib/utils';
 import { 
   Calendar, Clock, Bell, Plus, 
   CheckCircle, Circle, AlertTriangle, Target 
@@ -52,8 +53,8 @@ export default function DDayPage() {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [dashRes, alertRes] = await Promise.all([
-        fetch(`${API_URL}/v1/dday/dashboard`, { headers }),
-        fetch(`${API_URL}/v1/dday/alerts`, { headers }),
+        fetch(`${getApiUrl()}/v1/dday/dashboard`, { headers }),
+        fetch(`${getApiUrl()}/v1/dday/alerts`, { headers }),
       ]);
 
       if (dashRes.ok) {
@@ -75,7 +76,7 @@ export default function DDayPage() {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/v1/dday/custom`, {
+      const res = await fetch(`${getApiUrl()}/v1/dday/custom`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,8 +158,7 @@ export default function DDayPage() {
               D{dashboard.mainDDay.daysLeft > 0 ? '-' : '+'}{Math.abs(dashboard.mainDDay.daysLeft)}
             </div>
             <p className="text-blue-100">
-              {new Date(dashboard.mainDDay.date).toLocaleDateString('ko-KR', {
-                year: 'numeric',
+              {formatDate(dashboard.mainDDay.date, {
                 month: 'long',
                 day: 'numeric',
                 weekday: 'long',
@@ -197,7 +197,7 @@ export default function DDayPage() {
                         D{item.daysLeft > 0 ? '-' : '+'}{Math.abs(item.daysLeft)}
                       </div>
                       <p className="text-xs opacity-75">
-                        {new Date(item.date).toLocaleDateString('ko-KR')}
+                        {formatDateShort(item.date)}
                       </p>
                     </div>
                   </div>
@@ -243,7 +243,7 @@ export default function DDayPage() {
                         {milestone.title}
                       </span>
                       <span className="text-sm text-gray-500">
-                        {new Date(milestone.date).toLocaleDateString('ko-KR')}
+                        {formatDateShort(milestone.date)}
                       </span>
                     </div>
                   </div>
