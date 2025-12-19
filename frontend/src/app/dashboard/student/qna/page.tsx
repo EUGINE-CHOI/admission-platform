@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, handleApiError } from "@/lib/api";
 import { formatDateShort } from "@/lib/utils";
 import { LoadingState } from "@/components/ui/LoadingState";
 import {
@@ -97,7 +97,7 @@ export default function QnaPage() {
         setTotalPages(data.totalPages);
       }
     } catch (error) {
-      console.error("Failed to fetch questions:", error);
+      handleApiError(error, "질문 목록 조회");
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ export default function QnaPage() {
         setSelectedQuestion(await res.json());
       }
     } catch (error) {
-      console.error("Failed to fetch question detail:", error);
+      handleApiError(error, "질문 상세 조회");
     }
   };
 
@@ -145,7 +145,7 @@ export default function QnaPage() {
         fetchQuestions();
       }
     } catch (error) {
-      console.error("Failed to create question:", error);
+      handleApiError(error, "질문 작성");
     }
   };
 
@@ -170,7 +170,7 @@ export default function QnaPage() {
         fetchQuestionDetail(selectedQuestion.id);
       }
     } catch (error) {
-      console.error("Failed to create answer:", error);
+      handleApiError(error, "답변 작성");
     }
   };
 
@@ -188,7 +188,7 @@ export default function QnaPage() {
         fetchQuestionDetail(questionId);
       }
     } catch (error) {
-      console.error("Failed to like question:", error);
+      handleApiError(error, "좋아요");
     }
   };
 
@@ -206,7 +206,7 @@ export default function QnaPage() {
 
       fetchQuestionDetail(selectedQuestion.id);
     } catch (error) {
-      console.error("Failed to accept answer:", error);
+      handleApiError(error, "답변 채택");
     }
   };
 

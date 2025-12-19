@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { getApiUrl } from '@/lib/api';
+import { getApiUrl, handleApiError } from '@/lib/api';
 import { 
   MessageSquare, Lightbulb, CheckCircle, 
   ChevronDown, ChevronUp, Send, School, AlertCircle 
@@ -62,7 +62,7 @@ export default function InterviewPrepPage() {
         }
       }
     } catch (error) {
-      console.error('Error fetching targets:', error);
+      handleApiError(error, '목표 학교 조회');
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export default function InterviewPrepPage() {
         setPrepData(await res.json());
       }
     } catch (error) {
-      console.error('Error fetching interview prep:', error);
+      handleApiError(error, '면접 준비 조회');
     }
   };
 
@@ -109,7 +109,7 @@ export default function InterviewPrepPage() {
         setMockResult(await res.json());
       }
     } catch (error) {
-      console.error('Error submitting answer:', error);
+      handleApiError(error, '답변 제출');
     } finally {
       setSubmitting(false);
     }

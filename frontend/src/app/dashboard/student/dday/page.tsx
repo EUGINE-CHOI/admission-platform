@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { getApiUrl } from '@/lib/api';
+import { getApiUrl, handleApiError } from '@/lib/api';
 import { formatDate, formatDateShort } from '@/lib/utils';
 import { 
   Calendar, Clock, Bell, Plus, 
@@ -66,7 +66,7 @@ export default function DDayPage() {
         setAlerts(data.alerts || []);
       }
     } catch (error) {
-      console.error('Error fetching D-Day data:', error);
+      handleApiError(error, 'D-Day 데이터 조회');
     } finally {
       setLoading(false);
     }
@@ -92,7 +92,7 @@ export default function DDayPage() {
         fetchDashboard();
       }
     } catch (error) {
-      console.error('Error adding D-Day:', error);
+      handleApiError(error, 'D-Day 추가');
     }
   };
 

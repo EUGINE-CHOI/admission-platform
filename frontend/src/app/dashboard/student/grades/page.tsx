@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { getApiUrl } from '@/lib/api';
+import { getApiUrl, handleApiError } from '@/lib/api';
 import { TrendingUp, TrendingDown, Minus, BookOpen, Target, Lightbulb } from 'lucide-react';
 
 interface GradeTrend {
@@ -63,7 +63,7 @@ export default function GradeTrendsPage() {
         setAdvice(await adviceRes.json());
       }
     } catch (error) {
-      console.error('Error fetching grade data:', error);
+      handleApiError(error, '성적 데이터 조회');
     } finally {
       setLoading(false);
     }

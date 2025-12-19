@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingState } from "@/components/ui/LoadingState";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, handleApiError } from "@/lib/api";
 import { getCurrentYear } from "@/lib/utils";
 import {
   Target,
@@ -107,7 +107,7 @@ export default function GoalsPage() {
         setRecommendations(await recsRes.json());
       }
     } catch (error) {
-      console.error("Failed to fetch goals:", error);
+      handleApiError(error, "목표 조회");
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ export default function GoalsPage() {
         fetchGoals();
       }
     } catch (error) {
-      console.error("Failed to add goal:", error);
+      handleApiError(error, "목표 추가");
     }
   };
 
@@ -153,7 +153,7 @@ export default function GoalsPage() {
         fetchGoals();
       }
     } catch (error) {
-      console.error("Failed to delete goal:", error);
+      handleApiError(error, "목표 삭제");
     }
   };
 
