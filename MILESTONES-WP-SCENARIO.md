@@ -1219,10 +1219,205 @@ Then: 공통 로직 BaseAiService에서 상속
 
 ---
 
+# 🟦 M21 — 기능 확장
+
+## WP21.1 — PDF 리포트 다운로드
+
+### Scenario WP21.1-1: PDF 다운로드
+Given: 학생 대시보드 접속
+When: PDF 다운로드 버튼 클릭
+Then: 학생 리포트 PDF 파일 생성 및 다운로드
+선행: WP1.1-3
+
+---
+
+## WP21.2 — 이메일 알림 스케줄러
+
+### Scenario WP21.2-1: D-Day 알림
+Given: D-Day 7일 이내 이벤트 존재
+When: 매일 아침 9시 (Cron)
+Then: 해당 사용자에게 이메일 발송
+선행: WP18.3-1
+
+### Scenario WP21.2-2: 주간 리포트
+Given: 주간 활동 기록 존재
+When: 매주 일요일 저녁 8시 (Cron)
+Then: 학생에게 주간 학습 리포트 이메일 발송
+선행: WP1.1-3
+
+### Scenario WP21.2-3: 상담 리마인더
+Given: 상담 예약 1시간 전
+When: 매시간 정각 체크 (Cron)
+Then: 학생/컨설턴트에게 알림 이메일 발송
+선행: WP8.2-1
+
+---
+
+## WP21.3 — 위젯 커스터마이징
+
+### Scenario WP21.3-1: 위젯 설정 열기
+Given: 학생 대시보드 접속
+When: 위젯 설정 버튼 클릭
+Then: 위젯 설정 모달 표시
+선행: WP1.1-3
+
+### Scenario WP21.3-2: 위젯 토글
+Given: 위젯 설정 모달 열림
+When: 위젯 활성화/비활성화 토글
+Then: localStorage에 설정 저장, 대시보드 반영
+선행: WP21.3-1
+
+### Scenario WP21.3-3: 위젯 순서 변경
+Given: 위젯 설정 모달 열림
+When: 드래그 앤 드롭으로 순서 변경
+Then: 새 순서 localStorage에 저장
+선행: WP21.3-1
+
+---
+
+## WP21.4 — 학습 캘린더
+
+### Scenario WP21.4-1: 캘린더 조회
+Given: 학생 로그인
+When: 학습 캘린더 페이지 접속
+Then: D-Day + Task + 상담 일정 통합 표시
+선행: WP1.1-3
+
+### Scenario WP21.4-2: 날짜 선택
+Given: 캘린더 표시됨
+When: 특정 날짜 클릭
+Then: 해당 날짜의 이벤트 목록 사이드바에 표시
+선행: WP21.4-1
+
+---
+
+## WP21.5 — 상담 채팅
+
+### Scenario WP21.5-1: 채팅 목록 조회
+Given: 학생 로그인
+When: 상담 채팅 페이지 접속
+Then: 진행 중인 상담 목록 표시
+선행: WP8.2-1
+
+### Scenario WP21.5-2: 메시지 전송
+Given: 상담 선택됨
+When: 메시지 입력 후 전송
+Then: 메시지 저장 및 표시
+선행: WP21.5-1
+
+---
+
+## WP21.6 — 학습 시간 트래커
+
+### Scenario WP21.6-1: 타이머 시작
+Given: 학습 시간 페이지 접속
+When: 과목 선택 후 시작 버튼 클릭
+Then: 타이머 시작
+선행: WP1.1-3
+
+### Scenario WP21.6-2: 학습 기록 저장
+Given: 타이머 1분 이상 동작
+When: 저장 완료 버튼 클릭
+Then: 학습 세션 localStorage에 저장
+선행: WP21.6-1
+
+### Scenario WP21.6-3: 통계 조회
+Given: 학습 기록 존재
+When: 학습 시간 페이지 접속
+Then: 오늘/이번주/과목별 통계 표시
+선행: WP21.6-2
+
+---
+
+## WP21.7 — AI 튜터 챗봇
+
+### Scenario WP21.7-1: 질문 전송
+Given: AI 튜터 페이지 접속
+When: 과목 선택 후 질문 입력
+Then: AI 응답 생성 및 표시
+선행: WP1.1-3
+
+### Scenario WP21.7-2: 대화 기록 저장
+Given: AI와 대화 진행
+When: 새 메시지 추가
+Then: 대화 기록 localStorage에 저장
+선행: WP21.7-1
+
+---
+
+# 🟦 M22 — UI/UX 고도화
+
+## WP22.1 — 애니메이션 시스템
+
+### Scenario WP22.1-1: 페이드 인 애니메이션
+Given: 컴포넌트 마운트
+When: animate-fade-in 클래스 적용
+Then: 0.3s 페이드 인 효과
+선행: 없음
+
+### Scenario WP22.1-2: 슬라이드 업 애니메이션
+Given: 컴포넌트 마운트
+When: animate-slide-up 클래스 적용
+Then: 아래에서 위로 슬라이드 효과
+선행: 없음
+
+---
+
+## WP22.2 — 다크 모드
+
+### Scenario WP22.2-1: 다크 모드 토글
+Given: 앱 사용 중
+When: 테마 토글 버튼 클릭
+Then: 다크/라이트 모드 전환, localStorage 저장
+선행: 없음
+
+### Scenario WP22.2-2: 시스템 테마 감지
+Given: 테마 설정 'system'
+When: 시스템 다크 모드 변경
+Then: 자동으로 테마 변경
+선행: WP22.2-1
+
+---
+
+## WP22.3 — Glass Morphism
+
+### Scenario WP22.3-1: Glass 카드
+Given: 카드 컴포넌트
+When: glass={true} 속성 적용
+Then: 반투명 블러 배경 효과 적용
+선행: 없음
+
+---
+
+## WP22.4 — 스켈레톤 로더
+
+### Scenario WP22.4-1: Shimmer 효과
+Given: 데이터 로딩 중
+When: 스켈레톤 컴포넌트 표시
+Then: Shimmer 애니메이션 적용
+선행: 없음
+
+---
+
 # 🎉 끝  
 본 문서는 MVP 전 기능에 대한  
 **Milestone → Work Package → Scenario**  
 계층 구조를 완성한 최종 버전이다.
+
+**2025-12-19 (2차) 업데이트:**
+- M21: 기능 확장 추가
+  - WP21.1: PDF 리포트 다운로드 (✅ 완료)
+  - WP21.2: 이메일 알림 스케줄러 (✅ 완료)
+  - WP21.3: 위젯 커스터마이징 (✅ 완료)
+  - WP21.4: 학습 캘린더 (✅ 완료)
+  - WP21.5: 상담 채팅 (✅ 완료)
+  - WP21.6: 학습 시간 트래커 (✅ 완료)
+  - WP21.7: AI 튜터 챗봇 (✅ 완료)
+- M22: UI/UX 고도화 추가
+  - WP22.1: 애니메이션 시스템 (✅ 완료)
+  - WP22.2: 다크 모드 (✅ 완료)
+  - WP22.3: Glass Morphism (✅ 완료)
+  - WP22.4: 스켈레톤 로더 (✅ 완료)
 
 **2025-12-19 업데이트:**
 - M18: 시너지 기능 추가
@@ -1240,8 +1435,8 @@ Then: 공통 로직 BaseAiService에서 상속
   - WP19.4: 학교별 합격 예측 AI (확률/개선 추천)
 - M20: 코드 리팩토링
   - WP20.1: 토큰 관리 통일 (✅ 완료)
-  - WP20.2: API URL 통일 (⏳ 예정)
-  - WP20.3: AI 서비스 리팩토링 (⏳ 예정)
+  - WP20.2: API URL 통일 (✅ 완료)
+  - WP20.3: AI 서비스 리팩토링 (📋 예정)
 
 **2025-12-16 업데이트:**
 - M17: 모바일 & 성능 최적화 추가
