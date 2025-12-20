@@ -96,19 +96,19 @@ export default function StudentDataPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        const dataArray = Array.isArray(data) ? data : [];
+        // API 응답 형식: { grades: [...] }, { activities: [...] }, etc.
         switch (activeTab) {
           case "grades":
-            setGrades(dataArray);
+            setGrades(data.grades || []);
             break;
           case "activities":
-            setActivities(dataArray);
+            setActivities(data.activities || []);
             break;
           case "readings":
-            setReadings(dataArray);
+            setReadings(data.readings || data.readingLogs || []);
             break;
           case "volunteers":
-            setVolunteers(dataArray);
+            setVolunteers(data.volunteers || data.volunteerActivities || []);
             break;
         }
       }
