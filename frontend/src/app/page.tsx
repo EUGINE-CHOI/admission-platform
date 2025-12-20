@@ -155,7 +155,7 @@ export default function Home() {
             </h1>
 
             <p className="mt-8 text-lg sm:text-xl text-slate-400 max-w-2xl leading-relaxed">
-              <span className="text-white font-medium">3m5m</span>은 단순히 성적을 나열하는 것이 아니라, 
+              <span className="text-white font-black italic">3m<span className="text-yellow-400">⚡</span>5m</span>은 단순히 성적을 나열하는 것이 아니라, 
               학생의 성적과 비교과를 정밀하게 분석하여 <span className="text-violet-400">숨겨진 가능성</span>을 
               찾아내고 맞춤형 전략을 제시합니다.
             </p>
@@ -226,7 +226,7 @@ export default function Home() {
               <span>핵심 서비스</span>
             </div>
             <h2 className="text-4xl sm:text-5xl font-bold">
-              <span className="text-white">3m5m</span>
+              <span className="text-white font-black italic">3m<span className="text-yellow-400">⚡</span>5m</span>
               <span className="text-violet-400">만의</span>
               <br />
               <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
