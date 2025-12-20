@@ -120,11 +120,34 @@ export default function StudentDataPage() {
   };
 
   const handleSubmit = async (formData: any) => {
+    // 프론트엔드 validation
+    if (activeTab === "grades") {
+      if (!formData.subject) {
+        alert("과목을 선택해주세요.");
+        return;
+      }
+      if (formData.written1 === undefined || formData.written1 === null) {
+        alert("1회고사 점수를 입력해주세요.");
+        return;
+      }
+      if (formData.written2 === undefined || formData.written2 === null) {
+        alert("2회고사 점수를 입력해주세요.");
+        return;
+      }
+      if (formData.performance === undefined || formData.performance === null) {
+        alert("수행평가 점수를 입력해주세요.");
+        return;
+      }
+    }
+
     try {
       const token = getToken();
       const endpoint = editingItem
         ? `${getApiUrl()}/api/student/${activeTab}/${editingItem.id}`
         : `${getApiUrl()}/api/student/${activeTab}`;
+      
+      console.log("Submitting to:", endpoint);
+      console.log("Form data:", formData);
       
       const res = await fetch(endpoint, {
         method: editingItem ? "PATCH" : "POST",
@@ -135,13 +158,19 @@ export default function StudentDataPage() {
         body: JSON.stringify(formData),
       });
 
+      const responseData = await res.json();
+      console.log("Response:", res.status, responseData);
+
       if (res.ok) {
         setIsModalOpen(false);
         setEditingItem(null);
         fetchData();
       } else {
-        const errorData = await res.json();
-        alert(`오류: ${errorData.message || "저장에 실패했습니다."}`);
+        // 상세한 에러 메시지 표시
+        const errorMessages = Array.isArray(responseData.message) 
+          ? responseData.message.join(", ")
+          : responseData.message || "저장에 실패했습니다.";
+        alert(`오류: ${errorMessages}`);
       }
     } catch (error) {
       console.error("Submit error:", error);
