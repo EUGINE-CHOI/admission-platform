@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { SWRProvider } from "@/components/providers/SWRProvider";
 
 export const metadata: Metadata = {
   title: "입시 로드맵 | 정보 격차 해소 플랫폼",
@@ -15,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="antialiased bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <SWRProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </SWRProvider>
       </body>
     </html>
   );

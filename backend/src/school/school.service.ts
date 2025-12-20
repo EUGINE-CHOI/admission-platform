@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ApiResponse } from '../common';
+import { ApiResponse, CacheService, CACHE_KEYS, CACHE_TTL } from '../common';
 import {
   CreateSchoolDto,
   CreateAdmissionDto,
@@ -15,7 +15,10 @@ import { PublishStatus } from '../../generated/prisma';
 
 @Injectable()
 export class SchoolService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cacheService: CacheService,
+  ) {}
 
   // ========== 학교 관리 ==========
   async createSchool(dto: CreateSchoolDto) {
@@ -43,6 +46,20 @@ export class SchoolService {
   }
 
   async getPublishedSchools(query: QuerySchoolDto) {
+    // 검색어가 없는 경우만 캐싱 (검색은 실시간 필요)
+    if (!query.search) {
+      const cacheKey = query.type 
+        ? CACHE_KEYS.SCHOOLS_BY_TYPE(query.type)
+        : query.region 
+          ? CACHE_KEYS.SCHOOLS_BY_REGION(query.region)
+          : CACHE_KEYS.SCHOOLS_ALL;
+      
+      const cached = this.cacheService.get<{ schools: any[] }>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
     const where: any = {
       publishStatus: PublishStatus.PUBLISHED,
     };
@@ -69,7 +86,20 @@ export class SchoolService {
       },
     });
 
-    return { schools };
+    const result = { schools };
+
+    // 검색어가 없는 경우 캐시에 저장
+    if (!query.search) {
+      const cacheKey = query.type 
+        ? CACHE_KEYS.SCHOOLS_BY_TYPE(query.type)
+        : query.region 
+          ? CACHE_KEYS.SCHOOLS_BY_REGION(query.region)
+          : CACHE_KEYS.SCHOOLS_ALL;
+      
+      this.cacheService.set(cacheKey, result, CACHE_TTL.LONG);
+    }
+
+    return result;
   }
 
   async getAllSchools(status?: PublishStatus) {

@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { FamilyModule } from './family/family.module';
 import { StudentModule } from './student/student.module';
@@ -32,6 +33,7 @@ import { CommunityModule } from './community/community.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    CommonModule,
     PrismaModule,
     NotificationModule,
     AuthModule,
