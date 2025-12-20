@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   BookOpen,
   Target,
@@ -27,7 +28,20 @@ import { DashboardLayout } from "@/components/layout";
 import { Card, CardHeader, CardContent, StatCard } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
-import { CompetitionRateChart, ActivityProgressChart, SkillRadarChart } from "@/components/charts";
+
+// 차트 컴포넌트 동적 로딩 (번들 분할)
+const CompetitionRateChart = dynamic(
+  () => import("@/components/charts").then((mod) => ({ default: mod.CompetitionRateChart })),
+  { ssr: false, loading: () => <div className="h-48 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg" /> }
+);
+const ActivityProgressChart = dynamic(
+  () => import("@/components/charts").then((mod) => ({ default: mod.ActivityProgressChart })),
+  { ssr: false, loading: () => <div className="h-48 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg" /> }
+);
+const SkillRadarChart = dynamic(
+  () => import("@/components/charts").then((mod) => ({ default: mod.SkillRadarChart })),
+  { ssr: false, loading: () => <div className="h-48 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg" /> }
+);
 
 interface DashboardData {
   activityCount: number;

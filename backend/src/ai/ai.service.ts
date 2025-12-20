@@ -922,48 +922,42 @@ ${notes.map((n, i) => `${i + 1}. ${n}`).join('\n')}
 
   // ========== WP 추가: AI 종합 진단 분석 ==========
   async generateComprehensiveAnalysis(studentId: string) {
-    // 학생 전체 데이터 수집
-    const student = await this.prisma.user.findUnique({
-      where: { id: studentId },
-      include: {
-        middleSchool: true,
-      },
-    });
-
-    const grades = await this.prisma.grade.findMany({
-      where: { studentId, status: ApprovalStatus.APPROVED },
-      orderBy: [{ year: 'desc' }, { semester: 'desc' }],
-    });
-
-    const activities = await this.prisma.activity.findMany({
-      where: { studentId, status: ApprovalStatus.APPROVED },
-    });
-
-    const readingLogs = await this.prisma.readingLog.findMany({
-      where: { studentId },
-    });
-
-    const volunteers = await this.prisma.volunteer.findMany({
-      where: { studentId, status: ApprovalStatus.APPROVED },
-    });
-
-    const targetSchools = await this.prisma.targetSchool.findMany({
-      where: { studentId },
-      include: {
-        school: {
-          include: {
-            admissions: { where: { publishStatus: 'PUBLISHED' }, take: 1 },
-            admissionHistories: { orderBy: { year: 'desc' }, take: 3 },
+    // 학생 전체 데이터 수집 (병렬 쿼리로 최적화)
+    const [student, grades, activities, readingLogs, volunteers, targetSchools, latestDiagnosis] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: studentId },
+        include: { middleSchool: true },
+      }),
+      this.prisma.grade.findMany({
+        where: { studentId, status: ApprovalStatus.APPROVED },
+        orderBy: [{ year: 'desc' }, { semester: 'desc' }],
+      }),
+      this.prisma.activity.findMany({
+        where: { studentId, status: ApprovalStatus.APPROVED },
+      }),
+      this.prisma.readingLog.findMany({
+        where: { studentId },
+      }),
+      this.prisma.volunteer.findMany({
+        where: { studentId, status: ApprovalStatus.APPROVED },
+      }),
+      this.prisma.targetSchool.findMany({
+        where: { studentId },
+        include: {
+          school: {
+            include: {
+              admissions: { where: { publishStatus: 'PUBLISHED' }, take: 1 },
+              admissionHistories: { orderBy: { year: 'desc' }, take: 3 },
+            },
           },
         },
-      },
-    });
-
-    const latestDiagnosis = await this.prisma.diagnosisResult.findFirst({
-      where: { studentId },
-      orderBy: { createdAt: 'desc' },
-      include: { school: true },
-    });
+      }),
+      this.prisma.diagnosisResult.findFirst({
+        where: { studentId },
+        orderBy: { createdAt: 'desc' },
+        include: { school: true },
+      }),
+    ]);
 
     // 성적 분석
     const gradesBySubject: Record<string, any[]> = {};

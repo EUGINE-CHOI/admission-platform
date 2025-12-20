@@ -1,3 +1,9 @@
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Image optimization
@@ -73,22 +79,9 @@ const nextConfig = {
   //   optimizeCss: true, // Requires critters package
   // },
 
-  // Bundle analyzer (uncomment to analyze)
-  // webpack: (config, { isServer }) => {
-  //   if (!isServer && process.env.ANALYZE === 'true') {
-  //     const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-  //     config.plugins.push(
-  //       new BundleAnalyzerPlugin({
-  //         analyzerMode: 'static',
-  //         reportFilename: '../analyze/client.html',
-  //       })
-  //     );
-  //   }
-  //   return config;
-  // },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);
 
 
 
