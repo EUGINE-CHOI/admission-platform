@@ -169,3 +169,4 @@ backend/src/common/
 - [x] Backend 응답 형식 통일
 - [ ] AI 서비스 중복 제거 (예정)
 
+

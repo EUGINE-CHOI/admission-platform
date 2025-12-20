@@ -86,3 +86,4 @@ frontend/src/app/dashboard/parent/
 - [x] WP14.3: 보호자 대시보드
 - [x] WP14.4: 용어 통일
 
+

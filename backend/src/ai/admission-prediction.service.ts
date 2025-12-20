@@ -425,3 +425,4 @@ ${predictions.length > 0 ? `목표 학교 ${predictions.length}곳 중 가장 �
   }
 }
 
+

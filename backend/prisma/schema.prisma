@@ -97,6 +97,10 @@ model User {
   storyComments   StoryComment[] @relation("StoryCommentAuthor")
   storyLikes      StoryLike[]    @relation("StoryLikes")
 
+  // 성능 최적화: 자주 조회되는 필드에 인덱스
+  @@index([role])
+  @@index([familyId])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -183,6 +187,9 @@ model Activity {
   student   User       @relation(fields: [studentId], references: [id])
   aiOutputs AIOutput[]
 
+  @@index([studentId])
+  @@index([type])
+  @@index([status])
   @@map("activities")
 }
 
@@ -201,6 +208,8 @@ model ReadingLog {
   student User @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, bookTitle, readDate])
+  @@index([studentId])
+  @@index([status])
   @@map("reading_logs")
 }
 
@@ -314,6 +323,9 @@ model School {
   successStories     SuccessStory[]     @relation("StorySchool")
 
   @@unique([name, region])
+  @@index([type])
+  @@index([region])
+  @@index([publishStatus])
   @@map("schools")
 }
 
@@ -356,6 +368,9 @@ model AdmissionSchedule {
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
+  @@index([schoolId])
+  @@index([year])
+  @@index([startDate])
   @@map("admission_schedules")
 }
 
@@ -414,6 +429,9 @@ model DiagnosisResult {
   student User    @relation(fields: [studentId], references: [id])
   school  School? @relation(fields: [schoolId], references: [id])
 
+  @@index([studentId])
+  @@index([schoolId])
+  @@index([createdAt])
   @@map("diagnosis_results")
 }
 
@@ -482,6 +500,9 @@ model AIOutput {
   activity  Activity?    @relation(fields: [activityId], references: [id])
   feedbacks AIFeedback[]
 
+  @@index([studentId])
+  @@index([type])
+  @@index([createdAt])
   @@map("ai_outputs")
 }
 
@@ -536,6 +557,9 @@ model WeeklyTask {
 
   plan ActionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
+  @@index([planId])
+  @@index([status])
+  @@index([dueDate])
   @@map("weekly_tasks")
 }
 
@@ -879,6 +903,8 @@ model CustomDDay {
 
   student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
+  @@index([studentId])
+  @@index([date])
   @@map("custom_ddays")
 }
 

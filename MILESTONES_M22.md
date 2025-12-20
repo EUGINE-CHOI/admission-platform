@@ -173,3 +173,4 @@ frontend/src/components/ui/
 - [x] 버튼 눌림 효과 동작
 - [x] 카드 옵션 동작
 
+

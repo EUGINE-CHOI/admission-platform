@@ -152,3 +152,4 @@ backend/src/gamification/
 - [x] 목표 달성률 계산
 - [x] 시뮬레이션 확률 표시
 
+

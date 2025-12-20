@@ -71,3 +71,4 @@ frontend/src/app/dashboard/student/news/
 - [x] WP11.2: 상세 모달
 - [x] WP11.3: 데모 모드
 
+

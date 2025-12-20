@@ -90,3 +90,4 @@ frontend/src/components/
 - [x] 로딩 상태 UI 표시
 - [x] 에러 상태 UI 표시
 
+

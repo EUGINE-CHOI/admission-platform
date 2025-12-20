@@ -1,10 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as compression from 'compression';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Gzip 압축 활성화 (성능 최적화)
+  app.use(compression());
 
   // CORS 활성화 - 개발 환경에서는 모든 origin 허용
   app.enableCors({

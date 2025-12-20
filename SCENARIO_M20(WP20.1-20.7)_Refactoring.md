@@ -314,3 +314,4 @@ return ApiResponse.success(result);
 - [x] WP20.6: Backend 응답 형식
 - [ ] WP20.7: AI 서비스 통합 (예정)
 
+

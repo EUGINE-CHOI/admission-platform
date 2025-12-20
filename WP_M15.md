@@ -79,3 +79,4 @@ frontend/src/components/
 - [x] WP15.2: 이메일 알림
 - [x] WP15.3: 로딩/에러 UI
 
+

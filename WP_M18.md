@@ -164,3 +164,4 @@ backend/src/gamification/
 - [x] WP18.6: 목표 트래커
 - [x] WP18.7: 시뮬레이션
 
+

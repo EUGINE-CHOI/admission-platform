@@ -68,3 +68,4 @@ export function CompetitionRateChart({ data }: CompetitionRateChartProps) {
 
 
 
+

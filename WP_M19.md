@@ -109,3 +109,4 @@ backend/src/ai/
 - [x] WP19.3: AI 자기소개서
 - [x] WP19.4: 합격 예측 AI
 
+

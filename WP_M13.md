@@ -98,3 +98,4 @@ backend/src/ai/
 - [x] WP13.3: 학교 추천
 - [x] WP13.4: AI 히스토리
 
+

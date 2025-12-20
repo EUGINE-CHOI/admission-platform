@@ -131,3 +131,4 @@ backend/src/common/
 - [x] WP20.6: Backend 응답
 - [ ] WP20.7: AI 서비스 (예정)
 
+

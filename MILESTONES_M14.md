@@ -93,3 +93,4 @@ frontend/src/app/dashboard/parent/
 - [x] 보호자 대시보드 차트 표시
 - [x] 용어 통일 완료
 
+

@@ -124,3 +124,4 @@ frontend/src/app/dashboard/student/
 - [x] AI 자기소개서 생성 동작
 - [x] 합격 예측 확률 표시
 
+

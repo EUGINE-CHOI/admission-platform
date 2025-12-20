@@ -99,3 +99,4 @@ backend/src/diagnosis/
 - [x] 진단 알고리즘 가중치 적용
 - [x] 학교 유형별 진단 결과 차별화
 
+
