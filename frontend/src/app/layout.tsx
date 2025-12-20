@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { SkipToContent } from "@/components/a11y";
 import { InstallPrompt } from "@/components/pwa";
+import { ToastProvider } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "입시 로드맵 | 정보 격차 해소 플랫폼",
@@ -50,8 +51,10 @@ export default function RootLayout({
         <SkipToContent />
         <SWRProvider>
           <ThemeProvider>
-            {children}
-            <InstallPrompt />
+            <ToastProvider>
+              {children}
+              <InstallPrompt />
+            </ToastProvider>
           </ThemeProvider>
         </SWRProvider>
       </body>

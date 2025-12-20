@@ -14,4 +14,11 @@ export {
   DashboardSkeleton 
 } from "./Skeleton";
 
+// Micro Interactions
+export { ToastProvider, useToast } from "./Toast";
+export { Confetti, useConfetti } from "./Confetti";
+export { AnimatedCheck } from "./AnimatedCheck";
+export { CountUp } from "./CountUp";
+export { RippleButton } from "./RippleButton";
+
 
