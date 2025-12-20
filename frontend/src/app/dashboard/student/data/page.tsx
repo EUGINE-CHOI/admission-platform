@@ -491,7 +491,24 @@ function DataForm({
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }) {
-  const [formData, setFormData] = useState<any>(initialData || {});
+  // 기본값 설정
+  const getDefaultData = () => {
+    if (initialData) return initialData;
+    
+    if (tab === "grades") {
+      return {
+        subject: "",
+        written1: 0,
+        written2: 0,
+        performance: 0,
+        semester: 1,
+        year: new Date().getFullYear(),
+      };
+    }
+    return {};
+  };
+  
+  const [formData, setFormData] = useState<any>(getDefaultData());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
