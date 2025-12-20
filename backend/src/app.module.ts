@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -33,6 +35,24 @@ import { CommunityModule } from './community/community.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Rate Limiting: 기본 1분당 60회 제한
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000, // 1초
+        limit: 3, // 초당 3회 (DDoS 방지)
+      },
+      {
+        name: 'medium',
+        ttl: 10000, // 10초
+        limit: 20, // 10초당 20회
+      },
+      {
+        name: 'long',
+        ttl: 60000, // 1분
+        limit: 100, // 1분당 100회
+      },
+    ]),
     CommonModule,
     PrismaModule,
     NotificationModule,
@@ -60,6 +80,13 @@ import { CommunityModule } from './community/community.module';
     CommunityModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // 전역 Rate Limiting 가드
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

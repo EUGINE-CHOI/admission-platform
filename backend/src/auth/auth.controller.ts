@@ -7,6 +7,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { SignupDto, LoginDto } from './dto';
 import { JwtAuthGuard, JwtRefreshGuard } from './guards';
@@ -17,17 +18,21 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 1분에 3회 (브루트포스 방지)
   @ApiOperation({ summary: '회원가입', description: '새로운 사용자를 등록합니다.' })
   @ApiResponse({ status: 201, description: '회원가입 성공' })
   @ApiResponse({ status: 409, description: '이미 가입된 이메일' })
+  @ApiResponse({ status: 429, description: '너무 많은 요청 (Rate Limit 초과)' })
   signup(@Body() dto: SignupDto) {
     return this.authService.signup(dto);
   }
 
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 1분에 5회 (브루트포스 방지)
   @ApiOperation({ summary: '로그인', description: '이메일과 비밀번호로 로그인합니다.' })
   @ApiResponse({ status: 200, description: '로그인 성공, accessToken/refreshToken 반환' })
   @ApiResponse({ status: 401, description: '이메일 또는 비밀번호 불일치' })
+  @ApiResponse({ status: 429, description: '너무 많은 요청 (Rate Limit 초과)' })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }

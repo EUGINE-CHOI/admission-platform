@@ -1,19 +1,78 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as compression from 'compression';
+import compression from 'compression';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // 보안 헤더 설정 (Helmet)
+  app.use(
+    helmet({
+      // Content Security Policy - Swagger UI 호환성을 위해 일부 완화
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"], // Swagger UI 스타일
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Swagger UI 스크립트
+          imgSrc: ["'self'", 'data:', 'https:'],
+          fontSrc: ["'self'", 'https:', 'data:'],
+          connectSrc: ["'self'"],
+        },
+      },
+      // X-Frame-Options: Clickjacking 방지
+      frameguard: { action: 'deny' },
+      // X-Content-Type-Options: MIME 스니핑 방지
+      noSniff: true,
+      // X-XSS-Protection: XSS 필터 활성화
+      xssFilter: true,
+      // Referrer-Policy: 리퍼러 정보 제한
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      // HSTS: HTTPS 강제 (프로덕션에서만)
+      hsts: process.env.NODE_ENV === 'production' 
+        ? { maxAge: 31536000, includeSubDomains: true }
+        : false,
+    }),
+  );
+
   // Gzip 압축 활성화 (성능 최적화)
   app.use(compression());
 
-  // CORS 활성화 - 개발 환경에서는 모든 origin 허용
+  // CORS 설정 - 환경변수 기반
+  const corsOrigins = process.env.CORS_ORIGINS;
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   app.enableCors({
-    origin: true, // 모든 origin 허용 (개발용)
+    origin: (origin, callback) => {
+      // 프로덕션: 화이트리스트 기반
+      if (isProduction) {
+        const allowedOrigins = corsOrigins
+          ? corsOrigins.split(',').map(o => o.trim())
+          : [];
+        
+        // origin이 없는 경우 (같은 도메인 요청, Postman 등)
+        if (!origin) {
+          return callback(null, true);
+        }
+        
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        console.warn(`[CORS] Blocked origin: ${origin}`);
+        return callback(new Error('CORS not allowed'), false);
+      }
+      
+      // 개발환경: 모든 origin 허용
+      return callback(null, true);
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Limit'],
+    maxAge: 86400, // preflight 캐시 24시간
   });
 
   // 전역 Validation Pipe
@@ -104,8 +163,16 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   // 모든 네트워크 인터페이스에서 리스닝 (모바일 테스트용)
   await app.listen(port, '0.0.0.0');
+  
+  // 환경 정보 로그
+  console.log('='.repeat(50));
   console.log(`🚀 Application is running on: http://localhost:${port}/api`);
   console.log(`📚 Swagger docs available at: http://localhost:${port}/api-docs`);
   console.log(`📱 Mobile access: http://[YOUR_IP]:${port}/api`);
+  console.log('='.repeat(50));
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔒 CORS Origins: ${isProduction ? (corsOrigins || 'NOT SET!') : 'ALL (dev mode)'}`);
+  console.log(`🛡️  Security: Helmet ${isProduction ? '+ HSTS' : ''} enabled`);
+  console.log('='.repeat(50));
 }
 bootstrap();

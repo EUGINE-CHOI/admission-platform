@@ -121,24 +121,25 @@ describe('AiService', () => {
 
   describe('createFeedback', () => {
     const userId = 'user-1';
+    const outputId = 'output-1';
     const dto = {
-      outputId: 'output-1',
       type: FeedbackType.LIKE,
     };
 
     it('피드백 생성 성공', async () => {
       mockPrismaService.aIOutput.findUnique.mockResolvedValue({
-        id: 'output-1',
+        id: outputId,
         studentId: userId,
       });
       mockPrismaService.aIFeedback.findUnique.mockResolvedValue(null);
       mockPrismaService.aIFeedback.create.mockResolvedValue({
         id: 'feedback-1',
+        outputId,
         ...dto,
         userId,
       });
 
-      const result = await service.createFeedback(userId, dto);
+      const result = await service.createFeedback(userId, outputId, dto);
 
       expect(result).toHaveProperty('feedback');
       expect(result).toHaveProperty('message');
@@ -148,35 +149,34 @@ describe('AiService', () => {
     it('AI 출력이 없으면 NotFoundException', async () => {
       mockPrismaService.aIOutput.findUnique.mockResolvedValue(null);
 
-      await expect(service.createFeedback(userId, dto)).rejects.toThrow(NotFoundException);
+      await expect(service.createFeedback(userId, outputId, dto)).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('getAIHistory', () => {
+  describe('getRecordSentenceHistory', () => {
     const studentId = 'student-1';
 
     it('AI 히스토리 조회 성공', async () => {
       mockPrismaService.aIOutput.findMany.mockResolvedValue([
         { id: 'output-1', type: AIOutputType.RECORD_SENTENCE, createdAt: new Date() },
-        { id: 'output-2', type: AIOutputType.CLUB_RECOMMENDATION, createdAt: new Date() },
+        { id: 'output-2', type: AIOutputType.RECORD_SENTENCE, createdAt: new Date() },
       ]);
 
-      const result = await service.getAIHistory(studentId);
+      const result = await service.getRecordSentenceHistory(studentId);
 
-      expect(result).toHaveProperty('outputs');
-      expect(result.outputs).toHaveLength(2);
+      expect(result).toHaveProperty('history');
     });
 
-    it('타입별 필터링', async () => {
+    it('제한 개수 적용', async () => {
       mockPrismaService.aIOutput.findMany.mockResolvedValue([
         { id: 'output-1', type: AIOutputType.RECORD_SENTENCE, createdAt: new Date() },
       ]);
 
-      const result = await service.getAIHistory(studentId, AIOutputType.RECORD_SENTENCE);
+      await service.getRecordSentenceHistory(studentId, 5);
 
       expect(mockPrismaService.aIOutput.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ type: AIOutputType.RECORD_SENTENCE }),
+          take: 5,
         }),
       );
     });
@@ -229,16 +229,14 @@ describe('AiService', () => {
 
   describe('generateQuickAdvice', () => {
     const studentId = 'student-1';
-    const dto = {
-      question: '영어 성적을 올리려면 어떻게 해야 하나요?',
-      category: 'STUDY' as const,
-    };
+    const topic = '영어 성적 향상';
 
     it('빠른 조언 생성 성공 (모킹 모드)', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue({
         id: studentId,
         name: '테스트 학생',
         grade: 3,
+        middleSchool: { name: '테스트중' },
       });
       mockPrismaService.grade.findMany.mockResolvedValue([]);
       mockPrismaService.aIOutput.create.mockResolvedValue({
@@ -246,7 +244,7 @@ describe('AiService', () => {
         type: AIOutputType.SUBJECT_ADVICE,
       });
 
-      const result = await service.generateQuickAdvice(studentId, dto);
+      const result = await service.generateQuickAdvice(studentId, topic);
 
       expect(result).toHaveProperty('advice');
       expect(result).toHaveProperty('followUpQuestions');

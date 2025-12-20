@@ -21,7 +21,9 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@nestjs/throttler": "^6.4.0",
     "compression": "^1.7.4",
+    "helmet": "^8.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
