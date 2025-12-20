@@ -10,6 +10,10 @@ interface CardProps {
   glass?: boolean;
   padding?: "none" | "sm" | "md" | "lg";
   onClick?: () => void;
+  /** 클릭 가능한 카드일 경우 접근성 레이블 */
+  "aria-label"?: string;
+  /** 카드의 역할 (article, region 등) */
+  role?: string;
 }
 
 export function Card({
@@ -20,6 +24,8 @@ export function Card({
   glass = false,
   padding = "md",
   onClick,
+  "aria-label": ariaLabel,
+  role,
 }: CardProps) {
   const paddings = {
     none: "",
@@ -38,9 +44,24 @@ export function Card({
 
   const animateStyles = animate ? "animate-fade-in" : "";
 
+  // 클릭 가능한 카드는 버튼 역할
+  const isClickable = !!onClick;
+  const cardRole = role || (isClickable ? "button" : undefined);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isClickable && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      onClick?.();
+    }
+  };
+
   return (
     <div
       onClick={onClick}
+      onKeyDown={isClickable ? handleKeyDown : undefined}
+      role={cardRole}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={ariaLabel}
       className={`
         ${baseStyles}
         rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm
@@ -48,6 +69,7 @@ export function Card({
         ${hoverStyles}
         ${animateStyles}
         ${paddings[padding]}
+        ${isClickable ? "focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2" : ""}
         ${className}
       `}
     >

@@ -9,6 +9,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  /** 아이콘만 있는 버튼일 경우 접근성 레이블 필수 */
+  "aria-label"?: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -52,15 +54,20 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
         disabled={disabled || isLoading}
+        aria-busy={isLoading}
+        aria-disabled={disabled || isLoading}
         {...props}
       >
         {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+            <span className="sr-only">로딩 중...</span>
+          </>
         ) : (
-          leftIcon
+          leftIcon && <span aria-hidden="true">{leftIcon}</span>
         )}
         {children}
-        {!isLoading && rightIcon}
+        {!isLoading && rightIcon && <span aria-hidden="true">{rightIcon}</span>}
       </button>
     );
   }
