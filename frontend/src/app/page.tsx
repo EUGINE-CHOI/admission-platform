@@ -101,12 +101,11 @@ export default function Home() {
         <div className="absolute inset-0 bg-[#0A0A0F]/70 backdrop-blur-xl border-b border-white/5" />
         <nav className="relative max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight">3m5m</span>
-              <span className="text-[10px] text-slate-500 -mt-0.5">3 Minutes Input, 5 Minutes Strategy</span>
+              <span className="text-2xl font-black italic text-white tracking-tight">
+                3m<span className="text-yellow-400">⚡</span>5m
+              </span>
+              <span className="text-[10px] text-slate-500 -mt-1">3 Minutes Input, 5 Minutes Strategy</span>
             </div>
           </Link>
           <div className="flex items-center gap-3">
@@ -553,12 +552,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <span className="font-bold text-lg">3m5m</span>
-                <p className="text-xs text-slate-500">생기부 입력 3분, 합격 전략 5분</p>
+              <div className="flex flex-col">
+                <span className="text-xl font-black italic text-white tracking-tight">
+                  3m<span className="text-yellow-400">⚡</span>5m
+                </span>
+                <p className="text-xs text-slate-500 -mt-0.5">생기부 입력 3분, 합격 전략 5분</p>
               </div>
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-500">

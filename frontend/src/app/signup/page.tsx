@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Zap, Eye, EyeOff, Loader2, User, Users, Briefcase, School, Search, MapPin, ExternalLink, X, ArrowLeft, Check } from "lucide-react";
+import { Eye, EyeOff, Loader2, User, Users, Briefcase, School, Search, MapPin, ExternalLink, X, ArrowLeft, Check } from "lucide-react";
 import { getApiUrl } from "@/lib/api";
 
 type Role = "STUDENT" | "PARENT" | "CONSULTANT";
@@ -132,10 +132,9 @@ export default function SignupPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-lg font-bold tracking-tight">3m5m</span>
+          <span className="text-2xl font-black italic text-white tracking-tight">
+            3m<span className="text-yellow-400">⚡</span>5m
+          </span>
         </Link>
 
         {/* Card */}

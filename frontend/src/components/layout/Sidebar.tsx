@@ -183,13 +183,12 @@ export function Sidebar({ role, onClose, isMobile }: SidebarProps) {
       
       {/* Logo */}
       <div className="relative h-16 flex items-center justify-between px-5 border-b border-white/5">
-          <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
+        <div className="flex items-center gap-3">
           <div className="flex flex-col">
-            <span className="text-base font-bold text-white tracking-tight">3m5m</span>
-            <span className="text-[10px] text-slate-500 -mt-0.5 tracking-wider">3 Minutes Input, 5 Minutes Strategy</span>
+            <span className="text-2xl font-black italic text-white tracking-tight">
+              3m<span className="text-yellow-400">⚡</span>5m
+            </span>
+            <span className="text-[10px] text-slate-500 -mt-1 tracking-wider">3 Minutes Input, 5 Minutes Strategy</span>
           </div>
         </div>
         {isMobile && onClose && (

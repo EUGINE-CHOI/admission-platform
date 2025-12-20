@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Zap, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import { getApiUrl, setToken } from "@/lib/api";
 
 export default function LoginPage() {
@@ -82,10 +82,9 @@ export default function LoginPage() {
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative p-12 flex-col justify-between">
         <Link href="/" className="flex items-center gap-2.5 relative z-10">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-lg font-bold tracking-tight">3m5m</span>
+          <span className="text-2xl font-black italic text-white tracking-tight">
+            3m<span className="text-yellow-400">⚡</span>5m
+          </span>
         </Link>
 
         <div className="relative z-10">
@@ -111,10 +110,9 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <Link href="/" className="lg:hidden flex items-center gap-2.5 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">3m5m</span>
+            <span className="text-2xl font-black italic text-white tracking-tight">
+              3m<span className="text-yellow-400">⚡</span>5m
+            </span>
           </Link>
 
           {/* Back Button */}
