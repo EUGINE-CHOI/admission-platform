@@ -30,7 +30,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^14.2.15",
+    "@next/bundle-analyzer": "^14.2.35",
     "@testing-library/cypress": "^10.1.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

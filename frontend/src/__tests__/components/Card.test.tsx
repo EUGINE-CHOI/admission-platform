@@ -30,7 +30,7 @@ describe('Card 컴포넌트', () => {
       </Card>
     );
     const card = container.firstChild as HTMLElement;
-    expect(card).toHaveClass('hover:shadow-md');
+    expect(card).toHaveClass('hover:shadow-lg'); // hover:shadow-lg 사용
   });
 
   it('padding 옵션 적용', () => {
@@ -41,6 +41,26 @@ describe('Card 컴포넌트', () => {
     );
     const card = container.firstChild as HTMLElement;
     expect(card).toHaveClass('p-8');
+  });
+
+  it('glass 효과 적용', () => {
+    const { container } = render(
+      <Card glass>
+        <CardContent>Glass 카드</CardContent>
+      </Card>
+    );
+    const card = container.firstChild as HTMLElement;
+    expect(card).toHaveClass('backdrop-blur-md');
+  });
+
+  it('animate 효과 적용', () => {
+    const { container } = render(
+      <Card animate>
+        <CardContent>Animate 카드</CardContent>
+      </Card>
+    );
+    const card = container.firstChild as HTMLElement;
+    expect(card).toHaveClass('animate-fade-in');
   });
 });
 
@@ -71,5 +91,17 @@ describe('StatCard 컴포넌트', () => {
       />
     );
     expect(screen.getByText('+12%')).toBeInTheDocument();
+  });
+
+  it('negative trend 표시', () => {
+    render(
+      <StatCard
+        icon={<Star />}
+        title="감소율"
+        value={30}
+        trend={{ value: 5, isPositive: false }}
+      />
+    );
+    expect(screen.getByText('-5%')).toBeInTheDocument();
   });
 });
