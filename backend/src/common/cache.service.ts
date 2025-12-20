@@ -142,3 +142,5 @@ export const CACHE_TTL = {
   VERY_LONG: 60 * 60 * 1000, // 1시간
 } as const;
 
+
+

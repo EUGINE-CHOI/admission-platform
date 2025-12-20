@@ -94,3 +94,5 @@ frontend/src/app/dashboard/parent/
 - [x] 용어 통일 완료
 
 
+
+

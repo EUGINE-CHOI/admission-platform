@@ -181,3 +181,5 @@ Tests:       24 passed, 24 total
 - **담당**: AI Agent (Claude)
 - **검토 필요**: 프로덕션 배포 전 보안 전문가 검토 권장
 
+
+

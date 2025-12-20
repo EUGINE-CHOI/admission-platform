@@ -234,3 +234,5 @@ Admin Dashboard → 학교/전형 관리 → AI 품질 관리 → 사용자 관�
 > GitHub, Notion 등에서 렌더링됩니다.
 
 
+
+

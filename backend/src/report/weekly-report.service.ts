@@ -292,7 +292,7 @@ export class WeeklyReportService {
   </div>
 
   <div class="footer">
-    <p>입시로드맵 - 입시 정보 격차 해소 플랫폼</p>
+    <p>3m5m - 생기부 입력 3분, 합격 전략 5분</p>
     <p>더 자세한 내용은 <a href="${process.env.FRONTEND_URL || 'http://localhost:3001'}/dashboard/parent">대시보드</a>에서 확인하세요.</p>
   </div>
 </body>
@@ -342,7 +342,7 @@ export class WeeklyReportService {
 
       await this.emailService.sendEmail({
         to: parent.email,
-        subject: `[입시로드맵] ${report.studentName}님의 주간 학습 리포트`,
+        subject: `[3m5m] ${report.studentName}님의 주간 학습 리포트`,
         html,
       });
 

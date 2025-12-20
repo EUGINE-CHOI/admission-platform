@@ -69,7 +69,7 @@ export class EmailService {
     
     return this.sendEmail({
       to,
-      subject: '🎉 입시로드맵에 오신 것을 환영합니다!',
+      subject: '🎉 3m5m에 오신 것을 환영합니다!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -87,13 +87,13 @@ export class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🎓 입시로드맵</h1>
-              <p>고등학교 입시 준비의 시작</p>
+              <h1>⚡ 3m5m</h1>
+              <p>생기부 입력 3분, 합격 전략 5분</p>
             </div>
             <div class="content">
               <h2>안녕하세요, ${name}님! 👋</h2>
               <p><strong>${roleLabel}</strong>으로 가입해주셔서 감사합니다.</p>
-              <p>입시로드맵과 함께 체계적인 입시 준비를 시작해보세요:</p>
+              <p>3m5m과 함께 체계적인 입시 준비를 시작해보세요:</p>
               <ul>
                 <li>📊 맞춤형 진단 분석</li>
                 <li>🤖 AI 멘토 상담</li>
@@ -103,13 +103,13 @@ export class EmailService {
               <a href="http://localhost:4000/login" class="button">시작하기</a>
             </div>
             <div class="footer">
-              <p>© 2025 입시로드맵. All rights reserved.</p>
+              <p>© 2025 3m5m. All rights reserved.</p>
             </div>
           </div>
         </body>
         </html>
       `,
-      text: `안녕하세요, ${name}님! 입시로드맵에 ${roleLabel}으로 가입해주셔서 감사합니다.`,
+      text: `안녕하세요, ${name}님! 3m5m에 ${roleLabel}으로 가입해주셔서 감사합니다.`,
     });
   }
 
@@ -167,7 +167,7 @@ export class EmailService {
               <a href="http://localhost:4000/dashboard" style="display: inline-block; background: #0ea5e9; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px;">대시보드 확인</a>
             </div>
             <div class="footer">
-              <p>© 2025 입시로드맵. All rights reserved.</p>
+              <p>© 2025 3m5m. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -211,7 +211,7 @@ export class EmailService {
               <p>학생이 회원가입 시 이 코드를 입력하면 자동으로 연결됩니다.</p>
             </div>
             <div class="footer">
-              <p>© 2025 입시로드맵. All rights reserved.</p>
+              <p>© 2025 3m5m. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -263,7 +263,7 @@ export class EmailService {
               <a href="http://localhost:4000/dashboard/student/dday" class="button">일정 확인하기</a>
             </div>
             <div class="footer">
-              <p>© 2025 입시로드맵. All rights reserved.</p>
+              <p>© 2025 3m5m. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -338,7 +338,7 @@ export class EmailService {
               <a href="http://localhost:4000/dashboard/student" class="button">대시보드 확인</a>
             </div>
             <div class="footer">
-              <p>© 2025 입시로드맵. All rights reserved.</p>
+              <p>© 2025 3m5m. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -384,7 +384,7 @@ export class EmailService {
               <a href="http://localhost:4000/dashboard/student/diagnosis" class="button">결과 확인하기</a>
             </div>
             <div class="footer">
-              <p>© 2025 입시로드맵. All rights reserved.</p>
+              <p>© 2025 3m5m. All rights reserved.</p>
             </div>
           </div>
         </body>

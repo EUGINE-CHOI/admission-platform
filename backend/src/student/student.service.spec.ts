@@ -59,7 +59,8 @@ describe('StudentService', () => {
       subject: '국어',
       year: 2024,
       semester: 1,
-      written: 95,
+      written1: 95,
+      written2: 92,
       performance: 90,
       rank: 2,
     };

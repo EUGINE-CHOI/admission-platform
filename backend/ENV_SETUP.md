@@ -69,3 +69,5 @@ CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com
 3. CORS_ORIGINS에 신뢰할 수 있는 도메인만 추가
 4. API 키는 환경변수로만 관리
 
+
+

@@ -100,3 +100,5 @@ backend/src/diagnosis/
 - [x] 학교 유형별 진단 결과 차별화
 
 
+
+

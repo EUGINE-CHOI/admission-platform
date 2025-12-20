@@ -240,12 +240,10 @@ async function main() {
     try {
       await prisma.middleSchool.upsert({
         where: {
-          name_region: {
-            name: school.name,
-            region: school.region,
-          },
+          name: school.name,
         },
         update: {
+          region: school.region,
           district: school.district,
           website: school.website,
         },
@@ -276,6 +274,8 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+
 
 
 

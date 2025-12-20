@@ -27,8 +27,8 @@ interface TourStep {
 const STUDENT_STEPS: TourStep[] = [
   {
     id: "welcome",
-    title: "입시로드맵에 오신 것을 환영합니다! 🎉",
-    description: "고등학교 입시 준비를 위한 최적의 파트너입니다. 간단한 가이드를 통해 주요 기능을 알아보세요.",
+    title: "3m5m에 오신 것을 환영합니다! 🎉",
+    description: "생기부 입력 3분, 합격 전략 5분! 고입 준비를 위한 최적의 AI 파트너입니다.",
     icon: <Sparkles className="w-8 h-8 text-amber-500" />,
     position: "center",
   },
@@ -65,7 +65,7 @@ const STUDENT_STEPS: TourStep[] = [
 const PARENT_STEPS: TourStep[] = [
   {
     id: "welcome",
-    title: "입시로드맵에 오신 것을 환영합니다! 🎉",
+    title: "3m5m에 오신 것을 환영합니다! 🎉",
     description: "학생의 입시 준비를 함께 관리할 수 있는 플랫폼입니다. 간단한 가이드를 통해 주요 기능을 알아보세요.",
     icon: <Sparkles className="w-8 h-8 text-amber-500" />,
     position: "center",
@@ -265,6 +265,8 @@ export function useOnboarding() {
 
   return { showTour, isFirstVisit, completeTour, resetTour };
 }
+
+
 
 
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GraduationCap, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
+import { Zap, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import { getApiUrl, setToken } from "@/lib/api";
 
 export default function LoginPage() {
@@ -83,26 +83,26 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 relative p-12 flex-col justify-between">
         <Link href="/" className="flex items-center gap-2.5 relative z-10">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-            <GraduationCap className="w-5 h-5 text-white" />
+            <Zap className="w-5 h-5 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight">입시로드맵</span>
+          <span className="text-lg font-bold tracking-tight">3m5m</span>
         </Link>
 
         <div className="relative z-10">
           <h1 className="text-4xl font-bold leading-tight mb-4">
-            입시의 모든 것,
+            생기부 입력 3분,
             <br />
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-              한 곳에서 관리하세요
+              합격 전략 5분
             </span>
           </h1>
           <p className="text-slate-400 text-lg">
-            AI 분석, 전문 상담, 맞춤 전략까지
+            AI가 분석하는 맞춤형 고입 컨설팅
           </p>
         </div>
 
         <p className="text-sm text-slate-500 relative z-10">
-          © 2025 입시로드맵. All rights reserved.
+          © 2025 3m5m. All rights reserved.
         </p>
       </div>
 
@@ -112,9 +112,9 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <Link href="/" className="lg:hidden flex items-center gap-2.5 mb-8">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-white" />
+              <Zap className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-bold tracking-tight">입시로드맵</span>
+            <span className="text-lg font-bold tracking-tight">3m5m</span>
           </Link>
 
           {/* Back Button */}

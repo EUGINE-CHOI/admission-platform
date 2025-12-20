@@ -67,7 +67,7 @@ export class GradeAnalysisService {
 
       const data = sortedData.map((g) => ({
         period: `${g.year}-${g.semester}학기`,
-        score: Math.round((g.written + g.performance) / 2),
+        score: Math.round((g.written1 + g.written2 + g.performance) / 3),
         rank: g.rank ?? undefined,
       }));
 
@@ -114,7 +114,7 @@ export class GradeAnalysisService {
     }
 
     // 전체 추이 계산
-    const allScores = grades.map((g) => (g.written + g.performance) / 2);
+    const allScores = grades.map((g) => (g.written1 + g.written2 + g.performance) / 3);
     const recentScores = allScores.slice(-5);
     const previousScores = allScores.slice(-10, -5);
 

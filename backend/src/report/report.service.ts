@@ -84,9 +84,10 @@ export class ReportService {
     } else {
       doc.fontSize(12);
       student.grades.forEach((grade) => {
-        const avgScore = Math.round((grade.written + grade.performance) / 2);
+        const writtenAvg = Math.round((grade.written1 + grade.written2) / 2);
+        const avgScore = Math.round((writtenAvg + grade.performance) / 2);
         doc.text(
-          `- ${grade.subject}: Written ${grade.written}, Performance ${grade.performance} (Avg ${avgScore}) - ${grade.year}/${grade.semester}`,
+          `- ${grade.subject}: Written1 ${grade.written1}, Written2 ${grade.written2}, Performance ${grade.performance} (Avg ${avgScore}) - ${grade.year}/${grade.semester}`,
         );
       });
     }

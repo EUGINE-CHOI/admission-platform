@@ -110,3 +110,5 @@ backend/src/ai/
 - [x] WP19.4: 합격 예측 AI
 
 
+
+

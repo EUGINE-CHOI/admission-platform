@@ -157,8 +157,9 @@ model Grade {
   subject     String
   year        Int
   semester    Int
-  written     Int
-  performance Int
+  written1    Int            // 1회고사 (중간고사)
+  written2    Int            // 2회고사 (기말고사)
+  performance Int            // 수행평가
   rank        Int?
   status      ApprovalStatus @default(PENDING)
   comment     String?

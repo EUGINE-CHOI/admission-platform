@@ -112,3 +112,5 @@ frontend/src/components/ui/
 - [x] WP22.4: 스켈레톤 개선
 
 
+
+

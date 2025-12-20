@@ -460,3 +460,5 @@ frontend/
 | 서버 사이드 캐싱 | getServerSideProps 캐싱 | 🟡 중간 |
 | 이미지 CDN | Cloudinary, imgix | 🟢 낮음 |
 
+
+

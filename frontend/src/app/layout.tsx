@@ -7,13 +7,13 @@ import { InstallPrompt } from "@/components/pwa";
 import { ToastProvider } from "@/components/ui";
 
 export const metadata: Metadata = {
-  title: "입시 로드맵 | 정보 격차 해소 플랫폼",
-  description: "중학생과 보호자를 위한 고등학교 입시 준비 플랫폼",
+  title: "3m5m | 생기부 입력 3분, 합격 전략 5분",
+  description: "AI 기반 고입 컨설팅 플랫폼. 생기부만 입력하면 5분 안에 맞춤 합격 전략을 받아보세요.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "입시로드맵",
+    title: "3m5m",
   },
   formatDetection: {
     telephone: false,

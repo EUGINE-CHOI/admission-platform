@@ -27,9 +27,12 @@ type TabType = "grades" | "activities" | "readings" | "volunteers";
 interface Grade {
   id: string;
   subject: string;
-  grade: number;
-  semester: string;
+  written1: number;  // 1회고사 (중간고사)
+  written2: number;  // 2회고사 (기말고사)
+  performance: number;
+  semester: number;
   year: number;
+  rank?: number;
 }
 
 interface Activity {
@@ -136,9 +139,13 @@ export default function StudentDataPage() {
         setIsModalOpen(false);
         setEditingItem(null);
         fetchData();
+      } else {
+        const errorData = await res.json();
+        alert(`오류: ${errorData.message || "저장에 실패했습니다."}`);
       }
     } catch (error) {
       console.error("Submit error:", error);
+      alert("서버와 통신 중 오류가 발생했습니다.");
     }
   };
 
@@ -324,7 +331,9 @@ function DataTable({
           <thead>
             <tr className="border-b border-slate-200">
               <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">과목</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">성적</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">1회고사</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">2회고사</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">수행</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">학기</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">연도</th>
               <th className="text-right py-3 px-4 text-sm font-medium text-slate-500">작업</th>
@@ -335,11 +344,21 @@ function DataTable({
               <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="py-3 px-4 text-sm font-medium text-slate-900">{item.subject}</td>
                 <td className="py-3 px-4">
-                  <Badge variant={item.grade >= 90 ? "success" : item.grade >= 70 ? "warning" : "danger"}>
-                    {item.grade}점
+                  <Badge variant={item.written1 >= 90 ? "success" : item.written1 >= 70 ? "warning" : "danger"}>
+                    {item.written1}점
                   </Badge>
                 </td>
-                <td className="py-3 px-4 text-sm text-slate-600">{item.semester}</td>
+                <td className="py-3 px-4">
+                  <Badge variant={item.written2 >= 90 ? "success" : item.written2 >= 70 ? "warning" : "danger"}>
+                    {item.written2}점
+                  </Badge>
+                </td>
+                <td className="py-3 px-4">
+                  <Badge variant={item.performance >= 90 ? "success" : item.performance >= 70 ? "warning" : "danger"}>
+                    {item.performance}점
+                  </Badge>
+                </td>
+                <td className="py-3 px-4 text-sm text-slate-600">{item.semester}학기</td>
                 <td className="py-3 px-4 text-sm text-slate-600">{item.year}</td>
                 <td className="py-3 px-4 text-right">
                   <div className="flex justify-end gap-2">
@@ -486,47 +505,93 @@ function DataForm({
     setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
+  const subjectOptions = [
+    { value: "", label: "과목 선택" },
+    { value: "국어", label: "국어" },
+    { value: "영어", label: "영어" },
+    { value: "수학", label: "수학" },
+    { value: "사회", label: "사회" },
+    { value: "과학", label: "과학" },
+    { value: "한국사", label: "한국사" },
+    { value: "도덕", label: "도덕" },
+    { value: "기술가정", label: "기술가정" },
+    { value: "정보", label: "정보" },
+    { value: "음악", label: "음악" },
+    { value: "미술", label: "미술" },
+    { value: "체육", label: "체육" },
+    { value: "한문", label: "한문" },
+    { value: "중국어", label: "중국어" },
+    { value: "일본어", label: "일본어" },
+    { value: "스페인어", label: "스페인어" },
+    { value: "프랑스어", label: "프랑스어" },
+    { value: "독일어", label: "독일어" },
+  ];
+
   if (tab === "grades") {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
+        <Select
           label="과목"
-          placeholder="예: 국어, 수학, 영어"
+          options={subjectOptions}
           value={formData.subject || ""}
           onChange={(e) => updateField("subject", e.target.value)}
           required
         />
-        <Input
-          label="성적"
-          type="number"
-          min={0}
-          max={100}
-          placeholder="0~100"
-          value={formData.grade || ""}
-          onChange={(e) => updateField("grade", parseInt(e.target.value))}
-          required
-        />
-        <Select
-          label="학기"
-          options={[
-            { value: "", label: "학기 선택" },
-            { value: "1학기", label: "1학기" },
-            { value: "2학기", label: "2학기" },
-          ]}
-          value={formData.semester || ""}
-          onChange={(e) => updateField("semester", e.target.value)}
-          required
-        />
-        <Input
-          label="연도"
-          type="number"
-          min={2020}
-          max={2030}
-          placeholder="2024"
-          value={formData.year || new Date().getFullYear()}
-          onChange={(e) => updateField("year", parseInt(e.target.value))}
-          required
-        />
+        <div className="grid grid-cols-3 gap-4">
+          <Input
+            label="1회고사 (중간)"
+            type="number"
+            min={0}
+            max={100}
+            placeholder="0~100"
+            value={formData.written1 ?? ""}
+            onChange={(e) => updateField("written1", parseInt(e.target.value) || 0)}
+            required
+          />
+          <Input
+            label="2회고사 (기말)"
+            type="number"
+            min={0}
+            max={100}
+            placeholder="0~100"
+            value={formData.written2 ?? ""}
+            onChange={(e) => updateField("written2", parseInt(e.target.value) || 0)}
+            required
+          />
+          <Input
+            label="수행평가"
+            type="number"
+            min={0}
+            max={100}
+            placeholder="0~100"
+            value={formData.performance ?? ""}
+            onChange={(e) => updateField("performance", parseInt(e.target.value) || 0)}
+            required
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Select
+            label="학기"
+            options={[
+              { value: "", label: "학기 선택" },
+              { value: "1", label: "1학기" },
+              { value: "2", label: "2학기" },
+            ]}
+            value={formData.semester?.toString() || ""}
+            onChange={(e) => updateField("semester", parseInt(e.target.value))}
+            required
+          />
+          <Input
+            label="연도"
+            type="number"
+            min={2020}
+            max={2030}
+            placeholder="2024"
+            value={formData.year || new Date().getFullYear()}
+            onChange={(e) => updateField("year", parseInt(e.target.value))}
+            required
+          />
+        </div>
         <div className="flex gap-3 pt-4">
           <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
             취소

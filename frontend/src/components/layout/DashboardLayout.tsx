@@ -80,7 +80,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
       )}
 
       {/* Main Content */}
-      <div className="lg:ml-64">
+      <div className="lg:ml-[280px]">
         <Header
           user={user}
           onMenuClick={() => setIsMobileMenuOpen(true)}

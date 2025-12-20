@@ -382,7 +382,9 @@ JSON 형식으로만 응답하세요. 코드 블록(\`\`\`)을 사용하지 마�
       acc[g.subject].push({
         year: g.year,
         semester: g.semester,
-        written: g.written,
+        written1: g.written1,
+        written2: g.written2,
+        writtenAvg: Math.round((g.written1 + g.written2) / 2),
         performance: g.performance,
         rank: g.rank,
       });
@@ -967,7 +969,9 @@ ${notes.map((n, i) => `${i + 1}. ${n}`).join('\n')}
         year: g.year,
         semester: g.semester,
         rank: g.rank,
-        written: g.written,
+        written1: g.written1,
+        written2: g.written2,
+        writtenAvg: Math.round((g.written1 + g.written2) / 2),
         performance: g.performance,
       });
     });

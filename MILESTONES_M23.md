@@ -109,3 +109,5 @@ npx cypress open      # E2E 테스트 (대화형)
 
 _Last updated: 2025-12-20_
 
+
+
