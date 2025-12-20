@@ -383,7 +383,34 @@ PRD → 아키텍처 → 유저 흐름 → 비즈니스 요구를
 
 ---
 
-_Last updated: 2025-12-19_
+# 🧩 M23 — 테스트 & QA (Testing & QA Layer) ✅
+
+### 🎯 목적  
+서비스 품질 보장을 위한 종합적인 테스트 체계 구축.
+
+### 📦 산출물  
+- ✅ **Backend Unit Tests** - Jest 기반 서비스 테스트
+  - AuthService, StudentService, SchoolService, AiService
+- ✅ **Backend E2E Tests** - Supertest 기반 API 통합 테스트
+  - 인증, 학생, 학교, AI API 테스트
+- ✅ **Frontend Unit Tests** - Jest + RTL 컴포넌트 테스트
+  - 컴포넌트: Button, Badge, Card, LoadingState
+  - 유틸리티: utils, api 함수
+  - 훅: useDarkMode, useWidgetSettings
+- ✅ **E2E Tests** - Cypress 기반 시나리오 테스트
+  - auth, dashboard, student-data, school, settings, features, parent
+
+### 📊 테스트 현황
+| 영역 | 테스트 수 | 파일 수 |
+|------|----------|---------|
+| Backend Unit | 30+ | 10+ |
+| Backend E2E | 20+ | 4 |
+| Frontend Unit | 87 | 10 |
+| Cypress E2E | 80+ | 7 |
+
+---
+
+_Last updated: 2025-12-20_
 
 ### 📊 진행 현황
 | Milestone | 상태 | 완료율 |
@@ -401,3 +428,4 @@ _Last updated: 2025-12-19_
 | M20 리팩토링 | ✅ 완료 | 100% |
 | M21 기능 확장 | ✅ 완료 | 100% |
 | M22 UI/UX 고도화 | ✅ 완료 | 100% |
+| M23 테스트 & QA | ✅ 완료 | 100% |

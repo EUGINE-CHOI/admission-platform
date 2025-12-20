@@ -1404,6 +1404,13 @@ Then: Shimmer 애니메이션 적용
 **Milestone → Work Package → Scenario**  
 계층 구조를 완성한 최종 버전이다.
 
+**2025-12-20 업데이트:**
+- M23: 테스트 & QA 추가
+  - WP23.1: Backend Unit Tests (✅ 완료)
+  - WP23.2: Backend E2E Tests (✅ 완료)
+  - WP23.3: Frontend Unit Tests (✅ 완료)
+  - WP23.4: E2E Tests (Cypress) (✅ 완료)
+
 **2025-12-19 (2차) 업데이트:**
 - M21: 기능 확장 추가
   - WP21.1: PDF 리포트 다운로드 (✅ 완료)
