@@ -363,60 +363,71 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
             {/* Starter */}
-            <div className="relative p-8 bg-white/[0.02] border border-white/5 rounded-3xl hover:border-white/10 transition-all duration-300">
+            <div className="relative p-8 bg-white/[0.02] border border-white/5 rounded-3xl hover:border-white/10 transition-all duration-300 flex flex-col">
+              {/* Header */}
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-slate-300">Starter</h3>
                 <p className="text-slate-500 text-sm mt-1">입시 준비 시작하기</p>
               </div>
 
-              <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-4xl font-bold">무료</span>
+              {/* Price */}
+              <div className="h-20 mb-6">
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className="text-4xl font-bold">무료</span>
+                </div>
+                <p className="text-slate-500 text-sm">평생 무료</p>
               </div>
-              <p className="text-slate-500 text-sm mb-6">평생 무료</p>
 
-              <ul className="space-y-3 mb-8">
-                {["기본 프로필 관리", "월 3회 AI 분석", "학교 정보 열람", "커뮤니티 접근"].map((feature, fi) => (
-                  <li key={fi} className="flex items-center gap-3 text-sm">
+              {/* Features - flex-grow to push button to bottom */}
+              <ul className="space-y-3 flex-grow">
+                {["기본 프로필 관리", "월 3회 AI 분석", "학교 정보 열람", "커뮤니티 접근", "-", "-"].map((feature, fi) => (
+                  <li key={fi} className={`flex items-center gap-3 text-sm ${feature === "-" ? "invisible" : ""}`}>
                     <div className="w-5 h-5 rounded-full bg-slate-700/50 flex items-center justify-center">
                       <Check className="w-3 h-3 text-slate-400" />
                     </div>
-                    <span className="text-slate-400">{feature}</span>
+                    <span className="text-slate-400">{feature === "-" ? "placeholder" : feature}</span>
                   </li>
                 ))}
               </ul>
 
+              {/* Button - always at bottom */}
               <button
                 onClick={() => handlePlanSelect("FREE")}
-                className="w-full py-3.5 rounded-xl font-semibold bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                className="w-full py-3.5 rounded-xl font-semibold bg-white/5 border border-white/10 hover:bg-white/10 transition-all mt-8"
               >
                 무료로 시작
               </button>
             </div>
 
             {/* Pro - Popular */}
-            <div className="relative p-8 bg-gradient-to-b from-violet-600/20 to-fuchsia-600/10 border-2 border-violet-500/50 rounded-3xl scale-105 shadow-xl shadow-violet-500/10">
+            <div className="relative p-8 bg-gradient-to-b from-violet-600/20 to-fuchsia-600/10 border-2 border-violet-500/50 rounded-3xl md:scale-105 shadow-xl shadow-violet-500/10 flex flex-col">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full text-sm font-bold flex items-center gap-1.5 shadow-lg">
                 <Star className="w-4 h-4" />
                 BEST 선택
               </div>
 
+              {/* Header */}
               <div className="mb-6">
                 <h3 className="text-xl font-bold">Pro</h3>
                 <p className="text-slate-400 text-sm mt-1">본격적인 입시 준비</p>
               </div>
 
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-lg text-slate-500 line-through">₩59,000</span>
-                <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-xs font-bold rounded">33% 할인</span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold">₩39,900</span>
-                <span className="text-slate-400">/월</span>
+              {/* Price */}
+              <div className="h-20 mb-6">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-lg text-slate-500 line-through">₩59,000</span>
+                  <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-xs font-bold rounded">33% 할인</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold">₩39,900</span>
+                  <span className="text-slate-400">/월</span>
+                </div>
               </div>
 
-              <ul className="space-y-3 mb-8">
+              {/* Features */}
+              <ul className="space-y-3 flex-grow">
                 {["무제한 AI 분석", "맞춤형 플래너", "상세 리포트", "비교과 추천", "자소서 코칭", "이메일 서포트"].map((feature, fi) => (
                   <li key={fi} className="flex items-center gap-3 text-sm">
                     <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center">
@@ -427,36 +438,42 @@ export default function Home() {
                 ))}
               </ul>
 
+              {/* Button */}
               <button
                 onClick={() => handlePlanSelect("BASIC")}
-                className="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90 transition-all shadow-lg shadow-violet-500/25"
+                className="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90 transition-all shadow-lg shadow-violet-500/25 mt-8"
               >
                 Pro 시작하기
               </button>
             </div>
 
             {/* Premium */}
-            <div className="relative p-8 bg-white/[0.02] border border-white/5 rounded-3xl hover:border-white/10 transition-all duration-300">
+            <div className="relative p-8 bg-white/[0.02] border border-white/5 rounded-3xl hover:border-white/10 transition-all duration-300 flex flex-col">
               <div className="absolute top-4 right-4 px-2.5 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold rounded-full">
                 한정 수량
               </div>
 
+              {/* Header */}
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-slate-300">Premium</h3>
                 <p className="text-slate-500 text-sm mt-1">전문가와 함께하는 프리미엄</p>
               </div>
 
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-lg text-slate-500 line-through">₩150,000</span>
-                <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-xs font-bold rounded">34% 할인</span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold">₩99,000</span>
-                <span className="text-slate-400">/월</span>
+              {/* Price */}
+              <div className="h-20 mb-6">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-lg text-slate-500 line-through">₩150,000</span>
+                  <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-xs font-bold rounded">34% 할인</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold">₩99,000</span>
+                  <span className="text-slate-400">/월</span>
+                </div>
               </div>
 
-              <ul className="space-y-3 mb-8">
-                {["Pro 모든 기능", "1:1 전문가 상담", "우선 서포트", "전략 리포트", "보호자 대시보드", "모의 면접"].map((feature, fi) => (
+              {/* Features */}
+              <ul className="space-y-3 flex-grow">
+                {["Pro의 모든 기능", "1:1 전문가 상담", "우선 서포트", "전략 리포트", "보호자 대시보드", "모의 면접"].map((feature, fi) => (
                   <li key={fi} className="flex items-center gap-3 text-sm">
                     <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
                       <Check className="w-3 h-3 text-amber-400" />
@@ -466,9 +483,10 @@ export default function Home() {
                 ))}
               </ul>
 
+              {/* Button */}
               <button
                 onClick={() => handlePlanSelect("PREMIUM")}
-                className="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 transition-all shadow-lg shadow-amber-500/25"
+                className="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 transition-all shadow-lg shadow-amber-500/25 mt-8"
               >
                 Premium 시작
               </button>
