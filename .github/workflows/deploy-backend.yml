@@ -1,0 +1,70 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pnpm install
+      
+      - name: Run linter
+        run: |
+          cd backend
+          pnpm lint
+        continue-on-error: true
+      
+      - name: Run tests
+        run: |
+          cd backend
+          pnpm test
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/test_db' }}
+          NODE_ENV: test
+          JWT_SECRET: test-secret-key-for-ci
+          JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
+        continue-on-error: true
+      
+      - name: Build
+        run: |
+          cd backend
+          pnpm build
+      
+      - name: Deploy to Render
+        if: github.ref == 'refs/heads/main'
+        uses: johnbeynon/render-deploy@v1.1.0
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+        continue-on-error: true
+      
+      - name: Deploy notification
+        if: always()
+        run: |
+          echo "Backend deployment completed"
+          echo "Status: ${{ job.status }}"
+

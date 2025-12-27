@@ -1,0 +1,128 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pnpm install
+      
+      - name: Generate Prisma Client
+        run: |
+          cd backend
+          pnpm prisma generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db?schema=public
+      
+      - name: Run database migrations
+        run: |
+          cd backend
+          pnpm prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db?schema=public
+      
+      - name: Run linter
+        run: |
+          cd backend
+          pnpm lint
+      
+      - name: Run tests
+        run: |
+          cd backend
+          pnpm test
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db?schema=public
+          NODE_ENV: test
+          JWT_SECRET: test-secret-key-for-ci
+          JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
+      
+      - name: Run E2E tests
+        run: |
+          cd backend
+          pnpm test:e2e
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db?schema=public
+          NODE_ENV: test
+          JWT_SECRET: test-secret-key-for-ci
+          JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
+
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      
+      - name: Install dependencies
+        run: |
+          cd frontend
+          pnpm install
+      
+      - name: Run linter
+        run: |
+          cd frontend
+          pnpm lint
+      
+      - name: Run tests
+        run: |
+          cd frontend
+          pnpm test
+        env:
+          CI: true
+      
+      - name: Build
+        run: |
+          cd frontend
+          pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+
